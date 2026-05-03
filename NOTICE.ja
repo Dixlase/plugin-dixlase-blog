@@ -1,0 +1,36 @@
+=======================================================================
+
+    Dixlase Blog
+
+    Copyright (C) 2026 exc-D inc. <https://exc-d.com>
+
+    Dixlase Blog はデュアルライセンス方式で配布されています。
+    以下のいずれかの条件で利用することができます:
+
+      (a) Free Software Foundation が公開する GNU General Public
+          License バージョン 3 の条項(全文は LICENSE に記載); または
+
+      (b) exc-D inc. から提供される商用ライセンス
+          (詳細は LICENSE.commercial、または
+          office@exc-d.com までお問い合わせください)。
+
+    本プラグインリポジトリへのコントリビューションは、
+    Dixlase コピーライトポリシーおよび Dixlase コントリビューター
+    ライセンス契約 (CLA) の対象となります(詳細は CONTRIBUTING.md を
+    参照。CLA の正本は Dixlase Core リポジトリにあります)。
+
+    商用ライセンス契約を締結していない場合、本プロジェクトは
+    LICENSE ファイル記載の GPL の条項の下で配布されます。
+
+=======================================================================
+
+ファイル構成:
+
+    LICENSE                GNU General Public License v3 原文
+    LICENSE.commercial     商用ライセンス条項(別途契約)
+    LICENSE.commercial-ja  LICENSE.commercial の日本語版
+    NOTICE                 プロジェクト著作権とデュアルライセンス概要
+                           (英語版)
+    NOTICE.ja              本ファイル(日本語版)
+
+=======================================================================
