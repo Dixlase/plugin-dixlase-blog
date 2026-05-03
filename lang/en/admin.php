@@ -22,5 +22,25 @@
 
 
 return [
-    'welcome' => 'Welcome to BlogPlugin plugin!',
+    'nav' => [
+        'blog' => [
+            'text' => 'Blog',
+            'index' => 'Post List',
+            'create' => 'Create Post',
+        ],
+    ],
+
+    'features' => [
+        'events' => [
+            'index' => [
+                'heading' => 'Post Title',
+            ],
+            'create' => [
+                'heading' => 'Create Post',
+            ],
+            'edit' => [
+                'heading' => 'Edit Post',
+            ],
+        ],
+    ],
 ];

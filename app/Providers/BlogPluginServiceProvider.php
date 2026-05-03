@@ -20,18 +20,27 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-namespace Plugins\BlogPlugin\App\Providers;
+namespace Plugins\DixlaseBlog\App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Traits\PluginLoaderTrait;
 
 class BlogPluginServiceProvider extends ServiceProvider
 {
+    use PluginLoaderTrait;
+
+    public function __construct($app)
+    {
+        parent::__construct($app);
+    }
+
     /**
      * Register services.
      */
     public function register(): void
     {
-        //
+        // `admin.nav` の設定をマージ
+        $this->mergeAdminNavConfig(__DIR__ . '/../../config/admin.php');
     }
 
     /**
