@@ -21,21 +21,35 @@
  */
 
 use Illuminate\Support\Facades\Route;
+use Plugins\BlogPlugin\App\Http\Controllers\admin\AdminBlogPluginController;
+use App\Models\SecuritySetting;
+
+// 管理画面のルート。
+$adminUrl = SecuritySetting::get('admin_url', config('security.admin_url'));
 
 // フロントエンドのルート。front.ipミドルウェアを適用し、IPアドレスフィルターを必ず通してください。
 //　IPアドレスフィルターを通さないとセキュリティリスクが高まります。
 Route::middleware(['front.ip'])
-    ->group(function () {
-
-    }
-);
+    ->group(
+        function () {}
+    );
 
 // 管理画面のルート。 front.ipミドルウェアを適用し、IPアドレスフィルターを必ず通してください。
 //　IPアドレスフィルターを通さないとセキュリティリスクが高まります。
 Route::prefix($adminUrl)->name('admin.')
     ->name('blog-plugin::admin.')
     ->middleware(['auth:member', 'admin.ip']) // 認証とIPアドレスフィルタ
-    ->group(function () {
-
-    }
-);
+    ->group(
+        function () {
+            // イベント一覧
+            Route::get('/blog', [AdminBlogPluginController::class, 'index'])->name('blog.index');
+            // イベント作成
+            Route::get('/blog/create', [AdminBlogPluginController::class, 'create'])->name('blog.create');
+            // イベント保存
+            Route::post('/blog/store', [AdminBlogPluginController::class, 'store'])->name('blog.store');
+            // ページ編集
+            Route::get('/blog/edit/{post}', [AdminBlogPluginController::class, 'edit'])->name('blog.edit');
+            // ページ削除
+            Route::delete('/blog/delete/{post}', [AdminBlogPluginController::class, 'destroy'])->name('blog.destroy');
+        }
+    );
