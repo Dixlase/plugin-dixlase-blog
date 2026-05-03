@@ -1,7 +1,7 @@
 {
-    "software": "Blog Plugin",
+    "software": "Dixlase Blog",
     "author": "exc-D inc.",
     "website": "https://exc-d.com",
-    "license": "GPL-3.0-or-later",
+    "license": "GPL-3.0",
     "template": "license-gpl.txt"
 }
