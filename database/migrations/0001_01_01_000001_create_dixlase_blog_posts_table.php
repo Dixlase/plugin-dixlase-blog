@@ -44,7 +44,12 @@ return new class extends Migration
             $table->string('slug', 200);
             $table->longText('content')->nullable();
             $table->text('excerpt')->nullable();
-            $table->string('featured_image')->nullable();
+            // Reference to a row in the core `media` table. We deliberately
+            // skip a hard FK constraint to keep plugin → core table coupling
+            // loose (matches the pattern used by core FrontPageRevision for
+            // site_id); orphaned ids are tolerated and the public side falls
+            // back to a placeholder if the media row was deleted.
+            $table->unsignedBigInteger('featured_media_id')->nullable()->index();
             // Editor type (1=gui, 2=markdown, 3=html, 4=blade) — see App\Enums\ContentEditorType
             $table->tinyInteger('editor_type')->default(1);
             // Status (0=draft, 1=published, 2=scheduled) — see App\Enums\ContentStatus

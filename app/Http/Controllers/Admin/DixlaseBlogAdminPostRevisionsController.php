@@ -96,7 +96,7 @@ class DixlaseBlogAdminPostRevisionsController extends Controller
         }
 
         $metaDiffs = [];
-        foreach (['featured_image', 'editor_type', 'status', 'lang', 'published_at', 'closed_at'] as $field) {
+        foreach (['featured_media_id', 'editor_type', 'status', 'lang', 'published_at', 'closed_at'] as $field) {
             $left = $revisionSnapshot[$field] ?? null;
             $right = $currentSnapshot[$field] ?? null;
             if ($left !== $right) {

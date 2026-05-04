@@ -69,7 +69,7 @@ class BlogPostUpdateRequest extends FormRequest
             'slug' => ['nullable', 'string', 'max:200', 'regex:/^[a-z0-9][a-z0-9\-]*$/', $slugRule],
             'content' => ['nullable', 'string', 'max:500000'],
             'excerpt' => ['nullable', 'string', 'max:500'],
-            'featured_image' => ['nullable', 'string', 'max:2048'],
+            'featured_media_id' => ['nullable', 'integer', 'exists:media,id'],
             'editor_type' => ['required', 'string', Rule::in($editorTypes)],
             'status' => ['required', 'string', Rule::in($statuses)],
             'lang' => ['nullable', 'string', 'max:10'],

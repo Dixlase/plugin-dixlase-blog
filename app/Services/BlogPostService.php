@@ -161,7 +161,7 @@ class BlogPostService
             ->only([
                 'title',
                 'content',
-                'featured_image',
+                'featured_media_id',
                 'editor_type',
                 'status',
                 'lang',
