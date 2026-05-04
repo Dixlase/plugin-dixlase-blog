@@ -32,6 +32,8 @@
 
 use App\Models\SecuritySetting;
 use Illuminate\Support\Facades\Route;
+use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminCategoriesController;
+use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostRevisionsController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostsController;
 
 $adminUrl = SecuritySetting::get('admin_url', config('security.admin_url'));
@@ -41,19 +43,65 @@ $adminUrl = SecuritySetting::get('admin_url', config('security.admin_url'));
 Route::middleware(['front.ip'])
     ->group(function () {
         // Public routes (list, detail, category/tag archives, RSS feed) are
-        // added in a later phase.
+        // added in Phase 7.
     });
 
 // Admin routes. The admin.ip middleware is required to enforce the admin IP
 // filter — omitting it materially weakens security.
+//
+// Route ordering matters here: the literal segments /blog/trash and
+// /blog/categories are declared *before* the /blog/{post}/... patterns so
+// that Laravel matches the literal paths first instead of binding "trash"
+// or "categories" as a BlogPost id.
 Route::prefix($adminUrl)
     ->name('dixlase-blog::admin.')
     ->middleware(['auth:member', 'admin.ip'])
     ->group(function () {
+        // ===== Posts: collection-level routes =====
         Route::get('/blog', [DixlaseBlogAdminPostsController::class, 'index'])->name('blog.index');
         Route::get('/blog/create', [DixlaseBlogAdminPostsController::class, 'create'])->name('blog.create');
         Route::post('/blog', [DixlaseBlogAdminPostsController::class, 'store'])->name('blog.store');
+
+        // ===== Trash =====
+        Route::get('/blog/trash', [DixlaseBlogAdminPostsController::class, 'trash'])->name('blog.trash');
+        Route::post('/blog/trash/{id}/restore', [DixlaseBlogAdminPostsController::class, 'restore'])
+            ->whereNumber('id')
+            ->name('blog.restore');
+        Route::delete('/blog/trash/{id}', [DixlaseBlogAdminPostsController::class, 'forceDelete'])
+            ->whereNumber('id')
+            ->name('blog.forceDelete');
+
+        // ===== Categories =====
+        Route::prefix('/blog/categories')
+            ->name('blog.categories.')
+            ->group(function () {
+                Route::get('/', [DixlaseBlogAdminCategoriesController::class, 'index'])->name('index');
+                Route::post('/', [DixlaseBlogAdminCategoriesController::class, 'store'])->name('store');
+                Route::put('/{category}', [DixlaseBlogAdminCategoriesController::class, 'update'])->name('update');
+                Route::delete('/{category}', [DixlaseBlogAdminCategoriesController::class, 'destroy'])->name('destroy');
+            });
+
+        // ===== Posts: item-level routes =====
         Route::get('/blog/{post}/edit', [DixlaseBlogAdminPostsController::class, 'edit'])->name('blog.edit');
         Route::put('/blog/{post}', [DixlaseBlogAdminPostsController::class, 'update'])->name('blog.update');
         Route::delete('/blog/{post}', [DixlaseBlogAdminPostsController::class, 'destroy'])->name('blog.destroy');
+
+        // ===== Revisions =====
+        Route::prefix('/blog/{post}/revisions')
+            ->name('blog.revisions.')
+            ->group(function () {
+                Route::get('/', [DixlaseBlogAdminPostRevisionsController::class, 'index'])->name('index');
+                Route::get('/{revisionId}', [DixlaseBlogAdminPostRevisionsController::class, 'show'])
+                    ->whereNumber('revisionId')
+                    ->name('show');
+                Route::post('/{revisionId}/restore', [DixlaseBlogAdminPostRevisionsController::class, 'restore'])
+                    ->whereNumber('revisionId')
+                    ->name('restore');
+                Route::post('/{revisionId}/protect', [DixlaseBlogAdminPostRevisionsController::class, 'toggleProtection'])
+                    ->whereNumber('revisionId')
+                    ->name('protect');
+                Route::post('/{revisionId}/note', [DixlaseBlogAdminPostRevisionsController::class, 'updateNote'])
+                    ->whereNumber('revisionId')
+                    ->name('note');
+            });
     });

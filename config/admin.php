@@ -52,6 +52,18 @@ return [
                     'icon' => 'fas fa-fw fa-pen-to-square',
                     'can' => 'admin',
                 ],
+                'categories' => [
+                    'text' => 'dixlase-blog::admin.nav.blog.categories',
+                    'route' => 'dixlase-blog::admin.blog.categories.index',
+                    'icon' => 'fas fa-fw fa-folder-tree',
+                    'can' => 'admin',
+                ],
+                'trash' => [
+                    'text' => 'dixlase-blog::admin.nav.blog.trash',
+                    'route' => 'dixlase-blog::admin.blog.trash',
+                    'icon' => 'fas fa-fw fa-trash-can',
+                    'can' => 'admin',
+                ],
             ],
         ],
     ],
