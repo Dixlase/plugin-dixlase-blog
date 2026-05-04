@@ -62,6 +62,7 @@ class DixlaseBlogAdminCategoriesController extends Controller
     public function index(): View
     {
         $categories = BlogCategory::query()
+            ->withCount('posts')
             ->orderBy('depth')
             ->orderBy('display_order')
             ->orderBy('label')

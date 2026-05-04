@@ -1,50 +1,206 @@
 <?php
 
 /**
- * This file is part of MySoftware.
+ * This file is part of Dixlase Blog.
  *
- * Copyright (C) 2025 exc-D inc.
- * Website: https://exc-d.com
+ * Copyright (C) 2026 exc-D inc.
+ * https://exc-d.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Dixlase Blog is dual-licensed. You may use this file under either:
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
+ *   (a) the GNU General Public License version 3 or later, as published
+ *       by the Free Software Foundation; or
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *   (b) a commercial license agreement obtained from exc-D inc.
+ *
+ * Unless you have entered into a commercial license agreement, this
+ * file is governed by the GPL terms below.
  */
 
-
 return [
+
     'nav' => [
         'blog' => [
-            'text' => 'ブログ管理',
-            'index' => 'ブログマスター',
-            'create' => '記事作成',
+            'text' => 'ブログ',
+            'index' => '記事一覧',
+            'create' => '新規記事',
+            'categories' => 'カテゴリ',
+            'trash' => 'ゴミ箱',
         ],
     ],
 
-    'features' => [
-        'blog' => [
-            'title' => '記事タイトル',
-            'slug' => 'スラッグ',
-            'content' => 'コンテンツ',
-            'status' => 'ステータス',
-            'index' => [
-                'heading' => 'ページマスター',
-            ],
-            'create' => [
-                'heading' => '新規記事作成',
-            ],
-            'edit' => [
-                'heading' => '記事編集',
-            ],
-        ]
+    'page_title' => [
+        'index' => '記事一覧',
+        'trash' => 'ゴミ箱',
+        'create' => '新規記事',
+        'edit' => '記事編集',
+        'categories' => 'カテゴリ',
+        'revisions' => 'リビジョン履歴',
     ],
+
+    'post' => [
+        'title_label' => 'タイトル',
+        'title_placeholder' => '記事タイトルを入力',
+        'slug_label' => 'スラッグ',
+        'slug_help' => '空欄ならタイトルから自動生成します。',
+        'content_label' => '本文',
+        'excerpt_label' => '抜粋',
+        'excerpt_help' => '一覧表示や OG description で使用します。空欄なら本文先頭から 140 文字を自動生成します。',
+        'featured_image_label' => 'アイキャッチ画像',
+        'featured_image_help' => 'OG 画像や一覧表示に使用します。メディアライブラリから選択してください。',
+        'status_label' => 'ステータス',
+        'published_at_label' => '公開日時',
+        'published_at_help' => '記事を公開する日時 (予約公開で使用)。',
+        'closed_at_label' => '非公開日時',
+        'closed_at_help' => '任意。指定時刻に自動で非公開化します。',
+        'lang_label' => '言語',
+        'categories_label' => 'カテゴリ',
+        'categories_help' => '1記事に複数カテゴリを設定できます。',
+        'no_categories' => 'カテゴリが未作成です — 先にカテゴリを作成してください。',
+        'tags_label' => 'タグ',
+        'tags_placeholder' => 'タグを入力してスペースで確定',
+        'tags_help' => 'スペース (または Enter) で確定。空欄状態の Backspace で末尾のタグを削除。先頭の # は省略可。',
+        'created_at' => '作成日時',
+        'updated_at' => '更新日時',
+        'author' => '執筆者',
+        'author_unknown' => '(不明)',
+    ],
+
+    'post_index' => [
+        'heading' => '記事一覧',
+        'description' => 'ブログ記事を管理します。',
+        'new_button' => '新規記事',
+        'trash_link' => 'ゴミ箱',
+        'col_title' => 'タイトル',
+        'col_status' => 'ステータス',
+        'col_categories' => 'カテゴリ',
+        'col_published_at' => '公開日',
+        'col_actions' => '',
+        'no_posts' => '記事がまだありません。',
+        'edit' => '編集',
+        'delete' => 'ゴミ箱へ移動',
+        'delete_confirm_title' => 'ゴミ箱へ移動',
+        'delete_confirm_message' => 'この記事をゴミ箱へ移動しますか? ゴミ箱から復元できます。',
+    ],
+
+    'post_form' => [
+        'create_heading' => '新規記事',
+        'edit_heading' => '記事編集',
+        'sidebar_open' => 'サイドバーを開く',
+        'sidebar_close' => 'サイドバーを閉じる',
+        'publish_section' => '公開設定',
+        'classification_section' => '分類',
+        'media_section' => 'アイキャッチ画像',
+        'meta_section' => 'メタ情報',
+        'revision_section' => 'リビジョン',
+        'revision_link' => '履歴を見る',
+        'revision_help' => '保存ごとにリビジョンを作成します (変更がない場合はスキップ)。',
+        'save_confirm_title' => '記事を保存',
+        'save_confirm_message' => 'この記事の変更を保存しますか?',
+        'back_to_posts' => '記事一覧へ戻る',
+    ],
+
+    'trash' => [
+        'heading' => 'ゴミ箱',
+        'description' => 'ゴミ箱内の記事を復元、または完全削除できます。',
+        'col_title' => 'タイトル',
+        'col_deleted_at' => '削除日時',
+        'col_actions' => '',
+        'no_posts' => 'ゴミ箱は空です。',
+        'restore' => '復元',
+        'delete_forever' => '完全削除',
+        'delete_confirm_title' => '完全削除',
+        'delete_confirm_message' => 'この記事を完全に削除しますか? 元に戻せません。',
+        'back_to_posts' => '記事一覧へ戻る',
+    ],
+
+    'category' => [
+        'heading' => 'カテゴリ',
+        'description' => 'ブログのカテゴリを管理します。ドラッグ&ドロップ並べ替えは後続フェーズで追加します。',
+        'new_button' => '新規カテゴリ',
+        'col_label' => '名称',
+        'col_slug' => 'スラッグ',
+        'col_posts' => '記事数',
+        'col_actions' => '',
+        'no_categories' => 'カテゴリがまだありません。',
+        'edit' => '編集',
+        'delete' => '削除',
+        'save' => '保存',
+        'cancel' => 'キャンセル',
+        'label_label' => '名称',
+        'slug_label' => 'スラッグ',
+        'slug_help' => '空欄なら名称から自動生成します。',
+        'parent_label' => '親カテゴリ',
+        'parent_none' => '(最上位)',
+        'delete_confirm_title' => 'カテゴリを削除',
+        'delete_confirm_message' => 'このカテゴリを削除しますか? このカテゴリに属する記事はカテゴリ未設定になります。',
+    ],
+
+    'revision' => [
+        'heading' => 'リビジョン履歴',
+        'back_to_edit' => '記事へ戻る',
+        'no_revisions' => 'リビジョンがまだありません。',
+        'created_at' => '作成日時',
+        'type' => '種別',
+        'creator' => '作成者',
+        'note' => 'メモ',
+        'note_placeholder' => 'このリビジョンのメモ (任意)',
+        'note_help' => '何が変わったかの簡単なメモを残せます。',
+        'note_save' => 'メモを保存',
+        'note_confirm_title' => 'メモを保存',
+        'note_confirm_message' => 'このリビジョンのメモを保存しますか?',
+        'protect' => '保護',
+        'protect_help' => '保護されたリビジョンは保持件数超過時の自動削除対象から除外されます。',
+        'protect_label_on' => '保護中',
+        'protect_label_off' => '未保護',
+        'protect_enable' => '保護する',
+        'protect_disable' => '保護解除',
+        'protect_count_summary' => ':protected 件保護中 / :retention 件保持',
+        'protect_count_summary_over' => ':protected 件保護中 (保持上限 :retention 件を超過)',
+        'actions' => '操作',
+        'view_diff' => '差分を見る',
+        'restore' => '復元',
+        'restore_confirm_title' => 'リビジョンを復元',
+        'restore_confirm_message' => 'このリビジョンを復元しますか? 復元前に現状をバックアップとして保存します。',
+        'unknown_user' => '(不明)',
+        'type_auto' => '自動',
+        'type_manual' => '手動',
+        'type_restore_backup' => '復元前バックアップ',
+        'diff_heading' => '差分',
+        'diff_no_changes' => '現状との差分はありません。',
+        'diff_meta_heading' => 'メタ情報',
+        'diff_left_label' => 'リビジョン',
+        'diff_right_label' => '現在',
+        'diff_field_title' => 'タイトル',
+        'diff_field_slug' => 'スラッグ',
+        'diff_field_content' => '本文',
+        'diff_field_excerpt' => '抜粋',
+        'diff_field_featured_media_id' => 'アイキャッチ画像',
+        'diff_field_editor_type' => 'エディタ',
+        'diff_field_status' => 'ステータス',
+        'diff_field_lang' => '言語',
+        'diff_field_published_at' => '公開日時',
+        'diff_field_closed_at' => '非公開日時',
+        'diff_field_user_id' => '執筆者',
+        'pivot_heading' => 'カテゴリとタグ',
+        'pivot_added' => '追加',
+        'pivot_removed' => '削除',
+    ],
+
+    'flash' => [
+        'post_created' => '記事を作成しました。',
+        'post_updated' => '記事を更新しました。',
+        'post_trashed' => '記事をゴミ箱へ移動しました。',
+        'post_restored' => '記事を復元しました。',
+        'post_deleted' => '記事を完全に削除しました。',
+        'category_created' => 'カテゴリを作成しました。',
+        'category_updated' => 'カテゴリを更新しました。',
+        'category_deleted' => 'カテゴリを削除しました。',
+        'category_has_children' => '子カテゴリが存在するため削除できません。先に子カテゴリを移動または削除してください。',
+        'revision_restored' => 'リビジョンを復元しました。',
+        'revision_protect_enabled' => 'リビジョンを保護しました。',
+        'revision_protect_disabled' => 'リビジョンの保護を解除しました。',
+        'revision_note_updated' => 'リビジョンのメモを更新しました。',
+    ],
+
 ];
