@@ -41,6 +41,7 @@ use App\Traits\AdminInterfaceTrait;
 use App\Traits\AdminLoggedInTrait;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
@@ -159,6 +160,32 @@ class DixlaseBlogAdminPostRevisionsController extends Controller
                 ? __('dixlase-blog::admin.flash.revision_protect_enabled')
                 : __('dixlase-blog::admin.flash.revision_protect_disabled'),
         );
+    }
+
+    /**
+     * Update the free-text note attached to a revision. The core
+     * <x-revision.diff> component always renders the note form, so a
+     * matching endpoint is required even when audit logging via Actions
+     * is not yet implemented for this plugin.
+     */
+    public function updateNote(Request $request, BlogPost $post, int $revisionId): RedirectResponse
+    {
+        $data = $request->validate([
+            'note' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $revision = BlogPostRevision::query()
+            ->where('post_id', $post->id)
+            ->findOrFail($revisionId);
+
+        $revision->update(['note' => $data['note'] ?? null]);
+
+        return redirect()
+            ->route('dixlase-blog::admin.blog.revisions.show', [
+                'post' => $post->id,
+                'revisionId' => $revision->id,
+            ])
+            ->with('success', __('dixlase-blog::admin.flash.revision_note_updated'));
     }
 
     /**

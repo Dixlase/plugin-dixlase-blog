@@ -1,46 +1,206 @@
 <?php
 
 /**
- * This file is part of MySoftware.
+ * This file is part of Dixlase Blog.
  *
- * Copyright (C) 2025 exc-D inc.
- * Website: https://exc-d.com
+ * Copyright (C) 2026 exc-D inc.
+ * https://exc-d.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Dixlase Blog is dual-licensed. You may use this file under either:
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
+ *   (a) the GNU General Public License version 3 or later, as published
+ *       by the Free Software Foundation; or
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *   (b) a commercial license agreement obtained from exc-D inc.
+ *
+ * Unless you have entered into a commercial license agreement, this
+ * file is governed by the GPL terms below.
  */
 
-
 return [
+
     'nav' => [
         'blog' => [
             'text' => 'Blog',
-            'index' => 'Post List',
-            'create' => 'Create Post',
+            'index' => 'Posts',
+            'create' => 'New Post',
+            'categories' => 'Categories',
+            'trash' => 'Trash',
         ],
     ],
 
-    'features' => [
-        'events' => [
-            'index' => [
-                'heading' => 'Post Title',
-            ],
-            'create' => [
-                'heading' => 'Create Post',
-            ],
-            'edit' => [
-                'heading' => 'Edit Post',
-            ],
-        ],
+    'page_title' => [
+        'index' => 'Posts',
+        'trash' => 'Trash',
+        'create' => 'New Post',
+        'edit' => 'Edit Post',
+        'categories' => 'Categories',
+        'revisions' => 'Revisions',
     ],
+
+    'post' => [
+        'title_label' => 'Title',
+        'title_placeholder' => 'Enter post title',
+        'slug_label' => 'Slug',
+        'slug_help' => 'Leave blank to auto-generate from the title.',
+        'content_label' => 'Content',
+        'excerpt_label' => 'Excerpt',
+        'excerpt_help' => 'Used in listings and OG description. Leave blank to auto-generate (140 chars from content).',
+        'featured_image_label' => 'Featured image',
+        'featured_image_help' => 'Used as the OG image and in listings. Choose from the media library.',
+        'status_label' => 'Status',
+        'published_at_label' => 'Publish at',
+        'published_at_help' => 'When the post should go live (used for scheduled posts).',
+        'closed_at_label' => 'Close at',
+        'closed_at_help' => 'Optional. Auto-unpublish at this time.',
+        'lang_label' => 'Language',
+        'categories_label' => 'Categories',
+        'categories_help' => 'A post can belong to multiple categories.',
+        'no_categories' => 'No categories yet — create one first.',
+        'tags_label' => 'Tags',
+        'tags_placeholder' => 'Type a tag, press space',
+        'tags_help' => 'Press Space (or Enter) to confirm a tag. Backspace on empty input removes the last tag. Leading # is optional.',
+        'created_at' => 'Created',
+        'updated_at' => 'Updated',
+        'author' => 'Author',
+        'author_unknown' => '(unknown)',
+    ],
+
+    'post_index' => [
+        'heading' => 'Posts',
+        'description' => 'Manage blog posts.',
+        'new_button' => 'New post',
+        'trash_link' => 'Trash',
+        'col_title' => 'Title',
+        'col_status' => 'Status',
+        'col_categories' => 'Categories',
+        'col_published_at' => 'Published',
+        'col_actions' => '',
+        'no_posts' => 'No posts yet.',
+        'edit' => 'Edit',
+        'delete' => 'Move to trash',
+        'delete_confirm_title' => 'Move to trash',
+        'delete_confirm_message' => 'Move this post to trash? It can be restored from the trash page.',
+    ],
+
+    'post_form' => [
+        'create_heading' => 'New post',
+        'edit_heading' => 'Edit post',
+        'sidebar_open' => 'Open sidebar',
+        'sidebar_close' => 'Close sidebar',
+        'publish_section' => 'Publish',
+        'classification_section' => 'Categorization',
+        'media_section' => 'Featured image',
+        'meta_section' => 'Meta',
+        'revision_section' => 'Revisions',
+        'revision_link' => 'View history',
+        'revision_help' => 'Every save creates a revision (skipped when nothing changed).',
+        'save_confirm_title' => 'Save post',
+        'save_confirm_message' => 'Save changes to this post?',
+        'back_to_posts' => 'Back to posts',
+    ],
+
+    'trash' => [
+        'heading' => 'Trash',
+        'description' => 'Trashed posts can be restored or permanently deleted.',
+        'col_title' => 'Title',
+        'col_deleted_at' => 'Deleted',
+        'col_actions' => '',
+        'no_posts' => 'Trash is empty.',
+        'restore' => 'Restore',
+        'delete_forever' => 'Delete forever',
+        'delete_confirm_title' => 'Delete forever',
+        'delete_confirm_message' => 'Permanently delete this post? This cannot be undone.',
+        'back_to_posts' => 'Back to posts',
+    ],
+
+    'category' => [
+        'heading' => 'Categories',
+        'description' => 'Manage blog categories. Drag-and-drop reordering is added in a later phase.',
+        'new_button' => 'New category',
+        'col_label' => 'Name',
+        'col_slug' => 'Slug',
+        'col_posts' => 'Posts',
+        'col_actions' => '',
+        'no_categories' => 'No categories yet.',
+        'edit' => 'Edit',
+        'delete' => 'Delete',
+        'save' => 'Save',
+        'cancel' => 'Cancel',
+        'label_label' => 'Name',
+        'slug_label' => 'Slug',
+        'slug_help' => 'Leave blank to auto-generate from the name.',
+        'parent_label' => 'Parent',
+        'parent_none' => '(top-level)',
+        'delete_confirm_title' => 'Delete category',
+        'delete_confirm_message' => 'Delete this category? Posts in this category will lose this categorization.',
+    ],
+
+    'revision' => [
+        'heading' => 'Revisions',
+        'back_to_edit' => 'Back to post',
+        'no_revisions' => 'No revisions yet.',
+        'created_at' => 'Created',
+        'type' => 'Type',
+        'creator' => 'Author',
+        'note' => 'Note',
+        'note_placeholder' => 'Optional note about this revision',
+        'note_help' => 'Brief description of what changed.',
+        'note_save' => 'Save note',
+        'note_confirm_title' => 'Save note',
+        'note_confirm_message' => 'Save the note for this revision?',
+        'protect' => 'Protect',
+        'protect_help' => 'Protected revisions are excluded from auto-pruning when the retention limit is reached.',
+        'protect_label_on' => 'Protected',
+        'protect_label_off' => 'Not protected',
+        'protect_enable' => 'Protect',
+        'protect_disable' => 'Unprotect',
+        'protect_count_summary' => ':protected protected / :retention retained',
+        'protect_count_summary_over' => ':protected protected (over :retention retention)',
+        'actions' => 'Actions',
+        'view_diff' => 'View diff',
+        'restore' => 'Restore',
+        'restore_confirm_title' => 'Restore revision',
+        'restore_confirm_message' => 'Restore this revision? The current state is backed up first.',
+        'unknown_user' => '(unknown)',
+        'type_auto' => 'Auto',
+        'type_manual' => 'Manual',
+        'type_restore_backup' => 'Pre-restore backup',
+        'diff_heading' => 'Diff',
+        'diff_no_changes' => 'No differences from the current state.',
+        'diff_meta_heading' => 'Metadata',
+        'diff_left_label' => 'Revision',
+        'diff_right_label' => 'Current',
+        'diff_field_title' => 'Title',
+        'diff_field_slug' => 'Slug',
+        'diff_field_content' => 'Content',
+        'diff_field_excerpt' => 'Excerpt',
+        'diff_field_featured_media_id' => 'Featured image',
+        'diff_field_editor_type' => 'Editor',
+        'diff_field_status' => 'Status',
+        'diff_field_lang' => 'Language',
+        'diff_field_published_at' => 'Publish at',
+        'diff_field_closed_at' => 'Close at',
+        'diff_field_user_id' => 'Author',
+        'pivot_heading' => 'Categories & tags',
+        'pivot_added' => 'Added',
+        'pivot_removed' => 'Removed',
+    ],
+
+    'flash' => [
+        'post_created' => 'Post created.',
+        'post_updated' => 'Post updated.',
+        'post_trashed' => 'Post moved to trash.',
+        'post_restored' => 'Post restored.',
+        'post_deleted' => 'Post permanently deleted.',
+        'category_created' => 'Category created.',
+        'category_updated' => 'Category updated.',
+        'category_deleted' => 'Category deleted.',
+        'category_has_children' => 'This category cannot be deleted because it has child categories. Move or delete them first.',
+        'revision_restored' => 'Revision restored.',
+        'revision_protect_enabled' => 'Revision protected.',
+        'revision_protect_disabled' => 'Revision protection removed.',
+        'revision_note_updated' => 'Revision note updated.',
+    ],
+
 ];

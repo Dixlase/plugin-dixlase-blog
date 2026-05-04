@@ -95,7 +95,7 @@ class DixlaseBlogAdminPostsController extends Controller
 
     public function edit(BlogPost $post): View
     {
-        $post->load(['categories', 'tags']);
+        $post->load(['categories', 'tags', 'featuredMedia']);
 
         return view('dixlase-blog::admin.posts.edit', array_merge($this->viewParams, [
             'post' => $post,
