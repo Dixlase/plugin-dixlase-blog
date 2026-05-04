@@ -44,7 +44,7 @@ return new class extends Migration
                 ->constrained('plg_dixlase_blog_posts')
                 ->cascadeOnDelete();
             // Full snapshot of revisionable fields (title, slug, content,
-            // excerpt, featured_image, editor_type, status, lang,
+            // excerpt, featured_media_id, editor_type, status, lang,
             // published_at, closed_at, plus category_ids and tag_ids).
             $table->json('snapshot');
             // Revision type: auto (autosave), manual (explicit save),

@@ -37,6 +37,7 @@ namespace Plugins\DixlaseBlog\App\Models;
 use App\Contracts\Revisionable;
 use App\Enums\ContentEditorType;
 use App\Enums\ContentStatus;
+use App\Models\Media;
 use App\Models\Member;
 use App\Traits\HasRevisions;
 use Illuminate\Database\Eloquent\Builder;
@@ -52,7 +53,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $slug
  * @property string|null $content
  * @property string|null $excerpt
- * @property string|null $featured_image
+ * @property int|null $featured_media_id
  * @property ContentEditorType $editor_type
  * @property ContentStatus $status
  * @property string|null $lang
@@ -79,7 +80,7 @@ class BlogPost extends Model implements Revisionable
         'slug',
         'content',
         'excerpt',
-        'featured_image',
+        'featured_media_id',
         'editor_type',
         'status',
         'lang',
@@ -107,6 +108,18 @@ class BlogPost extends Model implements Revisionable
     public function author(): BelongsTo
     {
         return $this->belongsTo(Member::class, 'user_id');
+    }
+
+    /**
+     * Featured image as a Media reference. The relation is intentionally
+     * resolvable to null when the underlying media row has been deleted
+     * (no FK constraint at the DB layer — see migration comment).
+     *
+     * @return BelongsTo<Media, self>
+     */
+    public function featuredMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'featured_media_id');
     }
 
     /**
@@ -192,7 +205,7 @@ class BlogPost extends Model implements Revisionable
             'slug',
             'content',
             'excerpt',
-            'featured_image',
+            'featured_media_id',
             'editor_type',
             'status',
             'lang',
