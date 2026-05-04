@@ -1,6 +1,6 @@
 {
     "name": "plugins/dixlase-blog",
-    "description": "This is the DixlaseBlog plugin.",
+    "description": "This is the Dixlase Blog plugin.",
     "type": "dixlase-plugin",
     "version": "1.0.0",
     "license": "GPL-3.0-or-later",
@@ -12,7 +12,7 @@
         }
     ],
     "require": {
-        "php": ">=8.0"
+        "php": ">=8.2"
     },
     "autoload": {
         "psr-4": {
@@ -27,11 +27,12 @@
             "blog"
         ],
         "slug": "dixlase-blog",
-        "category": "plugin",
+        "category": "content",
         "laravel": {
             "providers": [
-                "Plugins\\DixlaseBlog\\App\\Providers\\BlogPluginServiceProvider"
+                "Plugins\\DixlaseBlog\\App\\Providers\\DixlaseBlogServiceProvider"
             ]
         }
-    }
+    },
+    "minimum-stability": "stable"
 }

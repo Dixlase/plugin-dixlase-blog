@@ -4,54 +4,117 @@
     "slug": "dixlase-blog",
     "version": "1.0.0",
     "description": {
-        "ja": "ブログ機能を提供するプラグインです。",
-        "en": "This plugin provides blog functionality."
+        "en": "Provides blog functionality with posts, hierarchical categories, tags, revisions, soft-delete trash, featured images, excerpts, and public list/detail/archive routes plus an RSS feed.",
+        "ja": "ブログ機能を提供します。記事、階層カテゴリ、タグ、リビジョン、ゴミ箱(ソフトデリート)、アイキャッチ画像、抜粋、公開側 (一覧/詳細/カテゴリ・タグアーカイブ) と RSS フィードを備えます。"
     },
     "author": "exc-D inc.",
+    "author_id": "exc-d-inc",
+    "authority_key_id": "dixlase-authority-2026",
     "email": "office@exc-d.com",
     "url": "https://exc-d.com",
     "license": "GPL-3.0-or-later",
-    "license_template": "license-gpl.txt",
+    "license_template": "license-dual-gpl.txt",
+    "commercial_license": {
+        "available": true,
+        "file": "LICENSE.commercial",
+        "contact": "office@exc-d.com"
+    },
+    "assets": {
+        "license": null,
+        "attributions_file": null,
+        "third_party": []
+    },
     "namespace": "Plugins\\DixlaseBlog",
+    "providers": [
+        "Plugins\\DixlaseBlog\\App\\Providers\\DixlaseBlogServiceProvider"
+    ],
     "type": "dixlase-plugin",
     "category": "content",
     "tags": [
         "blog",
         "posts",
-        "content"
+        "content",
+        "rss"
     ],
+    "capabilities": [],
     "requires": {
-        "dixlase": ">=1.0.0",
-        "php": ">=8.0"
+        "dixlase": "^0.1.0",
+        "php": ">=8.2"
     },
     "provides": {
         "admin_menu": true,
         "front_routes": true,
         "api_routes": false,
-        "settings_page": true
+        "settings_page": true,
+        "shortcodes": false,
+        "helper_functions": false
     },
-    "files": {
-        ".editorconfig": "sha256:d9a5756ca5adea55000be0ee4f5af68946e3554c986981b7f8e35e7acaad28fa",
-        "README.md": "sha256:21f0cdf794d03a0645b89e6238c3099da55a505c34de1293336eaa4ec43434e3",
-        "app/Http/Controllers/Admin/AdminBlogPluginController.php": "sha256:27200929749b7925021fb1eed6fff513a1175bc15a66fdd81c006d60d779251b",
-        "app/Providers/BlogPluginServiceProvider.php": "sha256:2a30c747b453015917a9084698724bf8b0ef91623c10061bf3d26f2fb80d0e6e",
-        "composer.json": "sha256:6c6a10df182453a5a6b3b9d5ecb68d6ee9fb29d212080e75ac95373a71892b6d",
-        "config/admin.php": "sha256:8811edcb37f77f78a331ae958971003c76dc388732b7b216547ce6732dffa38c",
-        "config/settings.php": "sha256:15da7b04b827890e76243de8a93cae360954d9a9fbc648c0b3ba4acb1b92a233",
-        "database/migrations/0001_01_01_000001_create_blog_plugin_posts_table.php": "sha256:eb2a546c6970f98cada8b944d30c3f0b168de4fcfe7ade8630dfd6a3d742e808",
-        "database/migrations/0001_01_01_000002_create_blog_plugin_categoires_table.php": "sha256:7fca0fd43e8c293fdecb964534bd4c69cc867254ff25284c7c01a2fa02ba81d8",
-        "lang/en/admin.php": "sha256:c2ae54e377cb4e5924012d8fce2dc591c833c52cbfac667d2c01792b37901ef4",
-        "lang/ja/admin.php": "sha256:0fecd9973827f25a6c88ec13df0360b5f6e4e0584be0f4a7845f1a17191cbed6",
-        "lisence-info.json": "sha256:eff99b71a97f610797c88c38d455fabfc21cabf11784e7ff026cfa1cd6d89fdb",
-        "plugin.json": "sha256:e789d7ca65a2bec153872b028c131d0df6cd86b173c1faca39bad65b460c5856",
-        "resources/src/css/style.scss": "sha256:8a06a248e0b17d68c923471705c2aa2383e0f28643d5c791d3f4ca134c791a86",
-        "resources/src/js/app.js": "sha256:ba1d147742f2c2090e555647a0a37131aa1bfd687675e1df6cf00723cf973691",
-        "routes/web.php": "sha256:43740cab17ad4e1d32e75ef2826994d2acefafbefbf4dc235c91b246ca637748",
-        "vite.config.js": "sha256:e4472f86439b24d481898b68afc6ca4acb6ad6b9415eb366acf0b9fd04a6bca3"
+    "permissions": {
+        "database": {
+            "own_tables": true,
+            "core_tables": [],
+            "core_tables_read": [],
+            "core_tables_write": []
+        },
+        "storage": {
+            "own_directory": true,
+            "public_uploads": true,
+            "temp_files": false
+        },
+        "settings": {
+            "read_core": true,
+            "write_own": true
+        },
+        "members": {
+            "read": true,
+            "write": false,
+            "create": false,
+            "delete": false
+        },
+        "mail": {
+            "send": false,
+            "bulk_send": false
+        },
+        "content": {
+            "read_other_plugins": [],
+            "write_other_plugins": []
+        },
+        "system": {
+            "register_shortcodes": false,
+            "register_middleware": false,
+            "register_commands": false,
+            "register_blade_directives": false,
+            "modify_routes": false
+        },
+        "_optional": [],
+        "_notes": {
+            "en": "Stores blog posts, categories (hierarchical via parent_id), tags, post-tag and post-category pivots, and post revisions in own tables under the blog_plugin_* prefix. Reads members table to display author information. Reads content.revision.retention_count via settings.read_core to use the shared RevisionService and revision UI components. Uses public_uploads for featured images. DixlaseSEO and DixlaseMultilingual integrations are deferred to a later version (see .backlog/dixlase-blog-deferred.md in the Core repository).",
+            "ja": "blog_plugin_* 接頭辞の独自テーブルでブログ記事、階層カテゴリ (parent_id 方式)、タグ、記事-タグ/記事-カテゴリ pivot、リビジョンを保存します。投稿者表示のため members テーブルを読み取ります。共有 RevisionService とリビジョン UI コンポーネントを利用するため settings.read_core 経由で content.revision.retention_count を読み取ります。アイキャッチ画像保存のため public_uploads を使用します。DixlaseSEO と DixlaseMultilingual との連携は後続バージョンへ先送り (Core リポジトリの .backlog/dixlase-blog-deferred.ja.md を参照)。"
+        }
     },
+    "files": {},
     "signing": {
         "algo": "ed25519",
-        "key_id": "dixlase-authority-2025",
-        "signed_at": "2025-12-04T18:59:25+09:00"
+        "key_id": "dixlase-authority-2026",
+        "signed_at": null
+    },
+    "declares": {
+        "configs": {
+            "roles": false,
+            "database_cleanup": false,
+            "navigation": true
+        },
+        "assets": {
+            "common": [
+                "js/app.js",
+                "css/style.scss"
+            ],
+            "admin": [],
+            "front": []
+        },
+        "contracts": [],
+        "migrations": true,
+        "commands": false,
+        "middleware": false
     }
 }
