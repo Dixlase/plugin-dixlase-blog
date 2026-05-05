@@ -57,16 +57,16 @@
             "core_tables_write": []
         },
         "storage": {
-            "own_directory": true,
-            "public_uploads": true,
+            "own_directory": false,
+            "public_uploads": false,
             "temp_files": false
         },
         "settings": {
             "read_core": true,
-            "write_own": true
+            "write_own": false
         },
         "members": {
-            "read": true,
+            "read": false,
             "write": false,
             "create": false,
             "delete": false
@@ -88,8 +88,8 @@
         },
         "_optional": [],
         "_notes": {
-            "en": "Stores blog posts, categories (hierarchical via parent_id), tags, post-tag and post-category pivots, and post revisions in own tables under the blog_plugin_* prefix. Reads members table to display author information. Reads content.revision.retention_count via settings.read_core to use the shared RevisionService and revision UI components. Uses public_uploads for featured images. DixlaseSEO and DixlaseMultilingual integrations are deferred to a later version (see .backlog/dixlase-blog-deferred.md in the Core repository).",
-            "ja": "blog_plugin_* 接頭辞の独自テーブルでブログ記事、階層カテゴリ (parent_id 方式)、タグ、記事-タグ/記事-カテゴリ pivot、リビジョンを保存します。投稿者表示のため members テーブルを読み取ります。共有 RevisionService とリビジョン UI コンポーネントを利用するため settings.read_core 経由で content.revision.retention_count を読み取ります。アイキャッチ画像保存のため public_uploads を使用します。DixlaseSEO と DixlaseMultilingual との連携は後続バージョンへ先送り (Core リポジトリの .backlog/dixlase-blog-deferred.ja.md を参照)。"
+            "en": "Stores blog posts, categories (hierarchical via parent_id), tags, post-tag and post-category pivots, and post revisions in own tables under the plg_dixlase_blog_* prefix. Reads content.revision.retention_count via settings.read_core to use the shared RevisionService and revision UI components. Featured images reference rows in the core media table by id (no upload writes from this plugin — the core media library handles file storage). Author display is sourced from the standard belongsTo relation against members and is not declared as a permission since the framework treats relation accessors as model-level reads, not as a plugin-level data permission. DixlaseSEO and DixlaseMultilingual integrations are deferred to a later version (see .backlog/dixlase-blog-deferred.md in the Core repository).",
+            "ja": "plg_dixlase_blog_* 接頭辞の独自テーブルでブログ記事、階層カテゴリ (parent_id 方式)、タグ、記事-タグ/記事-カテゴリ pivot、リビジョンを保存します。共有 RevisionService とリビジョン UI コンポーネントを利用するため settings.read_core 経由で content.revision.retention_count を読み取ります。アイキャッチ画像はコアの media テーブルを id で参照するだけで、ファイル保存はコアの media ライブラリが担当する (本プラグインはアップロード書き込みを行わない)。投稿者表示は members に対する標準の belongsTo リレーションから取得しており、フレームワーク上ではリレーションアクセサはモデル層の読み取りとして扱われプラグイン権限の宣言対象には含めない。DixlaseSEO と DixlaseMultilingual との連携は後続バージョンへ先送り (Core リポジトリの .backlog/dixlase-blog-deferred.ja.md を参照)。"
         }
     },
     "files": {},
