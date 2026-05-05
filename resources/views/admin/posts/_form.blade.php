@@ -15,12 +15,13 @@ form element (and so the save button at the page level can submit it).
     $isEditMode = $post->exists;
     $editorTypeSlug = old('editor_type', $post->editor_type instanceof \App\Enums\ContentEditorType ? $post->editor_type->slug() : 'markdown');
     $statusSlug = old('status', $post->status instanceof \App\Enums\ContentStatus ? $post->status->slug() : 'draft');
-    $editorIcons = [
-        'gui' => 'fas fa-paint-brush',
-        'markdown' => 'fab fa-markdown',
-        'html' => 'fas fa-code',
-        'blade' => 'fab fa-laravel',
-    ];
+    // Reuse core presenter so the editor radio cards pick up the same
+    // labels / icons / descriptions as the FrontPage admin (otherwise the
+    // Alpine $t() calls inside <x-form-content-editor> see an empty
+    // translations bag and render the raw "common.content_editor.*"
+    // keys as placeholders).
+    $editorIcons = \App\Presenters\Admin\ContentEditorPresenter::editorIcons();
+    $editorTranslations = \App\Presenters\Admin\ContentEditorPresenter::editorTranslations();
 @endphp
 
 @csrf
@@ -56,6 +57,7 @@ form element (and so the save button at the page level can submit it).
                     contentFieldName="content"
                     editorFieldName="editor_type"
                     :editorIcons="$editorIcons"
+                    :editorTranslations="$editorTranslations"
                 />
                 <x-form-error name="content" />
             </div>
