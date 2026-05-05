@@ -21,11 +21,29 @@ return [
 
     'nav' => [
         'blog' => [
-            'text' => 'Blog',
+            'text' => 'Blog Management',
             'index' => 'Posts',
             'create' => 'New Post',
             'categories' => 'Categories',
             'trash' => 'Trash',
+        ],
+    ],
+
+    // Auto-resolved page headings. The core AdminInterfaceTrait derives a
+    // lookup key from the route name (e.g. dixlase-blog::admin.blog.index
+    // → admin.blog.index.heading) and renders it in the admin layout's
+    // top bar; keep the keys mirrored against the routes/web.php names.
+    'blog' => [
+        'index' => ['heading' => 'Posts'],
+        'create' => ['heading' => 'New Post'],
+        'edit' => ['heading' => 'Edit Post'],
+        'trash' => ['heading' => 'Trash'],
+        'categories' => [
+            'index' => ['heading' => 'Categories'],
+        ],
+        'revisions' => [
+            'index' => ['heading' => 'Revisions'],
+            'show' => ['heading' => 'Revision Diff'],
         ],
     ],
 

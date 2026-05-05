@@ -21,11 +21,29 @@ return [
 
     'nav' => [
         'blog' => [
-            'text' => 'ブログ',
+            'text' => 'ブログ管理',
             'index' => '記事一覧',
             'create' => '新規記事',
             'categories' => 'カテゴリ',
             'trash' => 'ゴミ箱',
+        ],
+    ],
+
+    // 自動解決される画面見出し。コアの AdminInterfaceTrait がルート名から
+    // ルックアップキー (例: dixlase-blog::admin.blog.index →
+    // admin.blog.index.heading) を導き、管理画面レイアウトの上部バーに
+    // 描画する。routes/web.php のルート名と階層を一致させて維持する。
+    'blog' => [
+        'index' => ['heading' => '記事一覧'],
+        'create' => ['heading' => '新規記事'],
+        'edit' => ['heading' => '記事編集'],
+        'trash' => ['heading' => 'ゴミ箱'],
+        'categories' => [
+            'index' => ['heading' => 'カテゴリ'],
+        ],
+        'revisions' => [
+            'index' => ['heading' => 'リビジョン履歴'],
+            'show' => ['heading' => 'リビジョン差分'],
         ],
     ],
 
