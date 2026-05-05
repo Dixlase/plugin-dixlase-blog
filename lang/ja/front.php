@@ -1,0 +1,43 @@
+<?php
+
+/**
+ * This file is part of Dixlase Blog.
+ *
+ * Copyright (C) 2026 exc-D inc.
+ * https://exc-d.com
+ *
+ * Dixlase Blog is dual-licensed. You may use this file under either:
+ *
+ *   (a) the GNU General Public License version 3 or later, as published
+ *       by the Free Software Foundation; or
+ *
+ *   (b) a commercial license agreement obtained from exc-D inc.
+ */
+
+return [
+
+    'index' => [
+        'title' => 'ブログ',
+        'heading' => 'ブログ',
+        'description' => '最新の記事一覧です。',
+        'no_posts' => 'まだ公開された記事はありません。',
+    ],
+
+    'archive' => [
+        'category_title' => 'カテゴリ: :name',
+        'tag_title' => 'タグ: :name',
+        'category_kicker' => 'カテゴリ',
+        'tag_kicker' => 'タグ',
+        'no_posts' => 'このアーカイブにはまだ記事がありません。',
+        'back_to_index' => '← 記事一覧へ戻る',
+    ],
+
+    'taxonomy' => [
+        'categories' => 'カテゴリ',
+        'tags' => 'タグ',
+    ],
+
+    'feed_title' => ':site のブログ',
+    'feed_description' => ':site の最新ブログ記事。',
+
+];
