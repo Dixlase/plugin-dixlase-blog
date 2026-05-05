@@ -158,6 +158,29 @@ class BlogPost extends Model implements Revisionable
     }
 
     /**
+     * Apply all three public-visibility filters together: PUBLISHED status,
+     * non-null published_at not in the future, and a closed_at that is
+     * either unset or still in the future. Used by every public-facing
+     * query so a SCHEDULED post (or a PUBLISHED post past its closed_at)
+     * never leaks to the front-end.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
+    public function scopeCurrentlyVisible(Builder $query): Builder
+    {
+        $now = now();
+
+        return $query
+            ->where('status', ContentStatus::PUBLISHED->value)
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', $now)
+            ->where(function (Builder $q) use ($now) {
+                $q->whereNull('closed_at')->orWhere('closed_at', '>', $now);
+            });
+    }
+
+    /**
      * @param  Builder<self>  $query
      * @return Builder<self>
      */

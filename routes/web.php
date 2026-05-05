@@ -35,15 +35,25 @@ use Illuminate\Support\Facades\Route;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminCategoriesController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostRevisionsController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostsController;
+use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFeedController;
+use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFrontController;
 
 $adminUrl = SecuritySetting::get('admin_url', config('security.admin_url'));
 
 // Front-end routes. The front.ip middleware is required to enforce the IP
 // filter — omitting it materially weakens security.
+//
+// Route ordering matters: literal paths /blog/feed.xml, /blog/category/...
+// and /blog/tag/... are declared before the catch-all /blog/{slug} so the
+// catch-all does not bind "feed.xml" or "category" as a post slug.
 Route::middleware(['front.ip'])
+    ->name('dixlase-blog::front.')
     ->group(function () {
-        // Public routes (list, detail, category/tag archives, RSS feed) are
-        // added in Phase 7.
+        Route::get('/blog', [DixlaseBlogFrontController::class, 'index'])->name('index');
+        Route::get('/blog/feed.xml', [DixlaseBlogFeedController::class, 'feed'])->name('feed');
+        Route::get('/blog/category/{slug}', [DixlaseBlogFrontController::class, 'category'])->name('category');
+        Route::get('/blog/tag/{slug}', [DixlaseBlogFrontController::class, 'tag'])->name('tag');
+        Route::get('/blog/{slug}', [DixlaseBlogFrontController::class, 'show'])->name('show');
     });
 
 // Admin routes. The admin.ip middleware is required to enforce the admin IP
