@@ -77,6 +77,8 @@ Route::prefix($adminUrl)
             ->group(function () {
                 Route::get('/', [DixlaseBlogAdminCategoriesController::class, 'index'])->name('index');
                 Route::post('/', [DixlaseBlogAdminCategoriesController::class, 'store'])->name('store');
+                // Reorder must come before /{category} so "reorder" is not bound as a category id.
+                Route::post('/reorder', [DixlaseBlogAdminCategoriesController::class, 'reorder'])->name('reorder');
                 Route::put('/{category}', [DixlaseBlogAdminCategoriesController::class, 'update'])->name('update');
                 Route::delete('/{category}', [DixlaseBlogAdminCategoriesController::class, 'destroy'])->name('destroy');
             });

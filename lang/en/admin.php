@@ -116,7 +116,11 @@ return [
 
     'category' => [
         'heading' => 'Categories',
-        'description' => 'Manage blog categories. Drag-and-drop reordering is added in a later phase.',
+        'description' => 'Manage blog categories.',
+        'reorder_help' => 'Drag the handle (⋮⋮) on the left of each row to reorder. Drop a category onto another row to make it a child.',
+        'drag_handle_label' => 'Drag to reorder',
+        'saving' => 'Saving…',
+        'saved' => 'Saved',
         'new_button' => 'New category',
         'col_label' => 'Name',
         'col_slug' => 'Slug',
