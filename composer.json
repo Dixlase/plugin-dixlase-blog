@@ -16,7 +16,9 @@
     },
     "autoload": {
         "psr-4": {
-            "Plugins\\DixlaseBlog\\App\\": "app/"
+            "Plugins\\DixlaseBlog\\App\\": "app/",
+            "Plugins\\DixlaseBlog\\Database\\Seeders\\": "database/seeders/",
+            "Plugins\\DixlaseBlog\\Database\\Factories\\": "database/factories/"
         }
     },
     "extra": {
