@@ -13,9 +13,9 @@ tags (#tag space-confirmed via Alpine), revision link.
 
 @php
     $statusOptions = [
-        'draft' => __(\App\Enums\ContentStatus::DRAFT->translationKey()),
-        'published' => __(\App\Enums\ContentStatus::PUBLISHED->translationKey()),
-        'scheduled' => __(\App\Enums\ContentStatus::SCHEDULED->translationKey()),
+        'draft' => \App\Enums\ContentStatus::DRAFT->label(),
+        'published' => \App\Enums\ContentStatus::PUBLISHED->label(),
+        'scheduled' => \App\Enums\ContentStatus::SCHEDULED->label(),
     ];
 @endphp
 

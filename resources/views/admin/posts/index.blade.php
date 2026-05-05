@@ -75,7 +75,7 @@ Dixlase Blog is dual-licensed. You may use this file under either:
                             </td>
                             <td class="px-4 py-2 text-sm whitespace-nowrap">
                                 <span class="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium {{ $post->status?->cssClass() ?? 'bg-gray-100 text-gray-800' }}">
-                                    {{ $post->status ? __($post->status->translationKey()) : '-' }}
+                                    {{ $post->status?->label() ?? '-' }}
                                 </span>
                             </td>
                             <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
