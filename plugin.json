@@ -2,7 +2,7 @@
     "name": "Dixlase Blog",
     "package_name": "plugins/dixlase-blog",
     "slug": "dixlase-blog",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "description": {
         "en": "Provides blog functionality with posts, hierarchical categories, tags, revisions, soft-delete trash, featured images, excerpts, and public list/detail/archive routes plus an RSS feed.",
         "ja": "ブログ機能を提供します。記事、階層カテゴリ、タグ、リビジョン、ゴミ箱(ソフトデリート)、アイキャッチ画像、抜粋、公開側 (一覧/詳細/カテゴリ・タグアーカイブ) と RSS フィードを備えます。"
