@@ -119,13 +119,43 @@ class BlogCategory extends Model
     /**
      * Compute depth from parent and reject parent assignments that would
      * create a cycle. Runs on every save so depth stays consistent when a
-     * category is reparented.
+     * category is reparented. The saved() hook then cascades the depth
+     * change to descendants — previously deferred (Phase 2 commit
+     * message) and required by Phase 6's drag-and-drop reordering and
+     * the existing edit-form parent change.
      */
     protected static function booted(): void
     {
         static::saving(function (self $category): void {
             $category->depth = self::computeDepthFor($category);
         });
+
+        static::saved(function (self $category): void {
+            if ($category->wasChanged('parent_id') || $category->wasChanged('depth')) {
+                $category->fixDescendantDepths();
+            }
+        });
+    }
+
+    /**
+     * Recursively rewrite this node's descendants' depths so they are
+     * consistent with this node's depth. Uses raw query-builder updates
+     * so children's saving/saved hooks do not fire (which would loop and
+     * also re-run cycle detection unnecessarily). Only writes when the
+     * value actually differs, so a no-op reparent costs at most one
+     * SELECT per descendant.
+     */
+    public function fixDescendantDepths(): void
+    {
+        $children = self::query()->where('parent_id', $this->id)->get();
+        foreach ($children as $child) {
+            $newDepth = (int) $this->depth + 1;
+            if ((int) $child->depth !== $newDepth) {
+                self::query()->where('id', $child->id)->update(['depth' => $newDepth]);
+                $child->depth = $newDepth;
+            }
+            $child->fixDescendantDepths();
+        }
     }
 
     /**

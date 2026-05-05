@@ -16,9 +16,11 @@
  */
 
 import blogTagInput from './blog-tag-input.js';
+import blogCategoryReorder from './blog-category-reorder.js';
 
 document.addEventListener('alpine:init', () => {
     if (window.Alpine) {
         window.Alpine.data('blogTagInput', blogTagInput);
+        window.Alpine.data('blogCategoryReorder', blogCategoryReorder);
     }
 });
