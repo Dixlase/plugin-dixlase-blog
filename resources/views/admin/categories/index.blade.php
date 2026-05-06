@@ -73,18 +73,18 @@ the New Category button) coherent without prop-drilling.
                 @csrf
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div>
-                        <x-form-label :for="'create-label'" :label="__('dixlase-blog::admin.category.label_label')" />
+                        <x-form-label :for="'create-label'" :text="__('dixlase-blog::admin.category.label_label')" />
                         <x-form-text id="create-label" name="label" :value="old('label')" required />
                         <x-form-error name="label" />
                     </div>
                     <div>
-                        <x-form-label :for="'create-slug'" :label="__('dixlase-blog::admin.category.slug_label')" />
+                        <x-form-label :for="'create-slug'" :text="__('dixlase-blog::admin.category.slug_label')" />
                         <x-form-text id="create-slug" name="slug" :value="old('slug')" class="font-mono" />
                         <x-form-help-text :text="__('dixlase-blog::admin.category.slug_help')" />
                         <x-form-error name="slug" />
                     </div>
                     <div>
-                        <x-form-label :for="'create-parent_id'" :label="__('dixlase-blog::admin.category.parent_label')" />
+                        <x-form-label :for="'create-parent_id'" :text="__('dixlase-blog::admin.category.parent_label')" />
                         <select id="create-parent_id" name="parent_id" class="input-common input-full">
                             <option value="">{{ __('dixlase-blog::admin.category.parent_none') }}</option>
                             @foreach ($categories as $cat)

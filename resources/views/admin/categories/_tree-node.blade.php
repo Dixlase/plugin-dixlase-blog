@@ -80,17 +80,17 @@ target for "make this category a child of X".
             @method('PUT')
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div>
-                    <x-form-label :for="'edit-label-'.$category->id" :label="__('dixlase-blog::admin.category.label_label')" />
+                    <x-form-label :for="'edit-label-'.$category->id" :text="__('dixlase-blog::admin.category.label_label')" />
                     <x-form-text :id="'edit-label-'.$category->id" name="label" :value="old('label', $category->label)" required />
                     <x-form-error name="label" />
                 </div>
                 <div>
-                    <x-form-label :for="'edit-slug-'.$category->id" :label="__('dixlase-blog::admin.category.slug_label')" />
+                    <x-form-label :for="'edit-slug-'.$category->id" :text="__('dixlase-blog::admin.category.slug_label')" />
                     <x-form-text :id="'edit-slug-'.$category->id" name="slug" :value="old('slug', $category->slug)" class="font-mono" />
                     <x-form-error name="slug" />
                 </div>
                 <div>
-                    <x-form-label :for="'edit-parent-'.$category->id" :label="__('dixlase-blog::admin.category.parent_label')" />
+                    <x-form-label :for="'edit-parent-'.$category->id" :text="__('dixlase-blog::admin.category.parent_label')" />
                     <select :id="'edit-parent-'.$category->id" name="parent_id" class="input-common input-full">
                         <option value="">{{ __('dixlase-blog::admin.category.parent_none') }}</option>
                         @foreach ($allCategories as $cat)

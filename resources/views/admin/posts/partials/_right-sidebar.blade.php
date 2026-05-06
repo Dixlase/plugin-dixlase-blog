@@ -78,7 +78,7 @@ side validation continues to enforce it.
 
         {{-- Title --}}
         <div>
-            <x-form-label :for="'title'" :label="__('dixlase-blog::admin.post.title_label')" />
+            <x-form-label :for="'title'" :text="__('dixlase-blog::admin.post.title_label')" />
             <x-form-text
                 id="title"
                 name="title"
@@ -91,7 +91,7 @@ side validation continues to enforce it.
 
         {{-- Slug --}}
         <div class="mt-4">
-            <x-form-label :for="'slug'" :label="__('dixlase-blog::admin.post.slug_label')" />
+            <x-form-label :for="'slug'" :text="__('dixlase-blog::admin.post.slug_label')" />
             <x-form-text
                 id="slug"
                 name="slug"
@@ -104,7 +104,7 @@ side validation continues to enforce it.
 
         {{-- Excerpt --}}
         <div class="mt-4">
-            <x-form-label :for="'excerpt'" :label="__('dixlase-blog::admin.post.excerpt_label')" />
+            <x-form-label :for="'excerpt'" :text="__('dixlase-blog::admin.post.excerpt_label')" />
             <x-form-textarea
                 id="excerpt"
                 name="excerpt"
@@ -125,7 +125,7 @@ side validation continues to enforce it.
 
         {{-- Categories (multi-select) --}}
         <div>
-            <x-form-label :label="__('dixlase-blog::admin.post.categories_label')" />
+            <x-form-label :text="__('dixlase-blog::admin.post.categories_label')" />
             @if ($categoryTree->isEmpty())
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
                     {{ __('dixlase-blog::admin.post.no_categories') }}
@@ -167,7 +167,7 @@ side validation continues to enforce it.
 
         {{-- Tags (#tag space-confirmed) --}}
         <div class="mt-4">
-            <x-form-label :label="__('dixlase-blog::admin.post.tags_label')" />
+            <x-form-label :text="__('dixlase-blog::admin.post.tags_label')" />
             <div x-data="blogTagInput({{ Js::from(old('tags', $tagNames)) }})"
                  class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2 flex flex-wrap gap-1 items-center min-h-10">
                 <template x-for="(tag, index) in tags" :key="index">
@@ -216,7 +216,7 @@ side validation continues to enforce it.
 
         {{-- Status --}}
         <div>
-            <x-form-label :for="'status'" :label="__('dixlase-blog::admin.post.status_label')" />
+            <x-form-label :for="'status'" :text="__('dixlase-blog::admin.post.status_label')" />
             <x-form-select
                 id="status"
                 name="status"
@@ -228,7 +228,7 @@ side validation continues to enforce it.
 
         {{-- Publish at --}}
         <div class="mt-4">
-            <x-form-label :for="'published_at'" :label="__('dixlase-blog::admin.post.published_at_label')" />
+            <x-form-label :for="'published_at'" :text="__('dixlase-blog::admin.post.published_at_label')" />
             <x-form-text
                 id="published_at"
                 name="published_at"
@@ -241,7 +241,7 @@ side validation continues to enforce it.
 
         {{-- Close at --}}
         <div class="mt-4">
-            <x-form-label :for="'closed_at'" :label="__('dixlase-blog::admin.post.closed_at_label')" />
+            <x-form-label :for="'closed_at'" :text="__('dixlase-blog::admin.post.closed_at_label')" />
             <x-form-text
                 id="closed_at"
                 name="closed_at"
