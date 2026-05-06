@@ -8,22 +8,24 @@ Dixlase Blog is dual-licensed. Same terms as edit.blade.php.
 
 Shared form partial used by both create and edit. The wrapping <form>
 tag is rendered by the parent so the right-sidebar can sit inside the
-same form element (and so the save button at the page level can submit
-it).
+same form element.
 
-Layout: the centre column hosts only the content editor. Title, slug,
-excerpt, classification, featured image, and publish settings all live
-in the right sidebar — this matches the user's preferred layout where
-the bulk of the page is the body editor and metadata sits in a
-collapsible side panel.
+Layout (centre column):
+  - Split pane container hosting <x-form-content-editor> on the left and
+    core's <x-content-editor.preview-pane> on the right.
+  - No bg-white card wrapping the editor — matches the FrontPage admin
+    layout the operator pointed at; the form-textarea inside the
+    content-editor brings its own framing.
+  - In edit mode the editor-type selector is hidden (showEditorSelector
+    = false). Once a post has been saved with an editor type, switching
+    types loses content fidelity, so the editor type becomes a locked
+    badge in the sidebar's "Meta info" section instead. Same convention
+    DixlaseLegal and the FrontPage admin use.
 
-The earlier draft wrapped centre + sidebar in a single
-<div class="grid grid-cols-1">. That extra wrapper caused the centre
-column to ignore the right sidebar's reserved width (the sidebar uses
-position: fixed and the grid offered no padding-right), so the editor
-overlapped the sidebar at common breakpoints. Mirror DixlaseLegal's
-edit.blade.php structure: keep centre as a sibling of the sidebar
-include, no wrapping grid.
+The Alpine scope that runs the split pane and live preview is
+blogPostEditor (resources/src/js/blog-post-editor.js), which mixes
+core's previewMixin and splitPaneMixin via the window.Dixlase.mixins
+runtime API.
 --}}
 
 @php
@@ -37,6 +39,10 @@ include, no wrapping grid.
     // keys as placeholders).
     $editorIcons = \App\Presenters\Admin\ContentEditorPresenter::editorIcons();
     $editorTranslations = \App\Presenters\Admin\ContentEditorPresenter::editorTranslations();
+
+    $previewFrameUrl = $isEditMode
+        ? route('dixlase-blog::admin.blog.previewFrame', ['post' => $post->id])
+        : route('dixlase-blog::admin.blog.previewFrame');
 @endphp
 
 @csrf
@@ -44,28 +50,69 @@ include, no wrapping grid.
     @method('PUT')
 @endif
 
-{{-- ===== Centre column: content editor only ===== --}}
-<div class="space-y-6">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <x-form-content-editor
-            storageType="database"
-            :editorType="$editorTypeSlug"
-            :content="old('content', $post->content ?? '')"
-            :showStorageSelector="false"
-            :showEditorSelector="true"
-            contentFieldName="content"
-            editorFieldName="editor_type"
-            :editorIcons="$editorIcons"
-            :editorTranslations="$editorTranslations"
-        />
-        <x-form-error name="content" />
+{{-- ===== Centre column: split pane (editor + live preview) ===== --}}
+<div x-data="blogPostEditor({
+        csrfToken: '{{ csrf_token() }}',
+        serverPreviewUrl: '{{ route('dixlase-blog::admin.blog.preview') }}',
+        previewFrameUrl: '{{ $previewFrameUrl }}',
+        editorType: @js($editorTypeSlug),
+        initialContent: @js(old('content', $post->content ?? '')),
+        initialTitle: @js(old('title', $post->title ?? '')),
+     })"
+     class="min-w-0">
+
+    {{-- Preview toggle (centre column, top) --}}
+    <div class="flex flex-wrap items-center gap-3 mb-4 text-xs">
+        <button type="button" @click="togglePreview()"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border transition-colors"
+            :class="previewVisible
+                ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-700'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300'">
+            <i class="fas" :class="previewVisible ? 'fa-eye' : 'fa-eye-slash'"></i>
+            <span x-text="previewVisible
+                ? '{{ __('dixlase-blog::admin.post_form.preview_hide') }}'
+                : '{{ __('dixlase-blog::admin.post_form.preview_show') }}'"></span>
+        </button>
+    </div>
+
+    {{-- Split-pane container --}}
+    <div x-ref="splitContainer"
+         class="flex gap-4 overflow-hidden"
+         :class="[
+             isHorizontal ? 'flex-row' : 'flex-col',
+             (isDragging || isResizingPreview) ? 'select-none' : '',
+         ]">
+
+        {{-- Editor pane (no white card wrapper — matches FrontPage layout) --}}
+        <div x-ref="editorPane"
+             class="w-full min-w-0 space-y-4"
+             :class="isHorizontal && previewVisible ? 'overflow-y-auto' : ''"
+             :style="isHorizontal && previewVisible ? { width: (splitRatio * 100) + '%', maxHeight: 'calc(100vh - 160px)' } : {}">
+
+            <x-form-content-editor
+                storageType="database"
+                :editorType="$editorTypeSlug"
+                :content="old('content', $post->content ?? '')"
+                :showStorageSelector="false"
+                :showEditorSelector="!$isEditMode"
+                contentFieldName="content"
+                editorFieldName="editor_type"
+                :editorIcons="$editorIcons"
+                :editorTranslations="$editorTranslations"
+            />
+            <x-form-error name="content" />
+        </div>
+
+        {{-- Preview pane (iframe + device toggles + drag divider) --}}
+        @include('components.content-editor.preview-pane')
     </div>
 </div>
 
-{{-- ===== Right sidebar: title / slug / excerpt / classification / media / publish ===== --}}
+{{-- ===== Right sidebar ===== --}}
 @include('dixlase-blog::admin.posts.partials._right-sidebar', [
     'post' => $post,
     'isEditMode' => $isEditMode,
+    'editorTypeSlug' => $editorTypeSlug,
     'statusSlug' => $statusSlug,
     'categoryTree' => $categoryTree,
     'selectedCategoryIds' => $selectedCategoryIds,
