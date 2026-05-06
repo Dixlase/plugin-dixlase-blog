@@ -9,13 +9,17 @@ Dixlase Blog is dual-licensed. Same terms as edit.blade.php.
 Right-sidebar partial for the post form. Section order matches the
 operator-requested layout:
 
-  1. Preview      (top — fastest path to verify the public render)
-  2. Meta         Title / Slug / Excerpt
-  3. Classification  Categories (multi) / Tags (#tag space-confirmed)
-  4. Featured image  via core <x-media.picker aspectRatio="ogp">
-  5. Publish      Status / Publish at / Close at
-  6. Revisions    (edit only) link to history
-  7. Meta info    (edit only) author / created / updated
+  1. Meta         Title / Slug / Excerpt
+  2. Classification  Categories (multi) / Tags (#tag space-confirmed)
+  3. Featured image  via core <x-media.picker aspectRatio="ogp">
+  4. Publish      Status / Publish at / Close at
+  5. Revisions    (edit only) link to history
+  6. Meta info    (edit only) author / created / updated
+
+The "Preview" toggle that used to live at the top of this sidebar has
+moved into the centre column as a real live-preview iframe driven by
+blogPostEditor (resources/src/js/blog-post-editor.js), so this sidebar
+now starts directly with the meta fields.
 
 Title moved out of the centre column on operator request — the centre
 is now the body editor only. The Title field stays required so server-
@@ -28,16 +32,6 @@ side validation continues to enforce it.
         'published' => \App\Enums\ContentStatus::PUBLISHED->label(),
         'scheduled' => \App\Enums\ContentStatus::SCHEDULED->label(),
     ];
-
-    // Preview points at the saved public URL — for a brand-new post we
-    // have nothing to preview yet, so the button stays disabled until
-    // the operator saves once. A future iteration can POST current form
-    // values to a preview endpoint (DixlaseLegal pattern) but that
-    // requires session storage / token plumbing that is out of scope
-    // for this UI tweak.
-    $previewUrl = $isEditMode && filled($post->slug)
-        ? route('dixlase-blog::front.show', ['slug' => $post->slug])
-        : null;
 @endphp
 
 <x-admin.right-sidebar
@@ -45,32 +39,7 @@ side validation continues to enforce it.
     :closeLabel="__('dixlase-blog::admin.post_form.sidebar_close')"
 >
 
-    {{-- ===== 1. Preview ===== --}}
-    <div>
-        @if ($previewUrl)
-            <x-form-button
-                type="button"
-                icon="fas fa-eye"
-                variant="secondary"
-                size="sm"
-                @click="window.open('{{ $previewUrl }}', '_blank', 'noopener,noreferrer')"
-                class="w-full"
-            >
-                {{ __('dixlase-blog::admin.post_form.preview_button') }}
-            </x-form-button>
-            <x-form-help-text :text="__('dixlase-blog::admin.post_form.preview_help_edit')" />
-        @else
-            <button type="button"
-                    class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                    disabled>
-                <i class="fas fa-eye"></i>
-                {{ __('dixlase-blog::admin.post_form.preview_button') }}
-            </button>
-            <x-form-help-text :text="__('dixlase-blog::admin.post_form.preview_help_create')" />
-        @endif
-    </div>
-
-    {{-- ===== 2. Title / Slug / Excerpt ===== --}}
+    {{-- ===== 1. Title / Slug / Excerpt ===== --}}
     <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
         <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
             {{ __('dixlase-blog::admin.post_form.meta_section') }}
@@ -117,7 +86,7 @@ side validation continues to enforce it.
         </div>
     </div>
 
-    {{-- ===== 3. Classification: categories + tags ===== --}}
+    {{-- ===== 2. Classification: categories + tags ===== --}}
     <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
         <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
             {{ __('dixlase-blog::admin.post_form.classification_section') }}
@@ -193,7 +162,7 @@ side validation continues to enforce it.
         </div>
     </div>
 
-    {{-- ===== 4. Featured image ===== --}}
+    {{-- ===== 3. Featured image ===== --}}
     <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
         <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
             {{ __('dixlase-blog::admin.post_form.media_section') }}
@@ -208,7 +177,7 @@ side validation continues to enforce it.
         <x-form-error name="featured_media_id" />
     </div>
 
-    {{-- ===== 5. Publish settings ===== --}}
+    {{-- ===== 4. Publish settings ===== --}}
     <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
         <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
             {{ __('dixlase-blog::admin.post_form.publish_section') }}

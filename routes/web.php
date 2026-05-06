@@ -72,6 +72,17 @@ Route::prefix($adminUrl)
         Route::get('/blog/create', [DixlaseBlogAdminPostsController::class, 'create'])->name('blog.create');
         Route::post('/blog', [DixlaseBlogAdminPostsController::class, 'store'])->name('blog.store');
 
+        // ===== Live preview =====
+        // POST: editor pushes { content, editor_type } here on every
+        // debounced edit; response is { html } that the editor postMessages
+        // into the iframe shell loaded from the GET below.
+        // Declared before /blog/{post}/edit so "preview" / "preview-frame"
+        // are not bound as a BlogPost id.
+        Route::post('/blog/preview', [DixlaseBlogAdminPostsController::class, 'preview'])->name('blog.preview');
+        Route::get('/blog/preview-frame/{post?}', [DixlaseBlogAdminPostsController::class, 'previewFrame'])
+            ->whereNumber('post')
+            ->name('blog.previewFrame');
+
         // ===== Trash =====
         Route::get('/blog/trash', [DixlaseBlogAdminPostsController::class, 'trash'])->name('blog.trash');
         Route::post('/blog/trash/{id}/restore', [DixlaseBlogAdminPostsController::class, 'restore'])

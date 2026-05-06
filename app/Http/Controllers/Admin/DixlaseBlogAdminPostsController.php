@@ -34,11 +34,15 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\App\Http\Controllers\Admin;
 
+use App\Enums\ContentEditorType;
 use App\Helpers\AdminHelper;
+use App\Services\ContentPreviewService;
 use App\Traits\AdminInterfaceTrait;
 use App\Traits\AdminLoggedInTrait;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogPostStoreRequest;
@@ -157,6 +161,63 @@ class DixlaseBlogAdminPostsController extends Controller
         return redirect()
             ->route('dixlase-blog::admin.blog.trash')
             ->with('success', __('dixlase-blog::admin.flash.post_deleted'));
+    }
+
+    /**
+     * Server-side preview render endpoint. The post-form Alpine editor
+     * (blogPostEditor) POSTs the current { content, editor_type } here on
+     * each debounced edit, receives the rendered HTML in JSON, and pushes
+     * it into the iframe via postMessage. Mirrors core's FrontPage admin
+     * preview() — we intentionally reuse ContentPreviewService so that
+     * Markdown / HTML / shortcode rendering stays in lockstep with the
+     * front-page editor.
+     */
+    public function preview(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'content' => ['nullable', 'string', 'max:500000'],
+            'editor_type' => ['required', 'string'],
+        ]);
+
+        $html = app(ContentPreviewService::class)
+            ->renderFromSlug($data['content'] ?? '', $data['editor_type']);
+
+        return response()->json(['html' => $html]);
+    }
+
+    /**
+     * Iframe shell view for the live preview pane. Returns a minimal
+     * blog-post layout that listens for postMessage("dixlase-preview-update")
+     * from the parent window and swaps the title / content nodes.
+     *
+     * Initial render uses the saved post's content (rendered via
+     * ContentPreviewService) so the iframe is not blank for the
+     * pre-first-edit moment; subsequent edits flow in via postMessage.
+     * For create-mode there is no $post, so the iframe loads empty and
+     * the very first edit fills it in.
+     */
+    public function previewFrame(?BlogPost $post = null): View
+    {
+        // Allow same-origin iframe embedding for the admin preview only.
+        request()->attributes->set('csp_frame_ancestors_self', true);
+
+        $initialContent = '';
+        $initialTitle = '';
+        if ($post && $post->exists) {
+            $initialTitle = (string) $post->title;
+            $initialContent = app(ContentPreviewService::class)->render(
+                (string) ($post->content ?? ''),
+                $post->editor_type instanceof ContentEditorType
+                    ? $post->editor_type
+                    : ContentEditorType::MARKDOWN,
+            );
+        }
+
+        return view('dixlase-blog::admin.posts.preview-frame', [
+            'post' => $post,
+            'initialTitle' => $initialTitle,
+            'initialContent' => $initialContent,
+        ]);
     }
 
     /**

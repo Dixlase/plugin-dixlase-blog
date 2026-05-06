@@ -17,10 +17,12 @@
 
 import blogTagInput from './blog-tag-input.js';
 import blogCategoryReorder from './blog-category-reorder.js';
+import blogPostEditor from './blog-post-editor.js';
 
 document.addEventListener('alpine:init', () => {
     if (window.Alpine) {
         window.Alpine.data('blogTagInput', blogTagInput);
         window.Alpine.data('blogCategoryReorder', blogCategoryReorder);
+        window.Alpine.data('blogPostEditor', blogPostEditor);
     }
 });
