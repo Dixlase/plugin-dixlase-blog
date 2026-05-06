@@ -11,19 +11,22 @@ operator-requested layout:
 
   1. Preview         (button — opens saved public URL in a new tab;
                       the live in-page preview lives in the centre)
-  2. Meta info       (edit only) editor type badge + language code —
+  2. Author info     (edit only) author / created / updated —
+                      moved here per operator request so the
+                      provenance fields sit close to the Preview
+                      action they relate to
+  3. Meta info       (edit only) editor type badge + language code —
                       mirrors FrontPage's locked-meta panel
-  3. Title / Slug / Excerpt
-  4. Categories      (multi) / Tags (#tag space-confirmed)
-  5. Featured image  via core <x-media.picker aspectRatio="ogp">
-  6. Revisions       (edit only) link to history
-  7. Publish         (Status / Publish at / Close at — bottom)
-  8. Author info     (edit only) author / created / updated
+  4. Title / Slug / Excerpt
+  5. Categories      (multi) / Tags (#tag space-confirmed)
+  6. Featured image  via core <x-media.picker aspectRatio="ogp">
+  7. Revisions       (edit only) link to history
+  8. Publish         (Status / Publish at / Close at — bottom)
 
 Editor type rationale: once a post is saved, switching the editor type
 loses content fidelity (Markdown ↔ HTML round-trip is lossy), so the
 editor selector is hidden in edit mode (see _form.blade.php). The
-locked badge in section 2 surfaces "what editor this post is in" so
+locked badge in section 3 surfaces "what editor this post is in" so
 the operator does not lose track.
 
 Title moved out of the centre column on operator request — the centre
@@ -88,7 +91,32 @@ side validation continues to enforce it.
         @endif
     </div>
 
-    {{-- ===== 2. Meta info (edit mode only) ===== --}}
+    {{-- ===== 2. Author info (edit only — sits between Preview and Meta info per operator request) ===== --}}
+    @if ($isEditMode)
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                {{ __('dixlase-blog::admin.post_form.author_info_section') }}
+            </h3>
+            <dl class="space-y-1 text-xs">
+                <div class="flex gap-2">
+                    <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.author') }}:</dt>
+                    <dd class="text-gray-700 dark:text-gray-300">
+                        {{ $post->author?->display_name ?? $post->author?->account_name ?? __('dixlase-blog::admin.post.author_unknown') }}
+                    </dd>
+                </div>
+                <div class="flex gap-2">
+                    <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.created_at') }}:</dt>
+                    <dd class="text-gray-700 dark:text-gray-300">{{ $post->created_at?->format('Y-m-d H:i') }}</dd>
+                </div>
+                <div class="flex gap-2">
+                    <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.updated_at') }}:</dt>
+                    <dd class="text-gray-700 dark:text-gray-300">{{ $post->updated_at?->format('Y-m-d H:i') }}</dd>
+                </div>
+            </dl>
+        </div>
+    @endif
+
+    {{-- ===== 3. Meta info (edit mode only) ===== --}}
     @if ($isEditMode && $editorTypeEnum)
         <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
@@ -109,7 +137,7 @@ side validation continues to enforce it.
         </div>
     @endif
 
-    {{-- ===== 3. Title / Slug / Excerpt ===== --}}
+    {{-- ===== 4. Title / Slug / Excerpt ===== --}}
     <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
         <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
             {{ __('dixlase-blog::admin.post_form.meta_section') }}
@@ -156,7 +184,7 @@ side validation continues to enforce it.
         </div>
     </div>
 
-    {{-- ===== 4. Classification: categories + tags ===== --}}
+    {{-- ===== 5. Classification: categories + tags ===== --}}
     <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
         <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
             {{ __('dixlase-blog::admin.post_form.classification_section') }}
@@ -232,7 +260,7 @@ side validation continues to enforce it.
         </div>
     </div>
 
-    {{-- ===== 5. Featured image ===== --}}
+    {{-- ===== 6. Featured image ===== --}}
     <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
         <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
             {{ __('dixlase-blog::admin.post_form.media_section') }}
@@ -247,7 +275,7 @@ side validation continues to enforce it.
         <x-form-error name="featured_media_id" />
     </div>
 
-    {{-- ===== 6. Revisions (edit only — sits just above Publish per operator request) ===== --}}
+    {{-- ===== 7. Revisions (edit only — sits just above Publish per operator request) ===== --}}
     @if ($isEditMode)
         <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
@@ -267,7 +295,7 @@ side validation continues to enforce it.
         </div>
     @endif
 
-    {{-- ===== 7. Publish settings (bottom of the editable controls per operator request) ===== --}}
+    {{-- ===== 8. Publish settings (bottom of the editable controls per operator request) ===== --}}
     <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
         <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
             {{ __('dixlase-blog::admin.post_form.publish_section') }}
@@ -312,29 +340,5 @@ side validation continues to enforce it.
         </div>
     </div>
 
-    {{-- ===== 8. Author info (edit only) ===== --}}
-    @if ($isEditMode)
-        <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                {{ __('dixlase-blog::admin.post_form.author_info_section') }}
-            </h3>
-            <dl class="space-y-1 text-xs">
-                <div class="flex gap-2">
-                    <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.author') }}:</dt>
-                    <dd class="text-gray-700 dark:text-gray-300">
-                        {{ $post->author?->display_name ?? $post->author?->account_name ?? __('dixlase-blog::admin.post.author_unknown') }}
-                    </dd>
-                </div>
-                <div class="flex gap-2">
-                    <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.created_at') }}:</dt>
-                    <dd class="text-gray-700 dark:text-gray-300">{{ $post->created_at?->format('Y-m-d H:i') }}</dd>
-                </div>
-                <div class="flex gap-2">
-                    <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.updated_at') }}:</dt>
-                    <dd class="text-gray-700 dark:text-gray-300">{{ $post->updated_at?->format('Y-m-d H:i') }}</dd>
-                </div>
-            </dl>
-        </div>
-    @endif
 
 </x-admin.right-sidebar>

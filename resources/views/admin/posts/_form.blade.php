@@ -51,6 +51,28 @@ runtime API.
 @endif
 
 {{-- ===== Centre column: split pane (editor + live preview) ===== --}}
+{{-- The "dixlase-blog-editor" marker class scopes the CSS overrides below
+     so they do not affect <x-form-content-editor> usages elsewhere. --}}
+@push('styles')
+<style @cspNonce>
+/* <x-form-content-editor>'s Markdown panel ships its own client-side
+   side-by-side preview (left textarea + right marked.js render). Inside
+   our split-pane editor we already provide a richer iframe preview on
+   the right, so the inline preview column is redundant and visually
+   noisy — collapse the panel to a single column and hide the inline
+   preview side and its "Markdown Editor / Preview" mini-labels. */
+.dixlase-blog-editor [x-show="editorType === 'markdown'"] > .grid.grid-cols-1 {
+    grid-template-columns: 1fr !important;
+}
+.dixlase-blog-editor [x-show="editorType === 'markdown'"] > .grid.grid-cols-1 > div:nth-child(2) {
+    display: none;
+}
+.dixlase-blog-editor [x-show="editorType === 'markdown'"] > .grid.grid-cols-1 > div:nth-child(1) > div:first-child {
+    display: none;
+}
+</style>
+@endpush
+
 <div x-data="blogPostEditor({
         csrfToken: '{{ csrf_token() }}',
         serverPreviewUrl: '{{ route('dixlase-blog::admin.blog.preview') }}',
@@ -59,7 +81,7 @@ runtime API.
         initialContent: @js(old('content', $post->content ?? '')),
         initialTitle: @js(old('title', $post->title ?? '')),
      })"
-     class="min-w-0">
+     class="dixlase-blog-editor min-w-0">
 
     {{-- Preview toggle (centre column, top) --}}
     <div class="flex flex-wrap items-center gap-3 mb-4 text-xs">

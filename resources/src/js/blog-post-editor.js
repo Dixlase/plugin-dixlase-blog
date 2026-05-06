@@ -20,6 +20,13 @@
  * free without bundling the mixin code into the plugin's own bundle —
  * core's @api contract explicitly disallows that import.
  *
+ * Method-name contract with previewMixin (must match exactly):
+ *   - this.previewReady                — mixin sets to true on iframe ready
+ *   - this.sendContentToPreview()      — mixin calls on first ready;
+ *                                        we also call it after each edit
+ *   - this.$refs.previewIframe         — provided by <x-content-editor.preview-pane>
+ *   - this.$refs.previewContainer      — provided by the same component
+ *
  * Editor content is owned by the inner <x-form-content-editor> Alpine
  * component (which keeps its own `content` reactive state via x-model on
  * the textarea). Rather than reaching into that scope, we observe the
@@ -27,8 +34,7 @@
  * title field lives in the right sidebar (a sibling Alpine scope) so we
  * pick that up the same way.
  *
- * Outgoing protocol to the iframe (matches themes::admin.preview-frame
- * in DixlaseOnePage so previewMixin's height reporting works uniformly):
+ * Outgoing iframe protocol (matches DixlaseOnePage's preview-frame):
  *   { type: 'dixlase-preview-update', action: 'updateContent', html, title }
  */
 export default function blogPostEditor(config) {
@@ -62,7 +68,6 @@ export default function blogPostEditor(config) {
         _previewDebounce: null,
         _csrfToken: config.csrfToken || '',
         _serverPreviewUrl: config.serverPreviewUrl || '',
-        _previewReady: false,
 
         // Per-editor-type debounce. HTML feels slow if delayed too long;
         // Markdown re-parse is heavier so a slightly longer wait keeps
@@ -81,24 +86,17 @@ export default function blogPostEditor(config) {
             // gets lg:mr-80 and the centre column does not draw under it.
             this.$dispatch('right-sidebar-active');
 
-            // Run the mixins' own init steps if they expose one.
-            if (typeof this.initSplitPane === 'function') this.initSplitPane();
-            if (typeof this.initPreview === 'function') this.initPreview();
+            // Order matches FrontPage's editor: initPreview *before*
+            // initSplitPane. previewMixin attaches the message listener
+            // for dixlase-preview-ready and sets up the container width
+            // observer; splitPaneMixin then wires up the drag divider
+            // and persists splitRatio.
+            this.initPreview();
+            this.initSplitPane();
 
-            // Wait for the inner editor + sidebar inputs to mount so we
-            // can attach DOM listeners.
+            // Attach DOM listeners on the inner editor / sidebar inputs
+            // after Alpine has rendered them.
             this.$nextTick(() => this._wireExternalInputs());
-
-            // Wait for the iframe to confirm readiness before pushing the
-            // first sync — saves a wasted POST that arrives before the
-            // child page's listener is attached.
-            window.addEventListener('message', (event) => {
-                if (event.origin !== window.location.origin) return;
-                if (event.data && event.data.type === 'dixlase-preview-ready') {
-                    this._previewReady = true;
-                    this.scheduleUpdatePreview(0);
-                }
-            });
         },
 
         _wireExternalInputs() {
@@ -124,8 +122,8 @@ export default function blogPostEditor(config) {
             }
 
             // form-content-editor dispatches editor-type-changed when the
-            // operator switches between Markdown / HTML radio cards.
-            // Listening on window matches how the component dispatches.
+            // operator switches between Markdown / HTML radio cards
+            // (create mode only — the selector is hidden in edit mode).
             window.addEventListener('editor-type-changed', (event) => {
                 if (event.detail && event.detail.editorType) {
                     this.editorType = event.detail.editorType;
@@ -139,12 +137,21 @@ export default function blogPostEditor(config) {
             const delay = typeof delayOverride === 'number'
                 ? delayOverride
                 : this._debounceFor(this.editorType);
-            this._previewDebounce = setTimeout(() => this.updatePreview(), delay);
+            this._previewDebounce = setTimeout(() => this.sendContentToPreview(), delay);
         },
 
-        async updatePreview() {
+        /**
+         * Called by previewMixin::initPreview() when the iframe posts
+         * dixlase-preview-ready, and by scheduleUpdatePreview() on
+         * every debounced edit. Method name is fixed by previewMixin's
+         * runtime contract.
+         */
+        async sendContentToPreview() {
             if (!this._serverPreviewUrl) return;
-            if (!this._previewReady) return;
+            // previewReady is owned by previewMixin; only send once the
+            // iframe shell has signalled ready, otherwise the postMessage
+            // is dropped on the floor.
+            if (!this.previewReady) return;
 
             try {
                 const response = await fetch(this._serverPreviewUrl, {
@@ -161,21 +168,20 @@ export default function blogPostEditor(config) {
                 });
                 if (!response.ok) return;
                 const data = await response.json();
-                this._postPreviewToIframe(data.html || '', this.title);
+                this._postToIframe('updateContent', { html: data.html || '', title: this.title });
             } catch (e) {
                 console.warn('Dixlase Blog: preview update failed', e);
             }
         },
 
-        _postPreviewToIframe(html, title) {
+        _postToIframe(action, payload) {
             const iframe = this.$refs.previewIframe;
             if (!iframe || !iframe.contentWindow) return;
             iframe.contentWindow.postMessage(
                 {
                     type: 'dixlase-preview-update',
-                    action: 'updateContent',
-                    html,
-                    title,
+                    action,
+                    ...payload,
                 },
                 window.location.origin,
             );
