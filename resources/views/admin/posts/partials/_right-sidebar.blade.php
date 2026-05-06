@@ -6,9 +6,20 @@ https://exc-d.com
 
 Dixlase Blog is dual-licensed. Same terms as edit.blade.php.
 
-Right-sidebar partial for the post form: status, slug, publish/close,
-featured image (via core's <x-media.picker>), categories (multi),
-tags (#tag space-confirmed via Alpine), revision link.
+Right-sidebar partial for the post form. Section order matches the
+operator-requested layout:
+
+  1. Preview      (top — fastest path to verify the public render)
+  2. Meta         Title / Slug / Excerpt
+  3. Classification  Categories (multi) / Tags (#tag space-confirmed)
+  4. Featured image  via core <x-media.picker aspectRatio="ogp">
+  5. Publish      Status / Publish at / Close at
+  6. Revisions    (edit only) link to history
+  7. Meta info    (edit only) author / created / updated
+
+Title moved out of the centre column on operator request — the centre
+is now the body editor only. The Title field stays required so server-
+side validation continues to enforce it.
 --}}
 
 @php
@@ -17,6 +28,16 @@ tags (#tag space-confirmed via Alpine), revision link.
         'published' => \App\Enums\ContentStatus::PUBLISHED->label(),
         'scheduled' => \App\Enums\ContentStatus::SCHEDULED->label(),
     ];
+
+    // Preview points at the saved public URL — for a brand-new post we
+    // have nothing to preview yet, so the button stays disabled until
+    // the operator saves once. A future iteration can POST current form
+    // values to a preview endpoint (DixlaseLegal pattern) but that
+    // requires session storage / token plumbing that is out of scope
+    // for this UI tweak.
+    $previewUrl = $isEditMode && filled($post->slug)
+        ? route('dixlase-blog::front.show', ['slug' => $post->slug])
+        : null;
 @endphp
 
 <x-admin.right-sidebar
@@ -24,8 +45,171 @@ tags (#tag space-confirmed via Alpine), revision link.
     :closeLabel="__('dixlase-blog::admin.post_form.sidebar_close')"
 >
 
-    {{-- ===== Publish ===== --}}
+    {{-- ===== 1. Preview ===== --}}
     <div>
+        @if ($previewUrl)
+            <x-form-button
+                type="button"
+                icon="fas fa-eye"
+                variant="secondary"
+                size="sm"
+                @click="window.open('{{ $previewUrl }}', '_blank', 'noopener,noreferrer')"
+                class="w-full"
+            >
+                {{ __('dixlase-blog::admin.post_form.preview_button') }}
+            </x-form-button>
+            <x-form-help-text :text="__('dixlase-blog::admin.post_form.preview_help_edit')" />
+        @else
+            <button type="button"
+                    class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                    disabled>
+                <i class="fas fa-eye"></i>
+                {{ __('dixlase-blog::admin.post_form.preview_button') }}
+            </button>
+            <x-form-help-text :text="__('dixlase-blog::admin.post_form.preview_help_create')" />
+        @endif
+    </div>
+
+    {{-- ===== 2. Title / Slug / Excerpt ===== --}}
+    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+            {{ __('dixlase-blog::admin.post_form.meta_section') }}
+        </h3>
+
+        {{-- Title --}}
+        <div>
+            <x-form-label :for="'title'" :label="__('dixlase-blog::admin.post.title_label')" />
+            <x-form-text
+                id="title"
+                name="title"
+                :value="old('title', $post->title)"
+                :placeholder="__('dixlase-blog::admin.post.title_placeholder')"
+                required
+            />
+            <x-form-error name="title" />
+        </div>
+
+        {{-- Slug --}}
+        <div class="mt-4">
+            <x-form-label :for="'slug'" :label="__('dixlase-blog::admin.post.slug_label')" />
+            <x-form-text
+                id="slug"
+                name="slug"
+                :value="old('slug', $post->slug)"
+                class="font-mono"
+            />
+            <x-form-help-text :text="__('dixlase-blog::admin.post.slug_help')" />
+            <x-form-error name="slug" />
+        </div>
+
+        {{-- Excerpt --}}
+        <div class="mt-4">
+            <x-form-label :for="'excerpt'" :label="__('dixlase-blog::admin.post.excerpt_label')" />
+            <x-form-textarea
+                id="excerpt"
+                name="excerpt"
+                :value="old('excerpt', $post->excerpt)"
+                rows="3"
+                maxlength="500"
+            />
+            <x-form-help-text :text="__('dixlase-blog::admin.post.excerpt_help')" />
+            <x-form-error name="excerpt" />
+        </div>
+    </div>
+
+    {{-- ===== 3. Classification: categories + tags ===== --}}
+    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+            {{ __('dixlase-blog::admin.post_form.classification_section') }}
+        </h3>
+
+        {{-- Categories (multi-select) --}}
+        <div>
+            <x-form-label :label="__('dixlase-blog::admin.post.categories_label')" />
+            @if ($categoryTree->isEmpty())
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                    {{ __('dixlase-blog::admin.post.no_categories') }}
+                </p>
+                <x-form-button
+                    type="link"
+                    :href="route('dixlase-blog::admin.blog.categories.index')"
+                    size="xs"
+                    variant="secondary"
+                    icon="fas fa-folder-plus"
+                >
+                    {{ __('dixlase-blog::admin.category.new_button') }}
+                </x-form-button>
+            @else
+                @php
+                    $oldCategoryIds = old('categories', $selectedCategoryIds);
+                    if (! is_array($oldCategoryIds)) {
+                        $oldCategoryIds = [];
+                    }
+                    $oldCategoryIds = array_map('intval', $oldCategoryIds);
+                @endphp
+                <div class="max-h-48 overflow-y-auto rounded border border-gray-200 dark:border-gray-700 p-2 space-y-1">
+                    @foreach ($categoryTree as $category)
+                        <label class="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded px-1 py-0.5"
+                               style="padding-left: {{ ($category->depth * 1.25) + 0.25 }}rem;">
+                            <input type="checkbox"
+                                   name="categories[]"
+                                   value="{{ $category->id }}"
+                                   @checked(in_array((int) $category->id, $oldCategoryIds, true))
+                                   class="rounded border-gray-300 dark:border-gray-600 text-blue-600">
+                            <span class="text-gray-700 dark:text-gray-300">{{ $category->label }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                <x-form-help-text :text="__('dixlase-blog::admin.post.categories_help')" />
+            @endif
+            <x-form-error name="categories" />
+        </div>
+
+        {{-- Tags (#tag space-confirmed) --}}
+        <div class="mt-4">
+            <x-form-label :label="__('dixlase-blog::admin.post.tags_label')" />
+            <div x-data="blogTagInput({{ Js::from(old('tags', $tagNames)) }})"
+                 class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2 flex flex-wrap gap-1 items-center min-h-10">
+                <template x-for="(tag, index) in tags" :key="index">
+                    <span class="inline-flex items-center gap-1 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-0.5 text-xs">
+                        <span x-text="'#' + tag"></span>
+                        <input type="hidden" name="tags[]" :value="tag">
+                        <button type="button"
+                                class="text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                                @click="removeTag(index)">
+                            <i class="fas fa-times text-xs"></i>
+                        </button>
+                    </span>
+                </template>
+                <input type="text"
+                       x-model="currentInput"
+                       @keydown="onKeydown($event)"
+                       @blur="onBlur()"
+                       :placeholder="tags.length === 0 ? '{{ __('dixlase-blog::admin.post.tags_placeholder') }}' : ''"
+                       class="flex-1 min-w-32 border-none focus:ring-0 bg-transparent text-sm">
+            </div>
+            <x-form-help-text :text="__('dixlase-blog::admin.post.tags_help')" />
+            <x-form-error name="tags" />
+        </div>
+    </div>
+
+    {{-- ===== 4. Featured image ===== --}}
+    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+            {{ __('dixlase-blog::admin.post_form.media_section') }}
+        </h3>
+        <x-media.picker
+            name="featured_media_id"
+            :value="old('featured_media_id', $post->featured_media_id)"
+            :media="$post->featuredMedia ?? null"
+            aspectRatio="ogp"
+            :help="__('dixlase-blog::admin.post.featured_image_help')"
+        />
+        <x-form-error name="featured_media_id" />
+    </div>
+
+    {{-- ===== 5. Publish settings ===== --}}
+    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
         <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
             {{ __('dixlase-blog::admin.post_form.publish_section') }}
         </h3>
@@ -69,107 +253,6 @@ tags (#tag space-confirmed via Alpine), revision link.
         </div>
     </div>
 
-    {{-- ===== Slug ===== --}}
-    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-        <x-form-label :for="'slug'" :label="__('dixlase-blog::admin.post.slug_label')" />
-        <x-form-text
-            id="slug"
-            name="slug"
-            :value="old('slug', $post->slug)"
-            class="font-mono"
-        />
-        <x-form-help-text :text="__('dixlase-blog::admin.post.slug_help')" />
-        <x-form-error name="slug" />
-    </div>
-
-    {{-- ===== Featured image ===== --}}
-    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-            {{ __('dixlase-blog::admin.post_form.media_section') }}
-        </h3>
-        <x-media.picker
-            name="featured_media_id"
-            :value="old('featured_media_id', $post->featured_media_id)"
-            :media="$post->featuredMedia ?? null"
-            aspectRatio="ogp"
-            :help="__('dixlase-blog::admin.post.featured_image_help')"
-        />
-        <x-form-error name="featured_media_id" />
-    </div>
-
-    {{-- ===== Categories (multi) ===== --}}
-    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-            {{ __('dixlase-blog::admin.post.categories_label') }}
-        </h3>
-        @if ($categoryTree->isEmpty())
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                {{ __('dixlase-blog::admin.post.no_categories') }}
-            </p>
-            <x-form-button
-                type="link"
-                :href="route('dixlase-blog::admin.blog.categories.index')"
-                size="xs"
-                variant="secondary"
-                icon="fas fa-folder-plus"
-            >
-                {{ __('dixlase-blog::admin.category.new_button') }}
-            </x-form-button>
-        @else
-            @php
-                $oldCategoryIds = old('categories', $selectedCategoryIds);
-                if (! is_array($oldCategoryIds)) {
-                    $oldCategoryIds = [];
-                }
-                $oldCategoryIds = array_map('intval', $oldCategoryIds);
-            @endphp
-            <div class="max-h-64 overflow-y-auto rounded border border-gray-200 dark:border-gray-700 p-2 space-y-1">
-                @foreach ($categoryTree as $category)
-                    <label class="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded px-1 py-0.5"
-                           style="padding-left: {{ ($category->depth * 1.25) + 0.25 }}rem;">
-                        <input type="checkbox"
-                               name="categories[]"
-                               value="{{ $category->id }}"
-                               @checked(in_array((int) $category->id, $oldCategoryIds, true))
-                               class="rounded border-gray-300 dark:border-gray-600 text-blue-600">
-                        <span class="text-gray-700 dark:text-gray-300">{{ $category->label }}</span>
-                    </label>
-                @endforeach
-            </div>
-            <x-form-help-text :text="__('dixlase-blog::admin.post.categories_help')" />
-        @endif
-        <x-form-error name="categories" />
-    </div>
-
-    {{-- ===== Tags (#tag space-confirmed) ===== --}}
-    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-            {{ __('dixlase-blog::admin.post.tags_label') }}
-        </h3>
-        <div x-data="blogTagInput({{ Js::from(old('tags', $tagNames)) }})"
-             class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2 flex flex-wrap gap-1 items-center min-h-10">
-            <template x-for="(tag, index) in tags" :key="index">
-                <span class="inline-flex items-center gap-1 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-0.5 text-xs">
-                    <span x-text="'#' + tag"></span>
-                    <input type="hidden" name="tags[]" :value="tag">
-                    <button type="button"
-                            class="text-blue-600 hover:text-blue-800 dark:text-blue-400"
-                            @click="removeTag(index)">
-                        <i class="fas fa-times text-xs"></i>
-                    </button>
-                </span>
-            </template>
-            <input type="text"
-                   x-model="currentInput"
-                   @keydown="onKeydown($event)"
-                   @blur="onBlur()"
-                   :placeholder="tags.length === 0 ? '{{ __('dixlase-blog::admin.post.tags_placeholder') }}' : ''"
-                   class="flex-1 min-w-32 border-none focus:ring-0 bg-transparent text-sm">
-        </div>
-        <x-form-help-text :text="__('dixlase-blog::admin.post.tags_help')" />
-        <x-form-error name="tags" />
-    </div>
-
     {{-- ===== Revisions (edit only) ===== --}}
     @if ($isEditMode)
         <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
@@ -189,10 +272,10 @@ tags (#tag space-confirmed via Alpine), revision link.
             <x-form-help-text :text="__('dixlase-blog::admin.post_form.revision_help')" />
         </div>
 
-        {{-- Meta info --}}
+        {{-- Meta info: author / created / updated --}}
         <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                {{ __('dixlase-blog::admin.post_form.meta_section') }}
+                {{ __('dixlase-blog::admin.post_form.meta_info_section') }}
             </h3>
             <dl class="space-y-1 text-xs">
                 <div class="flex gap-2">
