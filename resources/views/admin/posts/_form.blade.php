@@ -55,12 +55,20 @@ runtime API.
      so they do not affect <x-form-content-editor> usages elsewhere. --}}
 @push('styles')
 <style @cspNonce>
-/* <x-form-content-editor>'s Markdown panel ships its own client-side
+/* The form-content-editor's Markdown panel ships its own client-side
    side-by-side preview (left textarea + right marked.js render). Inside
    our split-pane editor we already provide a richer iframe preview on
    the right, so the inline preview column is redundant and visually
    noisy — collapse the panel to a single column and hide the inline
-   preview side and its "Markdown Editor / Preview" mini-labels. */
+   preview side and its "Markdown Editor / Preview" mini-labels.
+
+   NOTE: do NOT write component tags like the form-content-editor name
+   in angle-bracket form inside this style block. Blade processes the
+   entire block looking for component tags even within CSS comments,
+   so a Blade x-component tag inside a CSS comment gets compiled to
+   PHP and breaks the surrounding template (parse error: unexpected
+   EOF expecting endif). Always refer to the component by its plain
+   name in CSS comments. */
 .dixlase-blog-editor [x-show="editorType === 'markdown'"] > .grid.grid-cols-1 {
     grid-template-columns: 1fr !important;
 }
