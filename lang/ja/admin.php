@@ -23,7 +23,7 @@ return [
         'blog' => [
             'text' => 'ブログ管理',
             'index' => '記事一覧',
-            'create' => '新規記事',
+            'create' => '新規作成',
             'categories' => 'カテゴリ',
             'trash' => 'ゴミ箱',
         ],

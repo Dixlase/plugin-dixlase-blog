@@ -23,7 +23,7 @@ return [
         'blog' => [
             'text' => 'Blog Management',
             'index' => 'Posts',
-            'create' => 'New Post',
+            'create' => 'New',
             'categories' => 'Categories',
             'trash' => 'Trash',
         ],
