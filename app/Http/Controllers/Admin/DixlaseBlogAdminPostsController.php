@@ -97,9 +97,25 @@ class DixlaseBlogAdminPostsController extends Controller
             ->with('success', __('dixlase-blog::admin.flash.post_created'));
     }
 
-    public function edit(BlogPost $post): View
+    /**
+     * Edit / Update / Destroy take the route param as a plain int and
+     * resolve the model manually instead of using Laravel's implicit
+     * model binding.
+     *
+     * Reason: the admin URL ends up running through additional route
+     * groups added downstream (e.g. a {locale} prefix wraps every plugin
+     * route in this Brand setup, producing /ja/<admin-url>/blog/{post}/edit).
+     * In that combined route, Laravel's implicit binding stops resolving
+     * the {post} placeholder and the controller receives the raw "1"
+     * string, raising a TypeError on the BlogPost type hint. Mirrors the
+     * "string $pageType + manual lookup" pattern DixlaseLegal uses for
+     * the same reason.
+     */
+    public function edit(int $post): View
     {
-        $post->load(['categories', 'tags', 'featuredMedia']);
+        $post = BlogPost::query()
+            ->with(['categories', 'tags', 'featuredMedia'])
+            ->findOrFail($post);
 
         return view('dixlase-blog::admin.posts.edit', array_merge($this->viewParams, [
             'post' => $post,
@@ -109,8 +125,10 @@ class DixlaseBlogAdminPostsController extends Controller
         ]));
     }
 
-    public function update(BlogPostUpdateRequest $request, BlogPost $post): RedirectResponse
+    public function update(BlogPostUpdateRequest $request, int $post): RedirectResponse
     {
+        $post = BlogPost::query()->findOrFail($post);
+
         $this->postService->update(
             $post,
             $request->validated(),
@@ -122,9 +140,9 @@ class DixlaseBlogAdminPostsController extends Controller
             ->with('success', __('dixlase-blog::admin.flash.post_updated'));
     }
 
-    public function destroy(BlogPost $post): RedirectResponse
+    public function destroy(int $post): RedirectResponse
     {
-        $post->delete();
+        BlogPost::query()->findOrFail($post)->delete();
 
         return redirect()
             ->route('dixlase-blog::admin.blog.index')
@@ -196,25 +214,29 @@ class DixlaseBlogAdminPostsController extends Controller
      * For create-mode there is no $post, so the iframe loads empty and
      * the very first edit fills it in.
      */
-    public function previewFrame(?BlogPost $post = null): View
+    public function previewFrame(?int $post = null): View
     {
         // Allow same-origin iframe embedding for the admin preview only.
         request()->attributes->set('csp_frame_ancestors_self', true);
 
+        // Manual lookup (see edit() doc-block for why we avoid implicit
+        // model binding here).
+        $resolvedPost = $post !== null ? BlogPost::query()->find($post) : null;
+
         $initialContent = '';
         $initialTitle = '';
-        if ($post && $post->exists) {
-            $initialTitle = (string) $post->title;
+        if ($resolvedPost) {
+            $initialTitle = (string) $resolvedPost->title;
             $initialContent = app(ContentPreviewService::class)->render(
-                (string) ($post->content ?? ''),
-                $post->editor_type instanceof ContentEditorType
-                    ? $post->editor_type
+                (string) ($resolvedPost->content ?? ''),
+                $resolvedPost->editor_type instanceof ContentEditorType
+                    ? $resolvedPost->editor_type
                     : ContentEditorType::MARKDOWN,
             );
         }
 
         return view('dixlase-blog::admin.posts.preview-frame', [
-            'post' => $post,
+            'post' => $resolvedPost,
             'initialTitle' => $initialTitle,
             'initialContent' => $initialContent,
         ]);

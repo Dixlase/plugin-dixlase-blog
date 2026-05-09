@@ -63,8 +63,17 @@ class DixlaseBlogAdminPostRevisionsController extends Controller
         $this->initializeAfterLogin();
     }
 
-    public function index(BlogPost $post): View
+    /**
+     * All five revision endpoints take {post} as a plain int and resolve
+     * the model manually rather than via Laravel's implicit model
+     * binding — see DixlaseBlogAdminPostsController::edit doc-block for
+     * the full reasoning. The same applies to {revisionId}; we keep
+     * that explicit lookup against post_id so a revision id from a
+     * different post cannot be addressed.
+     */
+    public function index(int $post): View
     {
+        $post = BlogPost::query()->findOrFail($post);
         $revisions = $post->revisions()->with('creator')->paginate(20);
 
         return view('dixlase-blog::admin.posts.revisions.index', array_merge($this->viewParams, [
@@ -76,8 +85,9 @@ class DixlaseBlogAdminPostRevisionsController extends Controller
         ]));
     }
 
-    public function show(BlogPost $post, int $revisionId): View
+    public function show(int $post, int $revisionId): View
     {
+        $post = BlogPost::query()->findOrFail($post);
         $revision = BlogPostRevision::query()
             ->where('post_id', $post->id)
             ->with('creator')
@@ -133,8 +143,9 @@ class DixlaseBlogAdminPostRevisionsController extends Controller
         ]));
     }
 
-    public function restore(BlogPost $post, int $revisionId): RedirectResponse
+    public function restore(int $post, int $revisionId): RedirectResponse
     {
+        $post = BlogPost::query()->findOrFail($post);
         $revision = BlogPostRevision::query()
             ->where('post_id', $post->id)
             ->findOrFail($revisionId);
@@ -146,8 +157,9 @@ class DixlaseBlogAdminPostRevisionsController extends Controller
             ->with('success', __('dixlase-blog::admin.flash.revision_restored'));
     }
 
-    public function toggleProtection(BlogPost $post, int $revisionId): RedirectResponse
+    public function toggleProtection(int $post, int $revisionId): RedirectResponse
     {
+        $post = BlogPost::query()->findOrFail($post);
         $revision = BlogPostRevision::query()
             ->where('post_id', $post->id)
             ->findOrFail($revisionId);
@@ -168,12 +180,13 @@ class DixlaseBlogAdminPostRevisionsController extends Controller
      * matching endpoint is required even when audit logging via Actions
      * is not yet implemented for this plugin.
      */
-    public function updateNote(Request $request, BlogPost $post, int $revisionId): RedirectResponse
+    public function updateNote(Request $request, int $post, int $revisionId): RedirectResponse
     {
         $data = $request->validate([
             'note' => ['nullable', 'string', 'max:500'],
         ]);
 
+        $post = BlogPost::query()->findOrFail($post);
         $revision = BlogPostRevision::query()
             ->where('post_id', $post->id)
             ->findOrFail($revisionId);

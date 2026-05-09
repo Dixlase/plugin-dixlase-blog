@@ -95,8 +95,17 @@ class DixlaseBlogAdminCategoriesController extends Controller
             ->with('success', __('dixlase-blog::admin.flash.category_created'));
     }
 
-    public function update(BlogCategoryUpdateRequest $request, BlogCategory $category): RedirectResponse
+    /**
+     * Resolve the {category} route param manually rather than via
+     * Laravel's implicit model binding — see DixlaseBlogAdminPostsController::edit
+     * for the full reasoning. Short version: under this Brand setup the
+     * admin URL ends up with an extra {locale} prefix and implicit
+     * binding stops resolving the inner placeholder.
+     */
+    public function update(BlogCategoryUpdateRequest $request, int $category): RedirectResponse
     {
+        $category = BlogCategory::query()->findOrFail($category);
+
         $data = $request->validated();
         $data['slug'] = $this->resolveSlug($data['slug'] ?? null, $data['label'], $category->id);
 
@@ -113,8 +122,10 @@ class DixlaseBlogAdminCategoriesController extends Controller
             ->with('success', __('dixlase-blog::admin.flash.category_updated'));
     }
 
-    public function destroy(BlogCategory $category): RedirectResponse
+    public function destroy(int $category): RedirectResponse
     {
+        $category = BlogCategory::query()->findOrFail($category);
+
         try {
             $category->delete();
         } catch (QueryException $e) {
