@@ -10,14 +10,14 @@
     "author": "exc-D inc.",
     "author_id": "exc-d-inc",
     "authority_key_id": "dixlase-authority-2026",
-    "email": "office@exc-d.com",
+    "email": "info@dixlase.org",
     "url": "https://exc-d.com",
     "license": "GPL-3.0-or-later",
     "license_template": "license-dual-gpl.txt",
     "commercial_license": {
         "available": true,
         "file": "LICENSE.commercial",
-        "contact": "office@exc-d.com"
+        "contact": "info@dixlase.org"
     },
     "assets": {
         "license": null,
