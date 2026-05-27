@@ -21,9 +21,9 @@ return [
 
     'nav' => [
         'blog' => [
-            'text' => 'ブログ',
-            'index' => '記事一覧',
-            'create' => '新規記事',
+            'text' => 'ブログ管理',
+            'index' => 'ブログマスター',
+            'create' => '新規作成',
             'categories' => 'カテゴリ',
             'trash' => 'ゴミ箱',
         ],

@@ -21,9 +21,9 @@ return [
 
     'nav' => [
         'blog' => [
-            'text' => 'Blog',
-            'index' => 'Posts',
-            'create' => 'New Post',
+            'text' => 'Blog Management',
+            'index' => 'Blog Master',
+            'create' => 'Create New',
             'categories' => 'Categories',
             'trash' => 'Trash',
         ],
