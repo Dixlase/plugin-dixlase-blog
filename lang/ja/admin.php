@@ -22,7 +22,7 @@ return [
     'nav' => [
         'blog' => [
             'text' => 'ブログ管理',
-            'index' => '記事一覧',
+            'index' => 'ブログマスター',
             'create' => '新規作成',
             'categories' => 'カテゴリ',
             'trash' => 'ゴミ箱',
