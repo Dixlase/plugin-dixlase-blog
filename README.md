@@ -24,4 +24,4 @@ A short overview of how these files fit together is in [NOTICE](./NOTICE) ([日�
 Contributions to this plugin repository are governed by the [Dixlase Copyright Policy](https://github.com/Dixlase/dixlase-core/blob/main/COPYRIGHT-POLICY.md) and the Dixlase Contributor License Agreement (see CONTRIBUTING.md).
 
 ---
-(C) exc-D inc. - 2026
+© 2026 exc-D inc. and Dixlase contributors
