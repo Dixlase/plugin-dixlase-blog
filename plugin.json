@@ -1,6 +1,6 @@
 {
     "name": "Dixlase Blog",
-    "package_name": "plugins/dixlase-blog",
+    "package_name": "dixlase/dixlase-blog",
     "slug": "dixlase-blog",
     "version": "0.1.0",
     "description": {
@@ -54,7 +54,10 @@
         "database": {
             "own_tables": true,
             "core_tables": [],
-            "core_tables_read": ["media", "members"],
+            "core_tables_read": [
+                "media",
+                "members"
+            ],
             "core_tables_write": []
         },
         "storage": {
@@ -93,11 +96,75 @@
             "ja": "plg_dixlase_blog_* 接頭辞の独自テーブルでブログ記事、階層カテゴリ (parent_id 方式)、タグ、記事-タグ/記事-カテゴリ pivot、リビジョンを保存する。共有 RevisionService とリビジョン UI コンポーネントを利用するため settings.read_core 経由で content.revision.retention_count を読み取る。core_tables_read には ['media', 'members'] を宣言しており、これは BlogPost.featuredMedia がコア media テーブルへの belongsTo、BlogPost.author と BlogPostRevision.creator が members への belongsTo であるため (いずれも読み取りのみ。アイキャッチ画像はコアの media ライブラリから選択するだけで本プラグインからのアップロード書き込みは行わない)。v0.1.0 のプラグインガイドラインに従い belongsTo の慣行は許容範囲とし、これらを MediaRepositoryInterface / MemberRepositoryInterface 経由に置き換えるのは v0.2 以降に先送りする。さらにこの置き換えはコア側で当該 Contract がリレーションの eager-loading を一級サポートしてからとし、それ以前に raw id + repository に切り替えると一覧画面で N+1 を招くため見送る。DixlaseSEO と DixlaseMultilingual との連携は後続バージョンへ先送り (Core リポジトリの .backlog/dixlase-blog-deferred.ja.md を参照)。"
         }
     },
-    "files": {},
+    "files": {
+        "CONTRIBUTING.ja.md": "sha256:a43628cf75539ffc7a39e5a0bf604c91e2a95be97f364a3c260399681fe01881",
+        "CONTRIBUTING.md": "sha256:04efb3f6a4d618518776fcd0f7c0ec229140e069c9706f90a5b8b2f0ef8e1786",
+        "COPYRIGHT-POLICY.ja.md": "sha256:8544f9ca08306d5c6926a6508064ae6ece44286c4161a06475aa1a2946ab2d94",
+        "COPYRIGHT-POLICY.md": "sha256:81aa7ef0a0fb85c3f0b40f10332a3588248355e17b072f5ba945a2ff4154a840",
+        "LICENSE": "sha256:3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+        "LICENSE.commercial": "sha256:3e6dd95df6cb77a65dcd1231ad96c1244354c2993688902b4571e8c477b6bc23",
+        "LICENSE.commercial-ja": "sha256:ae87c4c8fccf398a45cefec9b65b7bf68c52cdb46312b51dc99cc833e8e270e9",
+        "NOTICE": "sha256:d960e0796984f4c1030c1245ffd706ea950f1511d4239b652789a27d33389e25",
+        "NOTICE.ja": "sha256:172f88bc2309b54d274b274f5b10da45ad73f14d787292dea175a311a8c65f1f",
+        "README.md": "sha256:ee383ab02b4861c8c99dc6e5d87bf9e058846ea78eb259721ffbf0aa16b2e32e",
+        "app/Http/Controllers/Admin/DixlaseBlogAdminCategoriesController.php": "sha256:741f0f3f6e11ab3f0fd5bc4fa6ffdeb4cfc35f5630348643fea80878589da7a5",
+        "app/Http/Controllers/Admin/DixlaseBlogAdminPostRevisionsController.php": "sha256:5befe4733153c04faa435335786b0370359e9a1ac31d5fbb34d78a28d1ad823e",
+        "app/Http/Controllers/Admin/DixlaseBlogAdminPostsController.php": "sha256:f8b0d1195a113ad240e106098d830be837883396ec19e9bf1ce566ece0b7f683",
+        "app/Http/Controllers/Front/DixlaseBlogFeedController.php": "sha256:964fc275b97e967de8fb661a883935ad0ac44f4d89127a720f290484e2357e02",
+        "app/Http/Controllers/Front/DixlaseBlogFrontController.php": "sha256:7e9c658964227d9d7b9e802135d3f042f850271210dba786c02874abeb1d9911",
+        "app/Http/Requests/Admin/BlogCategoryStoreRequest.php": "sha256:c2dd180f04cd1746ba9542b1b2bd183d96649f6a80cfb76cb25666a3a52f06f6",
+        "app/Http/Requests/Admin/BlogCategoryUpdateRequest.php": "sha256:a6363d56b41dac7c00d85c6907683ee2f57da5829902a5bee81242c72b45a9b3",
+        "app/Http/Requests/Admin/BlogPostStoreRequest.php": "sha256:ccabdfc5d0e08c7c10a9bf3fc36e7907f227126194e95652a4757a897fe5e69c",
+        "app/Http/Requests/Admin/BlogPostUpdateRequest.php": "sha256:d7a5ca12b6f198f8f34307883954a9080ae909cab4b3db0cf04eb9698bf51785",
+        "app/Models/BlogCategory.php": "sha256:a955903ade719d504adb67a1c6628bf0312304b7f9b25cc963234c64f97ffbe4",
+        "app/Models/BlogPost.php": "sha256:d4653b2fc13b4fce1c346e6f70b5edc4847e51c8c680a1a336584ab24bfd43c8",
+        "app/Models/BlogPostRevision.php": "sha256:e6c198835b5c06fffc001483ee3507fc960d1c007c2d80e403f7759e9df58c92",
+        "app/Models/BlogTag.php": "sha256:5d09dbf1c8301d11ae8507013f81c473803e508166e35783bb000526f4585431",
+        "app/Providers/DixlaseBlogServiceProvider.php": "sha256:6e200827f219e7d1d8d1298705dca48495e97c7611ea0b6530d1a413eeb2f691",
+        "app/Services/BlogPostService.php": "sha256:55a624a6b1a0f6a458d71133f3fa3153282a63bdfcd32fa2959d5e0eb0c646d4",
+        "composer.json": "sha256:3839ada733b159f2e8fc7be0d7b1ab145a9e2aad6106fbb6f4ba3683f6b229b9",
+        "config/admin.php": "sha256:d915ffdb899200693d6d13be8a5a497cb0d7a957045318b67a3a8b9382500eac",
+        "config/settings.php": "sha256:15da7b04b827890e76243de8a93cae360954d9a9fbc648c0b3ba4acb1b92a233",
+        "database/migrations/0001_01_01_000001_create_dixlase_blog_posts_table.php": "sha256:bf7ca2e42d035e3aa1bf6a22ce8d1721f3e15a1600bde98e09e2a56eb261fabb",
+        "database/migrations/0001_01_01_000002_create_dixlase_blog_categories_table.php": "sha256:232404672ff5137f4624401d21a6d8539d2ba4eba3805d46eca91987a27c059c",
+        "database/migrations/0001_01_01_000003_create_dixlase_blog_post_category_table.php": "sha256:e6e69f739589745fea23574718b80e3899686b6574f1664fb50023f1c6460cfb",
+        "database/migrations/0001_01_01_000004_create_dixlase_blog_tags_table.php": "sha256:4680af1f26a738475a14e3545073eb299083dbaadb58f2553ba182756bcb9aaa",
+        "database/migrations/0001_01_01_000005_create_dixlase_blog_post_tag_table.php": "sha256:417078defcede709a097e61dc6220851babdfe475ce004134503eb9cce45e8c2",
+        "database/migrations/0001_01_01_000006_create_dixlase_blog_post_revisions_table.php": "sha256:083558b8f4fae97cbcad2b1a13819db68d7c3b60011a302627f54d6565d10d4e",
+        "lang/en/admin.php": "sha256:d512fc070edcad3e107424f9177b85ecd747381dcca5a7f1af022e748e742060",
+        "lang/en/front.php": "sha256:599648381fa607065002913ba6b031d2516ddcf4f4e03a7c4126ff7e11427d3a",
+        "lang/ja/admin.php": "sha256:5310efbbebfc949ab1d9227922b401e289f4a63b240159c5e19eca010e4b047c",
+        "lang/ja/front.php": "sha256:ec878d022ee0fc9083e2460eefbba8c9807da386e95b23a586b63d4d2c8202c0",
+        "license-info.json": "sha256:e3a142c90995a53d6f24662a7c2ac8ea1ddd131f47c7df6d325451f454b58e49",
+        "phpunit.xml": "sha256:c2361faf909062080c66415e1132722cede1455a57355724241a66e08b270c6f",
+        "resources/src/css/style.scss": "sha256:30af919b807556769fdfaed117cd22a3db72bcce582bf685d82abe7c36db3bee",
+        "resources/src/js/app.js": "sha256:17d456047e5bdf3ee1bb32cff9e1d6ba2d60d7c9bdabf5b62a0a404ba0869e44",
+        "resources/src/js/blog-category-reorder.js": "sha256:4c2a7058f835f0e55a0bb291246ddf935e27cd264fc9c1a69bdeef17ab8242f4",
+        "resources/src/js/blog-tag-input.js": "sha256:2141a2beaae490b3c4b45db2ebe66db4a609d5c12da2563b15d0091b175c59e2",
+        "resources/views/admin/categories/_tree-node.blade.php": "sha256:3034cf3e9e97c508d3267b97e9dd99c7120e9ceafbac1d30cee76dbcc67656b6",
+        "resources/views/admin/categories/index.blade.php": "sha256:77c740c84ab546480a79314f2b3ee3336cf65956f82b231e16ed9b4d72441a83",
+        "resources/views/admin/posts/_form.blade.php": "sha256:e1ca048f71582139763a7608c87e96f32f38c234f4579e0906a356007f8efdec",
+        "resources/views/admin/posts/create.blade.php": "sha256:a842252dbe14b169f7a22973bff12b07859703a68dad815d5601cf05696fb7cb",
+        "resources/views/admin/posts/edit.blade.php": "sha256:219d39a715544d6255c0b88f15caf5c1c8199e5eeec9bd5c731f48bc70353b4c",
+        "resources/views/admin/posts/index.blade.php": "sha256:1f746a9ec777dd3321a12ccb6ec58f3f3aadddd8cdbccd039f6db01e33240b05",
+        "resources/views/admin/posts/partials/_right-sidebar.blade.php": "sha256:47f05daab305fcec2daa0f60ac9e5a6a1f145430c638ee98d7b345392af89d81",
+        "resources/views/admin/posts/revisions/index.blade.php": "sha256:f5989ea56bc7ca006955447dcb73fddca7568f37df3a4f039b9e2f07692845f4",
+        "resources/views/admin/posts/revisions/show.blade.php": "sha256:bb938c2211e331db40fecbd63aeeff1ee87851558be54ba89bacc18a4a03ba1a",
+        "resources/views/admin/posts/trash.blade.php": "sha256:449903cf150e9d62c74defda858436d3f144df5f1201045e67d6e3d0ca4381c7",
+        "resources/views/front/_card.blade.php": "sha256:f731675a887f55415d6d7cbe08f3364ad09abfde4692ee81fab4fd4d9a248c8d",
+        "resources/views/front/archive.blade.php": "sha256:741dec30074d52031a8cacac9df8c31a659fbd935336b40e1499fbef6f161e73",
+        "resources/views/front/feed.blade.php": "sha256:6b3a15a946882a2a9c8115d3470f3d20abe1189be4221841d6344f64c3625e71",
+        "resources/views/front/index.blade.php": "sha256:2bb8deaea6be06b0ba58fd91a297006081eac5fbe2454eaffc49031e94375c38",
+        "resources/views/front/show.blade.php": "sha256:1cfe0863e25fdcae44b101cd4399e3dcd9b53b0108e225615835c736ad31acb7",
+        "routes/web.php": "sha256:10be8ba5214f868e7a291298edb1ff3e5ff6ad0becb8fed6f88b0c668e8fcc51",
+        "scripts/bump-version.php": "sha256:f2687e6bef5ca55f855f8ec20f4be0f065a589a6a6bb337690d3001e4e985a35",
+        "tests/Unit/VersionManifestConsistencyTest.php": "sha256:4c7247477453137c68712ca1d931629bc13dfc0673b3e4d75604a71da95ca1fa",
+        "vite.config.js": "sha256:3ffacdb44f21875991059a807ec43177733608b9064ac6fba57da4296d1b8144"
+    },
     "signing": {
         "algo": "ed25519",
         "key_id": "dixlase-authority-2026",
-        "signed_at": null
+        "signed_at": "2026-09-21T05:05:03+00:00"
     },
     "declares": {
         "configs": {
