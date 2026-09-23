@@ -1,5 +1,5 @@
 {
-    "name": "plugins/dixlase-blog",
+    "name": "dixlase/dixlase-blog",
     "description": "This is the Dixlase Blog plugin.",
     "type": "dixlase-plugin",
     "version": "0.1.0",
