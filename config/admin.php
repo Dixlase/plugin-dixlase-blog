@@ -31,6 +31,15 @@
  */
 
 return [
+    // Route name for the plugin's admin entry.
+    //
+    // AdminPluginsSettingsController::getPluginSettingsUrl() reads this
+    // key to decide whether to render the "Settings" button on the
+    // installed-plugin card. Blog does not have a dedicated settings
+    // screen, so the button lands on the post list — the primary place
+    // operators start from.
+    'settings_route' => 'dixlase-blog::admin.blog.index',
+
     'nav' => [
         'blog' => [
             // Insert the Blog menu after the Front menu in the admin sidebar.
