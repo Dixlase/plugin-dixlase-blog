@@ -138,7 +138,12 @@
         "lang/ja/admin.php": "sha256:d2acc848457e35022088d78f43f034da41a93ea424eab40f7dff337bdbd6cde2",
         "lang/ja/front.php": "sha256:ec878d022ee0fc9083e2460eefbba8c9807da386e95b23a586b63d4d2c8202c0",
         "license-info.json": "sha256:e3a142c90995a53d6f24662a7c2ac8ea1ddd131f47c7df6d325451f454b58e49",
+        "package-lock.json": "sha256:a67c491dcb3061a734a0e3cefdf3ac23128d265b96b38a9e02f48cd5a92735c5",
+        "package.json": "sha256:34f0c129ab4413de4b2318e247b8b6834348e6b63246bf93e132521fc05b12f3",
         "phpunit.xml": "sha256:c2361faf909062080c66415e1132722cede1455a57355724241a66e08b270c6f",
+        "resources/assets/css/style.css": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "resources/assets/js/app.js": "sha256:97de10c78fa93d5d6fd29cdf9dc433aa85a12aa9724993d79fea5b82b8c3fa0e",
+        "resources/assets/manifest.json": "sha256:4de66174126ff67e6db95069e324c34bd6247013b8ad69bef766bb21d01aaea3",
         "resources/src/css/style.scss": "sha256:30af919b807556769fdfaed117cd22a3db72bcce582bf685d82abe7c36db3bee",
         "resources/src/js/app.js": "sha256:a90cac92c5d21b283a984b7863b31fa6027710cb831841bc33919ea05f2240ee",
         "resources/src/js/blog-category-reorder.js": "sha256:4c2a7058f835f0e55a0bb291246ddf935e27cd264fc9c1a69bdeef17ab8242f4",
@@ -163,12 +168,12 @@
         "routes/web.php": "sha256:a277213c06f003b3b5116a4f75f4fabcb1f59dd7a39e5644116cbfaf0cee11c0",
         "scripts/bump-version.php": "sha256:f2687e6bef5ca55f855f8ec20f4be0f065a589a6a6bb337690d3001e4e985a35",
         "tests/Unit/VersionManifestConsistencyTest.php": "sha256:4c7247477453137c68712ca1d931629bc13dfc0673b3e4d75604a71da95ca1fa",
-        "vite.config.mjs": "sha256:ab3ea083186e07f81a36515316d64fa8a10d32743420669442cca6e0462efd2a"
+        "vite.config.mjs": "sha256:119362bd258ebc86e904303392cfdee27d0173e1b8e8e52b1232b1eac2f4c3ec"
     },
     "signing": {
         "algo": "ed25519",
         "key_id": "dixlase-authority-2026",
-        "signed_at": "2026-09-25T16:24:55+00:00"
+        "signed_at": "2026-09-26T13:40:55+00:00"
     },
     "declares": {
         "configs": {
