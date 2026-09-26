@@ -58,6 +58,12 @@ export default defineConfig({
         },
     },
     css: {
+        // Anchor PostCSS to this repo so Vite does not walk up and
+        // pick up the Dixlase Core `postcss.config.js` (which requires
+        // Tailwind — absent from the plugin ZIP and unavailable when
+        // building against the release core). Empty object = no
+        // PostCSS plugins for this plugin's build.
+        postcss: {},
         preprocessorOptions: {
             scss: {
                 api: 'modern-compiler',

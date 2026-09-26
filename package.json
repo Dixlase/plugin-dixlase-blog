@@ -1,0 +1,18 @@
+{
+    "name": "plugins/dixlase-blog",
+    "version": "0.1.0",
+    "description": "Dixlase Blog - blog plugin for Dixlase CMS",
+    "private": true,
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "watch": "vite build --watch"
+    },
+    "devDependencies": {
+        "sass": "^1.77.0",
+        "sass-embedded": "^1.105.0",
+        "vite": "^5.0.0"
+    },
+    "author": "exc-D inc.",
+    "license": "GPL-3.0-or-later"
+}
