@@ -11,6 +11,10 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Added
 
+- DixlaseSEO integration (#11): published posts appear in the sitemap, blog pages offer
+  their other-language URLs for hreflang, and each post has an SEO description and OGP
+  image on its edit screen. The description is translatable and falls back to the
+  excerpt. Nothing changes when DixlaseSEO is not installed.
 - Default templates and styles for the blog index, post, category and tag pages, with
   previous / next pagination and dark mode (#12). A site or theme overrides a template
   under `custom/plugins/DixlaseBlog/resources/views/` or

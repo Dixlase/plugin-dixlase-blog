@@ -47,6 +47,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Plugins\DixlaseBlog\App\Models\Concerns\HasLocalizedFields;
+use Plugins\DixlaseBlog\App\Services\BlogSeoMeta;
 use Plugins\DixlaseBlog\App\Support\BlogExcerpt;
 
 /**
@@ -91,6 +92,15 @@ class BlogPost extends Model implements Revisionable
         'published_at',
         'closed_at',
     ];
+
+    protected static function booted(): void
+    {
+        // The SEO meta row belongs to the post; a soft delete keeps it so a
+        // restored post gets it back.
+        static::forceDeleted(function (BlogPost $post): void {
+            app(BlogSeoMeta::class)->delete((int) $post->id);
+        });
+    }
 
     /**
      * @return array<string, string>
@@ -216,6 +226,39 @@ class BlogPost extends Model implements Revisionable
         }
 
         return $value;
+    }
+
+    /**
+     * The SEO description stored by DixlaseSEO, in the source language.
+     * Exposed as an attribute so DixlaseMultilingual's editor shows it as
+     * the source text of the translatable seo_description field.
+     */
+    public function getSeoDescriptionAttribute(): ?string
+    {
+        return $this->exists ? app(BlogSeoMeta::class)->description($this) : null;
+    }
+
+    /**
+     * Translation lookup in the shape DixlaseSEO's page-meta helper calls
+     * (TranslatableTrait's signature). For seo_description it never comes
+     * back empty: a translated description, else the stored one in the
+     * source language, else the post's excerpt in the requested locale.
+     */
+    public function getTranslation(string $field, ?string $locale = null, bool $fallback = true): mixed
+    {
+        $locale ??= app()->getLocale();
+        $value = $this->translationFor($field, $locale);
+        if ($value !== null) {
+            return $value;
+        }
+
+        if ($field === 'seo_description') {
+            $stored = $locale === $this->sourceLocale() ? $this->seo_description : null;
+
+            return $stored ?? $this->localized('excerpt', $locale);
+        }
+
+        return $fallback ? $this->getAttribute($field) : null;
     }
 
     public function isPublished(): bool

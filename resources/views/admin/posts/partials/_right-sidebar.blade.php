@@ -308,6 +308,19 @@ side validation continues to enforce it.
         <x-form-error name="featured_media_id" />
     </div>
 
+    {{-- ===== 6b. SEO (DixlaseSEO enabled, blog integration on) =====
+         x-dynamic-component keeps this view compiling without DixlaseSEO. --}}
+    @if (! empty($seoMetaEnabled))
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+            <x-dynamic-component
+                component="dixlase-seo::meta-fields"
+                :description="old('seo_meta.description', $seoMeta?->description)"
+                :ogpMediaId="old('seo_meta.ogp_media_id', $seoMeta?->ogpMediaId)"
+                :ogpMedia="$seoOgpMedia"
+            />
+        </div>
+    @endif
+
     {{-- ===== 7. Revisions (edit only — sits just above Publish per operator request) ===== --}}
     @if ($isEditMode)
         <div class="border-t border-gray-200 dark:border-gray-700 pt-6">

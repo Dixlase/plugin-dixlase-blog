@@ -36,6 +36,9 @@ use App\Contracts\Repositories\ThemeRepositoryInterface;
 use App\Traits\PluginLoaderTrait;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Plugins\DixlaseBlog\App\Services\BlogLocalizedUrlProvider;
+use Plugins\DixlaseBlog\App\Services\BlogPostLinkableProvider;
+use Plugins\DixlaseBlog\App\Services\BlogSeoMeta;
 use Throwable;
 
 class DixlaseBlogServiceProvider extends ServiceProvider
@@ -45,6 +48,16 @@ class DixlaseBlogServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeAdminNavConfig(__DIR__.'/../../config/admin.php');
+
+        // Picked up by DixlaseSEO's sitemap and by link pickers.
+        $this->app->singleton(BlogPostLinkableProvider::class);
+        $this->app->tag([BlogPostLinkableProvider::class], 'linkable.providers');
+
+        // Picked up by DixlaseMultilingual for hreflang alternates.
+        $this->app->singleton(BlogLocalizedUrlProvider::class);
+        $this->app->tag([BlogLocalizedUrlProvider::class], 'localized-url.providers');
+
+        $this->app->singleton(BlogSeoMeta::class);
     }
 
     public function boot(): void

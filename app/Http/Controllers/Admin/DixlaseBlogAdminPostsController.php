@@ -53,6 +53,7 @@ use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Services\BlogContentRenderer;
 use Plugins\DixlaseBlog\App\Services\BlogPostService;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
+use Plugins\DixlaseBlog\App\Services\BlogSeoMeta;
 
 class DixlaseBlogAdminPostsController extends Controller
 {
@@ -60,8 +61,10 @@ class DixlaseBlogAdminPostsController extends Controller
     use AdminLoggedInTrait;
     use AuthorizesRequests;
 
-    public function __construct(private readonly BlogPostService $postService)
-    {
+    public function __construct(
+        private readonly BlogPostService $postService,
+        private readonly BlogSeoMeta $seoMeta,
+    ) {
         $this->initialize();
         $this->initializeAfterLogin();
     }
@@ -82,7 +85,7 @@ class DixlaseBlogAdminPostsController extends Controller
     {
         $post = new BlogPost();
 
-        return view('dixlase-blog::admin.posts.create', array_merge($this->viewParams, $this->languageParams($post), [
+        return view('dixlase-blog::admin.posts.create', array_merge($this->viewParams, $this->languageParams($post), $this->seoMeta->formData($post), [
             'post' => $post,
             'categoryTree' => $this->loadCategoryTree(),
             'selectedCategoryIds' => [],
@@ -96,6 +99,7 @@ class DixlaseBlogAdminPostsController extends Controller
             $request->validated(),
             AdminHelper::getMember()?->id,
         );
+        $this->seoMeta->save($post, $request->validated());
 
         return redirect()
             ->route('dixlase-blog::admin.blog.edit', ['post' => $post->id])
@@ -134,7 +138,7 @@ class DixlaseBlogAdminPostsController extends Controller
         // An HTML body is script-capable; see BlogScriptAuthoringPolicy.
         abort_unless(BlogScriptAuthoringPolicy::canEditEditorType(AdminHelper::getMember(), $post->editor_type), 403);
 
-        return view('dixlase-blog::admin.posts.edit', array_merge($this->viewParams, $this->languageParams($post), [
+        return view('dixlase-blog::admin.posts.edit', array_merge($this->viewParams, $this->languageParams($post), $this->seoMeta->formData($post), [
             'post' => $post,
             'categoryTree' => $this->loadCategoryTree(),
             'selectedCategoryIds' => $post->categories->pluck('id')->all(),
@@ -151,6 +155,7 @@ class DixlaseBlogAdminPostsController extends Controller
             $request->validated(),
             AdminHelper::getMember()?->id,
         );
+        $this->seoMeta->save($post, $request->validated());
 
         return redirect()
             ->route('dixlase-blog::admin.blog.edit', ['post' => $post->id])
