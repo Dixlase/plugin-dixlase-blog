@@ -47,6 +47,12 @@ return [
             '_insert_after' => 'front',
             'text' => 'dixlase-blog::admin.nav.blog.text',
             'icon' => 'fas fa-fw fa-newspaper',
+            // Route the sidebar permission check through this plugin's
+            // config/admin/roles.php. Without it the check falls back to
+            // core's PermissionRegistry (no `blog` entry) and the menu is
+            // hidden for everyone below SUPER_ADMIN. Value is the plugin
+            // directory basename.
+            'plugin_slug' => 'DixlaseBlog',
             'can' => 'admin',
             'children' => [
                 'index' => [
