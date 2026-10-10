@@ -1,0 +1,124 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: PHPUnit Tests
+
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@v5
+        with:
+          path: plugin
+
+      - name: Checkout core
+        uses: actions/checkout@v5
+        with:
+          repository: Dixlase/dixlase-core
+          ref: main
+          token: ${{ secrets.CORE_REPO_TOKEN }}
+          path: core
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: sodium, mbstring, json, sqlite3, pdo_sqlite
+          coverage: none
+
+      - name: Place plugin into core directory
+        run: |
+          # Core does not track plugins/, so a fresh core checkout has no
+          # plugins/ directory. Create it, clear any leftover path, then move
+          # the checked-out plugin into place.
+          mkdir -p core/plugins
+          rm -rf core/plugins/DixlaseBlog
+          mv plugin core/plugins/DixlaseBlog
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v5
+        with:
+          path: core/vendor
+          key: ${{ runner.os }}-php83-composer-${{ hashFiles('core/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php83-composer-
+
+      - name: Install core composer dependencies
+        working-directory: core
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Sync plugin autoload mappings
+        working-directory: core
+        run: |
+          # Generate composer.local.json (collects the plugins' psr-4 maps).
+          # The pre-autoload-dump hook normally does this, but --no-scripts
+          # skips it, so run it explicitly.
+          php scripts/sync-local-autoload.php
+          composer dump-autoload --no-scripts --optimize
+
+      - name: Setup test environment
+        working-directory: core
+        env:
+          APP_KEY: base64:dGVzdGtleWZvcmRpeGxhc2VibG9nY2l0ZXN0czEyMzQ=
+        run: |
+          if [ -f .env.example ]; then
+            cp .env.example .env
+          else
+            touch .env
+          fi
+          echo "APP_KEY=${APP_KEY}" >> .env
+
+      - name: Run PHPUnit tests
+        working-directory: core/plugins/DixlaseBlog
+        env:
+          APP_KEY: base64:dGVzdGtleWZvcmRpeGxhc2VibG9nY2l0ZXN0czEyMzQ=
+        run: ../../vendor/bin/phpunit
+
+  build:
+    # Verify the front-end build still compiles on every push / PR.
+    # release.yml runs the exact same steps on tag push to package the
+    # prebuilt bundle into the release ZIP; catching a broken build here
+    # keeps `vite build` from surprising us mid-release.
+    runs-on: ubuntu-latest
+    name: Frontend Build
+
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Verify build produced the expected outputs
+        # `vite.config.mjs` outputs hashed files into `resources/assets/{js,css}`
+        # with a `manifest.json` alongside. Check that the manifest exists and
+        # that every file it references was built. Missing outputs mean either
+        # the entry points changed and the config lags behind, or the build
+        # silently produced nothing — fail loudly here rather than shipping an
+        # empty prebuilt dir in a future release ZIP.
+        run: |
+          test -f resources/assets/manifest.json || { echo "missing resources/assets/manifest.json"; exit 1; }
+          files=$(jq -r '.[] | .file, (.css // [])[]' resources/assets/manifest.json)
+          test -n "$files" || { echo "manifest.json references no files"; exit 1; }
+          for f in $files; do
+            test -f "resources/assets/$f" || { echo "missing resources/assets/$f"; exit 1; }
+          done
+          echo "Build outputs:"
+          ls -la resources/assets/
