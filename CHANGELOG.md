@@ -29,6 +29,8 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Fixed
 
+- A bare `php artisan migrate` no longer tries to re-create the blog's tables; the plugin's
+  migrations run only through core's plugin migrator (#28).
 - Post, category and tag pages open under a language prefix such as `/en/blog/{slug}`;
   they used to read the language as the slug (#10). Links and the RSS feed stay in the
   current language, and the blog index links its feed.
