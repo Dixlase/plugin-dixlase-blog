@@ -38,14 +38,37 @@ use App\Enums\ContentEditorType;
 use App\Enums\ContentStatus;
 use App\Rules\UniqueContentSlug;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
+use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 
 class BlogPostUpdateRequest extends FormRequest
 {
+    /**
+     * An HTML (or legacy Blade) body is script-capable: only members who may
+     * author scripts may change such a post. See BlogScriptAuthoringPolicy.
+     */
     public function authorize(): bool
     {
-        return true;
+        $post = $this->postBeingUpdated();
+
+        return $post === null
+            || BlogScriptAuthoringPolicy::canEditEditorType(Auth::guard('member')->user(), $post->editor_type);
+    }
+
+    /**
+     * The post being updated. The {post} route parameter is an id: the
+     * admin routes resolve models by name, not by implicit binding.
+     */
+    public function postBeingUpdated(): ?BlogPost
+    {
+        $post = $this->route('post');
+        if ($post instanceof BlogPost) {
+            return $post;
+        }
+
+        return is_numeric($post) ? BlogPost::query()->find((int) $post) : null;
     }
 
     /**
@@ -53,11 +76,10 @@ class BlogPostUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $editorTypes = array_map(fn ($case) => $case->slug(), ContentEditorType::cases());
         $statuses = array_map(fn ($case) => $case->slug(), ContentStatus::cases());
 
-        $post = $this->route('post');
-        $postId = $post instanceof BlogPost ? $post->id : null;
+        $post = $this->postBeingUpdated();
+        $postId = $post?->id;
 
         $slugRule = UniqueContentSlug::for('plg_dixlase_blog_posts');
         if ($postId !== null) {
@@ -70,7 +92,10 @@ class BlogPostUpdateRequest extends FormRequest
             'content' => ['nullable', 'string', 'max:500000'],
             'excerpt' => ['nullable', 'string', 'max:500'],
             'featured_media_id' => ['nullable', 'integer', 'exists:media,id'],
-            'editor_type' => ['required', 'string', Rule::in($editorTypes)],
+            // The editor type is fixed once a post is saved.
+            'editor_type' => ['required', 'string', Rule::in($post !== null
+                ? [$post->editor_type->slug()]
+                : array_map(fn ($case) => $case->slug(), ContentEditorType::cases()))],
             'status' => ['required', 'string', Rule::in($statuses)],
             'published_at' => ['nullable', 'date'],
             'closed_at' => ['nullable', 'date', 'after:published_at'],
@@ -78,6 +103,16 @@ class BlogPostUpdateRequest extends FormRequest
             'categories.*' => ['integer', 'exists:plg_dixlase_blog_categories,id'],
             'tags' => ['nullable', 'array', 'max:50'],
             'tags.*' => ['string', 'max:100'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'editor_type.in' => __('dixlase-blog::admin.post.editor_type_not_allowed'),
         ];
     }
 }

@@ -34,6 +34,7 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\App\Http\Controllers\Admin;
 
+use App\Enums\ContentEditorType;
 use App\Helpers\AdminHelper;
 use App\Presenters\Admin\RevisionDiffPresenter;
 use App\Services\RevisionService;
@@ -47,6 +48,7 @@ use Illuminate\View\View;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Models\BlogPostRevision;
 use Plugins\DixlaseBlog\App\Services\BlogPostService;
+use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 
 class DixlaseBlogAdminPostRevisionsController extends Controller
 {
@@ -150,7 +152,17 @@ class DixlaseBlogAdminPostRevisionsController extends Controller
             ->where('post_id', $post->id)
             ->findOrFail((int) $request->route('revisionId'));
 
-        $this->postService->restoreRevision($revision, AdminHelper::getMember()?->id);
+        // Restoring writes the snapshot's body and editor type back, so it
+        // needs the same right as editing either version.
+        $member = AdminHelper::getMember();
+        $snapshotEditorType = $this->snapshotEditorType($revision->snapshot['editor_type'] ?? null);
+        abort_unless(
+            BlogScriptAuthoringPolicy::canEditEditorType($member, $post->editor_type)
+                && ($snapshotEditorType === null || BlogScriptAuthoringPolicy::canEditEditorType($member, $snapshotEditorType)),
+            403,
+        );
+
+        $this->postService->restoreRevision($revision, $member?->id);
 
         return redirect()
             ->route('dixlase-blog::admin.blog.revisions.index', ['post' => $post->id])
@@ -211,5 +223,20 @@ class DixlaseBlogAdminPostRevisionsController extends Controller
             BlogPostRevision::TYPE_MANUAL => __('dixlase-blog::admin.revision.type_manual'),
             BlogPostRevision::TYPE_RESTORE_BACKUP => __('dixlase-blog::admin.revision.type_restore_backup'),
         ];
+    }
+
+    /**
+     * The editor type a snapshot stores: the enum's int value, or a slug.
+     */
+    private function snapshotEditorType(mixed $value): ?ContentEditorType
+    {
+        if ($value instanceof ContentEditorType) {
+            return $value;
+        }
+        if (is_int($value) || (is_string($value) && ctype_digit($value))) {
+            return ContentEditorType::tryFrom((int) $value);
+        }
+
+        return is_string($value) ? ContentEditorType::tryFromSlug($value) : null;
     }
 }

@@ -193,6 +193,24 @@ class BlogFrontLocaleTest extends TestCase
         $response->assertDontSee(url('/blog/hello').'"', false);
     }
 
+    public function test_raw_html_in_a_markdown_body_is_escaped_on_the_post_page(): void
+    {
+        BlogPost::create([
+            'title' => 'Markdown',
+            'slug' => 'markdown',
+            'content' => "<script>alert(1)</script>\n\n**bold**",
+            'editor_type' => ContentEditorType::MARKDOWN,
+            'status' => ContentStatus::PUBLISHED,
+            'lang' => 'ja',
+            'published_at' => now()->subDay(),
+        ]);
+
+        $this->get('/ja/blog/markdown')
+            ->assertOk()
+            ->assertSee('<strong>bold</strong>', false)
+            ->assertDontSee('<script>alert(1)</script>', false);
+    }
+
     public function test_each_locale_has_its_own_feed(): void
     {
         $this->get('/en/blog/feed.xml')

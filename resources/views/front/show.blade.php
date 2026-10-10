@@ -9,11 +9,8 @@ Dixlase Blog is dual-licensed. Same terms as edit.blade.php.
 Public blog post detail page. Themes can override by copying this to
 themes/<theme>/views/dixlase-blog/front/show.blade.php.
 
-Editor type rendering:
-  - markdown: parsed via Str::markdown() (CommonMark)
-  - html:     output as-is (admin authors are trusted)
-  - other:    escaped as plain text (gui = future block editor, blade =
-              not supported per Phase 7 scope decision)
+The controller passes the body already rendered as $contentHtml (see
+BlogContentRenderer).
 --}}
 
 @extends('themes::layouts.app')
@@ -23,7 +20,6 @@ Editor type rendering:
     // the lang of the language it is actually shown in.
     $title = $post->localized('title');
     $excerpt = $post->localized('excerpt');
-    $content = $post->localized('content');
 @endphp
 
 @section('title', $title)
@@ -63,20 +59,9 @@ Editor type rendering:
     </header>
 
     <div class="dixlase-blog-post__content prose" lang="{{ $post->localizedLang('content') }}">
-        @switch($post->editor_type?->slug())
-            @case('markdown')
-                {!! \Illuminate\Support\Str::markdown($content ?? '') !!}
-                @break
-            @case('html')
-                {!! $content !!}
-                @break
-            @default
-                {{-- Fallback for unsupported editor types (gui / blade etc.):
-                     output the raw stored content as escaped plain text so
-                     no script tag from a future GUI-editor JSON payload can
-                     be interpreted. --}}
-                <pre>{{ $content }}</pre>
-        @endswitch
+        {{-- Rendered by BlogContentRenderer: Markdown with raw HTML escaped,
+             HTML as authored by an admin, anything else as escaped text. --}}
+        {!! $contentHtml !!}
     </div>
 
     @if ($post->categories->isNotEmpty() || $post->tags->isNotEmpty())
