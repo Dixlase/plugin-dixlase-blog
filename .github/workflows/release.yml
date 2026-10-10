@@ -1,0 +1,120 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+# Needed by softprops/action-gh-release to create / update the release
+# entry and attach the ZIP asset to it.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    name: Package release ZIP
+
+    steps:
+      - name: Checkout plugin at tag
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build frontend assets
+        # Same command CI's Frontend Build job runs on every PR, so a
+        # green PR check on main is a real signal this step will succeed
+        # when the release tag is pushed.
+        run: npm run build
+
+      - name: Package plugin ZIP with prebuilt assets
+        # The release ZIP has to look like a GitHub-style source zipball
+        # (single top-level wrapper directory containing every plugin
+        # file at ${wrapper}/…). Core's extractZipReplacingDir picks the
+        # first entry's first path segment as the wrapper and moves its
+        # contents into place — the wrapper name itself is irrelevant to
+        # Core, but keeping the shape means Core's `zipball_url` fallback
+        # can still take over cleanly if we ever fail to attach an asset.
+        #
+        # Includes: everything the plugin ships or wants to be
+        #   inspectable after install (source, prebuilt resources/assets,
+        #   composer.json, plugin.json, README, LICENSE, …).
+        # Excludes: dev-only metadata (.git, .github, tests, package
+        #   manager caches, AI assistant configs, planning docs) and the
+        #   node_modules tree that the build step just installed on the
+        #   runner. package.json / vite.config.mjs / resources/src remain
+        #   in the ZIP so `--build` can still rebuild after install if a
+        #   node-equipped operator ever needs to.
+        id: package
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          WRAPPER="plugin-dixlase-blog-${TAG}"
+          ZIP_NAME="${WRAPPER}.zip"
+
+          STAGE_ROOT="$(mktemp -d)"
+          STAGE="${STAGE_ROOT}/${WRAPPER}"
+          mkdir -p "${STAGE}"
+
+          rsync -a \
+            --exclude='/.git' \
+            --exclude='/.github' \
+            --exclude='/.gitattributes' \
+            --exclude='/.editorconfig' \
+            --exclude='/node_modules' \
+            --exclude='/phpunit.xml.dist' \
+            --exclude='/.phpunit.cache' \
+            --exclude='/.phpunit.result.cache' \
+            --exclude='/CLAUDE.md' \
+            --exclude='/CLAUDE.ja.md' \
+            --exclude='/.claude' \
+            --exclude='/.mcp.json' \
+            --exclude='/.vscode' \
+            --exclude='/.idea' \
+            --exclude='/.fleet' \
+            --exclude='/.nova' \
+            --exclude='/.zed' \
+            --exclude='/.phpactor.json' \
+            ./ "${STAGE}/"
+
+          # Sanity check: the prebuilt outputs the previous step just
+          # produced must actually be in the staged payload — otherwise
+          # `auto` mode on the target host will silently fall back to a
+          # rebuild (or a hard failure on npm-less production).
+          # Vite writes hashed names (js/app-<hash>.js), so check every file
+          # the manifest lists rather than a fixed js/app.js.
+          test -f "${STAGE}/resources/assets/manifest.json" \
+            || { echo "resources/assets/manifest.json not staged into ZIP"; exit 1; }
+          ASSET_FILES=$(jq -r '.[] | .file, (.css // [])[]' "${STAGE}/resources/assets/manifest.json" | sort -u)
+          test -n "${ASSET_FILES}" \
+            || { echo "resources/assets/manifest.json lists no files"; exit 1; }
+          for f in ${ASSET_FILES}; do
+            test -f "${STAGE}/resources/assets/${f}" \
+              || { echo "resources/assets/${f} is in manifest.json but not staged into ZIP"; exit 1; }
+          done
+
+          (cd "${STAGE_ROOT}" && zip -qr "${GITHUB_WORKSPACE}/${ZIP_NAME}" "${WRAPPER}")
+
+          echo "zip_name=${ZIP_NAME}" >> "${GITHUB_OUTPUT}"
+          echo "Packaged ${ZIP_NAME}:"
+          ls -lh "${ZIP_NAME}"
+
+      - name: Publish GitHub release with ZIP asset
+        uses: softprops/action-gh-release@v3
+        with:
+          # Attaching a real .zip asset here is the whole point of this
+          # workflow: Core's GitHubSourceProvider prefers the first
+          # asset whose name ends in `.zip` over the auto-generated
+          # `zipball_url`, so admin-panel updates get our prebuilt
+          # payload instead of a bare source zipball that would need to
+          # be rebuilt on the target host.
+          files: ${{ steps.package.outputs.zip_name }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
