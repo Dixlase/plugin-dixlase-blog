@@ -57,7 +57,7 @@ side validation continues to enforce it.
         : \App\Enums\ContentEditorType::tryFromSlug($editorTypeSlug ?? 'markdown');
 
     $languages = (array) config('language.languages', []);
-    $langCode = $post->lang ?: config('app.locale');
+    $langCode = $post->exists ? $post->sourceLocale() : ($langValue ?? config('app.locale'));
     $langName = $languages[$langCode] ?? $langCode;
 @endphp
 
@@ -134,6 +134,22 @@ side validation continues to enforce it.
                 </span>
             </div>
             <x-form-help-text :text="__('dixlase-blog::admin.post_form.meta_editor_locked_help')" />
+
+            @if (! empty($translationUrl))
+                <div class="mt-4">
+                    <x-form-button
+                        type="link"
+                        :href="$translationUrl"
+                        icon="fas fa-language"
+                        variant="secondary"
+                        size="sm"
+                        class="w-full"
+                    >
+                        {{ __('dixlase-blog::admin.post_form.translate_button') }}
+                    </x-form-button>
+                    <x-form-help-text :text="__('dixlase-blog::admin.post_form.translate_help', ['language' => $langName])" />
+                </div>
+            @endif
         </div>
     @endif
 
@@ -142,6 +158,23 @@ side validation continues to enforce it.
         <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
             {{ __('dixlase-blog::admin.post_form.meta_section') }}
         </h3>
+
+        {{-- Source language: chosen once, on create, while the site serves
+             more than one locale. A saved post shows it in the meta info
+             above; other languages are added as translations. --}}
+        @if (! $isEditMode && ! empty($multilingualEnabled))
+            <div class="mb-4">
+                <x-form-label :for="'lang'" :text="__('dixlase-blog::admin.post.lang_label')" />
+                <x-form-select
+                    id="lang"
+                    name="lang"
+                    :options="$languageOptions"
+                    :value="$langValue"
+                />
+                <x-form-help-text :text="__('dixlase-blog::admin.post.lang_help')" />
+                <x-form-error name="lang" />
+            </div>
+        @endif
 
         {{-- Title --}}
         <div>

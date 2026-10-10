@@ -36,6 +36,7 @@ namespace Plugins\DixlaseBlog\App\Services;
 
 use App\Enums\ContentEditorType;
 use App\Enums\ContentStatus;
+use App\Helpers\LocaleHelper;
 use App\Services\RevisionService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -43,6 +44,7 @@ use Plugins\DixlaseBlog\App\Models\BlogCategory;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Models\BlogPostRevision;
 use Plugins\DixlaseBlog\App\Models\BlogTag;
+use Plugins\DixlaseBlog\App\Support\BlogExcerpt;
 
 /**
  * Coordinates blog-post writes so the controller stays thin.
@@ -58,9 +60,6 @@ use Plugins\DixlaseBlog\App\Models\BlogTag;
  */
 class BlogPostService
 {
-    /** Excerpt fallback length when generating from content (matches X / Twitter). */
-    public const EXCERPT_AUTO_LENGTH = 140;
-
     public function __construct(private readonly RevisionService $revisionService)
     {
     }
@@ -75,7 +74,7 @@ class BlogPostService
             $payload['slug'] = $this->resolveSlug($data['slug'] ?? null, $data['title'] ?? '', null);
             $payload['excerpt'] = $this->resolveExcerpt($data['excerpt'] ?? null, $payload['content'] ?? null);
             $payload['user_id'] = $authorId;
-            $payload['lang'] = $data['lang'] ?? config('app.locale');
+            $payload['lang'] = filled($data['lang'] ?? null) ? $data['lang'] : LocaleHelper::getSiteDefaultLocale();
 
             $post = BlogPost::create($payload);
 
@@ -215,29 +214,7 @@ class BlogPostService
 
     private function resolveExcerpt(?string $candidate, ?string $content): ?string
     {
-        if (filled($candidate)) {
-            return $candidate;
-        }
-        if (blank($content)) {
-            return null;
-        }
-
-        $plain = $content;
-        // Strip the most common Markdown markup so the auto-excerpt does not
-        // surface raw "**bold**" / "## heading" syntax in OG descriptions.
-        $plain = preg_replace('/```[\s\S]*?```/', ' ', $plain) ?? $plain;
-        $plain = preg_replace('/!?\[([^\]]*)\]\([^)]*\)/', '$1', $plain) ?? $plain;
-        $plain = preg_replace('/[*_]{1,3}([^*_]+?)[*_]{1,3}/', '$1', $plain) ?? $plain;
-        $plain = preg_replace('/^#+\s*/m', '', $plain) ?? $plain;
-        $plain = preg_replace('/`([^`]+)`/', '$1', $plain) ?? $plain;
-        $plain = strip_tags($plain);
-        $plain = trim((string) preg_replace('/\s+/', ' ', $plain));
-
-        if ($plain === '') {
-            return null;
-        }
-
-        return mb_substr($plain, 0, self::EXCERPT_AUTO_LENGTH);
+        return filled($candidate) ? $candidate : BlogExcerpt::fromContent($content);
     }
 
     /**

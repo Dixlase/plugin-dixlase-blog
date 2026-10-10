@@ -11,18 +11,25 @@ Themes can override by copying this to
 themes/<theme>/views/dixlase-blog/front/_card.blade.php.
 --}}
 
+@php
+    // Translated fields fall back to the source text, so each one carries
+    // the lang of the language it is actually shown in.
+    $title = $post->localized('title');
+    $excerpt = $post->localized('excerpt');
+@endphp
+
 <article class="dixlase-blog-card">
     @if ($post->featured_media_id && $post->featuredMedia)
         <a href="{{ route('dixlase-blog::front.show', ['slug' => $post->slug]) }}" class="dixlase-blog-card__media">
             <img src="{{ asset('storage/media/'.$post->featuredMedia->path) }}"
-                 alt="{{ $post->featuredMedia->alt_text ?? $post->title }}"
+                 alt="{{ $post->featuredMedia->alt_text ?? $title }}"
                  loading="lazy">
         </a>
     @endif
 
     <div class="dixlase-blog-card__body">
-        <h2 class="dixlase-blog-card__title">
-            <a href="{{ route('dixlase-blog::front.show', ['slug' => $post->slug]) }}">{{ $post->title }}</a>
+        <h2 class="dixlase-blog-card__title" lang="{{ $post->localizedLang('title') }}">
+            <a href="{{ route('dixlase-blog::front.show', ['slug' => $post->slug]) }}">{{ $title }}</a>
         </h2>
 
         <div class="dixlase-blog-card__meta">
@@ -34,8 +41,8 @@ themes/<theme>/views/dixlase-blog/front/_card.blade.php.
             @endif
         </div>
 
-        @if ($post->excerpt)
-            <p class="dixlase-blog-card__excerpt">{{ $post->excerpt }}</p>
+        @if ($excerpt)
+            <p class="dixlase-blog-card__excerpt" lang="{{ $post->localizedLang('excerpt') }}">{{ $excerpt }}</p>
         @endif
 
         @if ($post->categories->isNotEmpty() || $post->tags->isNotEmpty())
