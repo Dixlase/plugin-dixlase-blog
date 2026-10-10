@@ -21,6 +21,7 @@ return [
         'heading' => 'Blog',
         'description' => 'Latest blog posts.',
         'no_posts' => 'No posts have been published yet.',
+        'feed_link' => 'RSS feed',
     ],
 
     'archive' => [

@@ -18,6 +18,7 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\App\Http\Controllers\Front;
 
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
 use Plugins\DixlaseBlog\App\Models\BlogCategory;
@@ -42,11 +43,17 @@ class DixlaseBlogFrontController extends Controller
         ]);
     }
 
-    public function show(string $slug): View
+    /**
+     * Route parameters are read by name. DixlaseMultilingual mounts these
+     * routes a second time under /{locale}, and Laravel hands controller
+     * arguments over by position, so a `string $slug` argument would
+     * receive the locale there.
+     */
+    public function show(Request $request): View
     {
         $post = BlogPost::query()
             ->currentlyVisible()
-            ->where('slug', $slug)
+            ->where('slug', $this->slug($request))
             ->with(['categories', 'tags', 'featuredMedia', 'author'])
             ->firstOrFail();
 
@@ -55,10 +62,10 @@ class DixlaseBlogFrontController extends Controller
         ]);
     }
 
-    public function category(string $slug): View
+    public function category(Request $request): View
     {
         $category = BlogCategory::query()
-            ->where('slug', $slug)
+            ->where('slug', $this->slug($request))
             ->firstOrFail();
 
         $posts = $category->posts()
@@ -76,10 +83,10 @@ class DixlaseBlogFrontController extends Controller
         ]);
     }
 
-    public function tag(string $slug): View
+    public function tag(Request $request): View
     {
         $tag = BlogTag::query()
-            ->where('slug', $slug)
+            ->where('slug', $this->slug($request))
             ->firstOrFail();
 
         $posts = $tag->posts()
@@ -95,5 +102,10 @@ class DixlaseBlogFrontController extends Controller
             'archiveLang' => $tag->localizedLang('name'),
             'posts' => $posts,
         ]);
+    }
+
+    private function slug(Request $request): string
+    {
+        return (string) $request->route('slug');
     }
 }
