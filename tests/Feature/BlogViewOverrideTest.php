@@ -94,7 +94,7 @@ class BlogViewOverrideTest extends TestCase
 
     public function test_theme_view_overrides_the_plugin_view(): void
     {
-        $this->put('themes/TestTheme', 'theme card');
+        $this->writeOverride('themes/TestTheme', 'theme card');
         $this->registerViews();
 
         $this->assertSame('theme card', trim(view('dixlase-blog::front._card')->render()));
@@ -102,14 +102,14 @@ class BlogViewOverrideTest extends TestCase
 
     public function test_custom_view_overrides_the_theme_view(): void
     {
-        $this->put('themes/TestTheme', 'theme card');
-        $this->put('custom', 'custom card');
+        $this->writeOverride('themes/TestTheme', 'theme card');
+        $this->writeOverride('custom', 'custom card');
         $this->registerViews();
 
         $this->assertSame('custom card', trim(view('dixlase-blog::front._card')->render()));
     }
 
-    private function put(string $base, string $body): void
+    private function writeOverride(string $base, string $body): void
     {
         $path = base_path($this->root.'/'.$base.'/plugins/DixlaseBlog/resources/views/front/_card.blade.php');
         File::ensureDirectoryExists(dirname($path));
