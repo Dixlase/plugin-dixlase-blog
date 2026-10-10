@@ -102,13 +102,16 @@ class BlogFrontLocaleTest extends TestCase
                 Route::get('/blog/{slug}', [DixlaseBlogFrontController::class, 'show'])->name('show');
             });
         };
-        // With DixlaseMultilingual on, locale-less requests also get a locale
-        // (and URL defaults) before the controller runs.
-        Route::middleware(['web', SetFrontLocale::class])->group($routes);
+        // DixlaseMultilingual registers the {locale} copy first. Laravel's
+        // name index keeps the first route for a name, so route() builds
+        // /{locale}/blog/... URLs, with the locale filled from the URL
+        // default the middleware sets. Locale-less requests get a locale
+        // (and that default) too.
         Route::prefix('{locale}')
             ->where(['locale' => 'ja|en'])
             ->middleware(['web', SetFrontLocale::class])
             ->group($routes);
+        Route::middleware(['web', SetFrontLocale::class])->group($routes);
         Route::getRoutes()->refreshNameLookups();
         Route::getRoutes()->refreshActionLookups();
 
@@ -155,7 +158,11 @@ class BlogFrontLocaleTest extends TestCase
 
     public function test_post_page_still_opens_without_a_locale_prefix(): void
     {
-        $this->get('/blog/hello')->assertOk()->assertSee('日本語のタイトル');
+        $response = $this->get('/blog/hello')->assertOk();
+
+        // The locale comes from the cookie, the browser or the site default.
+        $response->assertSee((string) $this->post->localized('title', app()->getLocale()));
+        $response->assertSee(url('/'.app()->getLocale().'/blog/category/news'), false);
     }
 
     public function test_unknown_slug_under_a_locale_prefix_is_not_found(): void
