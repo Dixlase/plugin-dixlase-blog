@@ -30,17 +30,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use App\Models\SecuritySetting;
 use Illuminate\Support\Facades\Route;
-use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminCategoriesController;
-use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostRevisionsController;
-use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostsController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFeedController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFrontController;
 
-$adminUrl = SecuritySetting::get('admin_url', config('security.admin_url'));
-
-// Front-end routes. The front.ip middleware is required to enforce the IP
+// Front-end routes only; the admin routes are in routes/admin.php. With
+// DixlaseMultilingual's locale URLs on, this file is also loaded under
+// /{locale}. The front.ip middleware is required to enforce the IP
 // filter — omitting it materially weakens security.
 //
 // Route ordering matters: literal paths /blog/feed.xml, /blog/category/...
@@ -54,77 +50,4 @@ Route::middleware(['front.ip'])
         Route::get('/blog/category/{slug}', [DixlaseBlogFrontController::class, 'category'])->name('category');
         Route::get('/blog/tag/{slug}', [DixlaseBlogFrontController::class, 'tag'])->name('tag');
         Route::get('/blog/{slug}', [DixlaseBlogFrontController::class, 'show'])->name('show');
-    });
-
-// Admin routes. The admin.ip middleware is required to enforce the admin IP
-// filter — omitting it materially weakens security.
-//
-// Route ordering matters here: the literal segments /blog/trash and
-// /blog/categories are declared *before* the /blog/{post}/... patterns so
-// that Laravel matches the literal paths first instead of binding "trash"
-// or "categories" as a BlogPost id.
-Route::prefix($adminUrl)
-    ->name('dixlase-blog::admin.')
-    ->middleware(['auth:member', 'admin.ip'])
-    ->group(function () {
-        // ===== Posts: collection-level routes =====
-        Route::get('/blog', [DixlaseBlogAdminPostsController::class, 'index'])->name('blog.index');
-        Route::get('/blog/create', [DixlaseBlogAdminPostsController::class, 'create'])->name('blog.create');
-        Route::post('/blog', [DixlaseBlogAdminPostsController::class, 'store'])->name('blog.store');
-
-        // ===== Live preview =====
-        // POST: editor pushes { content, editor_type } here on every
-        // debounced edit; response is { html } that the editor postMessages
-        // into the iframe shell loaded from the GET below.
-        // Declared before /blog/{post}/edit so "preview" / "preview-frame"
-        // are not bound as a BlogPost id.
-        Route::post('/blog/preview', [DixlaseBlogAdminPostsController::class, 'preview'])->name('blog.preview');
-        Route::get('/blog/preview-frame/{post?}', [DixlaseBlogAdminPostsController::class, 'previewFrame'])
-            ->whereNumber('post')
-            ->name('blog.previewFrame');
-
-        // ===== Trash =====
-        Route::get('/blog/trash', [DixlaseBlogAdminPostsController::class, 'trash'])->name('blog.trash');
-        Route::post('/blog/trash/{id}/restore', [DixlaseBlogAdminPostsController::class, 'restore'])
-            ->whereNumber('id')
-            ->name('blog.restore');
-        Route::delete('/blog/trash/{id}', [DixlaseBlogAdminPostsController::class, 'forceDelete'])
-            ->whereNumber('id')
-            ->name('blog.forceDelete');
-
-        // ===== Categories =====
-        Route::prefix('/blog/categories')
-            ->name('blog.categories.')
-            ->group(function () {
-                Route::get('/', [DixlaseBlogAdminCategoriesController::class, 'index'])->name('index');
-                Route::post('/', [DixlaseBlogAdminCategoriesController::class, 'store'])->name('store');
-                // Reorder must come before /{category} so "reorder" is not bound as a category id.
-                Route::post('/reorder', [DixlaseBlogAdminCategoriesController::class, 'reorder'])->name('reorder');
-                Route::put('/{category}', [DixlaseBlogAdminCategoriesController::class, 'update'])->name('update');
-                Route::delete('/{category}', [DixlaseBlogAdminCategoriesController::class, 'destroy'])->name('destroy');
-            });
-
-        // ===== Posts: item-level routes =====
-        Route::get('/blog/{post}/edit', [DixlaseBlogAdminPostsController::class, 'edit'])->name('blog.edit');
-        Route::put('/blog/{post}', [DixlaseBlogAdminPostsController::class, 'update'])->name('blog.update');
-        Route::delete('/blog/{post}', [DixlaseBlogAdminPostsController::class, 'destroy'])->name('blog.destroy');
-
-        // ===== Revisions =====
-        Route::prefix('/blog/{post}/revisions')
-            ->name('blog.revisions.')
-            ->group(function () {
-                Route::get('/', [DixlaseBlogAdminPostRevisionsController::class, 'index'])->name('index');
-                Route::get('/{revisionId}', [DixlaseBlogAdminPostRevisionsController::class, 'show'])
-                    ->whereNumber('revisionId')
-                    ->name('show');
-                Route::post('/{revisionId}/restore', [DixlaseBlogAdminPostRevisionsController::class, 'restore'])
-                    ->whereNumber('revisionId')
-                    ->name('restore');
-                Route::post('/{revisionId}/protect', [DixlaseBlogAdminPostRevisionsController::class, 'toggleProtection'])
-                    ->whereNumber('revisionId')
-                    ->name('protect');
-                Route::post('/{revisionId}/note', [DixlaseBlogAdminPostRevisionsController::class, 'updateNote'])
-                    ->whereNumber('revisionId')
-                    ->name('note');
-            });
     });

@@ -29,6 +29,9 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Fixed
 
+- The admin routes moved to `routes/admin.php` (#21): the admin screens no longer sit under
+  a language prefix, and they get the same middleware as core's admin screens, including
+  the role check (`config/admin/roles.php`; without one, ADMIN and above).
 - A bare `php artisan migrate` no longer tries to re-create the blog's tables; the plugin's
   migrations run only through core's plugin migrator (#28).
 - Post, category and tag pages open under a language prefix such as `/en/blog/{slug}`;

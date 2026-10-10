@@ -105,12 +105,9 @@ class DixlaseBlogAdminCategoriesController extends Controller
     /**
      * Resolve the {category} route param by NAME from the Request rather
      * than via Laravel's implicit / positional binding. See the doc-block
-     * on DixlaseBlogAdminPostsController::edit for the full reasoning.
-     * Short version: under this Brand setup the admin URL runs through a
-     * {locale} prefix group so the controller is handed two route params
-     * positionally (locale first, category second), and any signature
-     * like `update(..., int $category)` receives the locale string in
-     * the wrong slot.
+     * on DixlaseBlogAdminPostsController::edit for the reasoning: route
+     * parameters reach controller methods by position, so reading them by
+     * name keeps working whatever groups surround the route.
      */
     public function update(BlogCategoryUpdateRequest $request): RedirectResponse
     {
