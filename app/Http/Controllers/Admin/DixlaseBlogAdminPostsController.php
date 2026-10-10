@@ -110,24 +110,14 @@ class DixlaseBlogAdminPostsController extends Controller
      * Route-bound model resolution.
      *
      * We deliberately avoid both Laravel's implicit model binding
-     * (BlogPost $post) and positional scalar binding (int $post). The
-     * admin path segment comes from the admin_url security setting (a
-     * prefix plus a string each site chooses). With locale URLs on,
-     * DixlaseMultilingual includes this routes/web.php a second time
-     * inside a {locale} prefix group (PluginHelper::loadEnabledWebRoutes()
-     * mounted under /{locale}/...), so the effective route becomes
-     * /{locale}/<admin-url>/blog/{post}/edit.
-     *
-     * Under that two-parameter route Laravel hands the controller the
-     * URL params *positionally* (locale first, post second), so any
-     * controller signature like `edit(int $post)` receives the locale
-     * string in the first slot and raises a TypeError. The trace
-     * looked like edit(string, string).
-     *
-     * The fix is to take the Request and look up the model by route
-     * parameter NAME, which is unaffected by the wrapping {locale}
-     * prefix or any other group added downstream. This mirrors
-     * DixlaseLegal's "resolve manually from the request" approach.
+     * (BlogPost $post) and positional scalar binding (int $post), and
+     * read the {post} parameter by NAME from the Request instead.
+     * Laravel passes route parameters to controller methods by position,
+     * so a parameter added by any surrounding route group (the admin
+     * routes once lived in routes/web.php, which DixlaseMultilingual also
+     * mounts under /{locale}) would land in the wrong argument. Reading
+     * by name is unaffected by such groups. This mirrors DixlaseLegal's
+     * "resolve manually from the request" approach.
      */
     public function edit(Request $request): View
     {
