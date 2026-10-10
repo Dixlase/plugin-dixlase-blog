@@ -11,6 +11,11 @@ Dixlase Blog プラグインの主要な変更はすべてこのファイルに�
 
 ### 追加
 
+- ブログの一覧・記事・カテゴリー・タグのページの標準テンプレートとスタイルを追加した。
+  前後のページ送りとダークモードに対応する(#12)。サイトやテーマは、DixlasePages と
+  同じく `custom/plugins/DixlaseBlog/resources/views/` か
+  `themes/<テーマ>/plugins/DixlaseBlog/resources/views/` でテンプレートを上書きする。
+  以前の `themes/<テーマ>/views/dixlase-blog/` は読まなくなった。
 - 記事を DixlaseMultilingual で翻訳できるようにした(#8)。記事は作成時に選んだ 1 つの
   言語で書き、ほかの言語は記事の slug を共有する翻訳として足す。訳が無いところは原文を
   表示する。

@@ -33,6 +33,16 @@ Once enabled, **Blog** appears in the admin sidebar with the post list, new post
 
 A post's public URL is `/blog/{slug}`. Use a short English slug; it is the post's permanent address.
 
+## Customising the templates
+
+The front pages use the plugin's own templates and stylesheet. To change a template, copy it from `resources/views/` to one of these directories, keeping its relative path (for example `front/show.blade.php`). The first directory that holds the file wins:
+
+1. `custom/plugins/DixlaseBlog/resources/views/` — one site
+2. `themes/<active theme>/plugins/DixlaseBlog/resources/views/` — one theme
+3. `plugins/DixlaseBlog/resources/views/` — the defaults
+
+The templates are `front/index`, `front/show`, `front/archive` (category and tag pages), `front/_card` (a post in a list), `front/_pagination` and `front/feed` (RSS). Colours follow the theme's Tailwind colour tokens and its dark mode; to restyle without copying a template, override the `--dlsb-*` CSS variables on `.dixlase-blog`.
+
 ## License
 
 Dixlase Blog is distributed under a **dual license**:

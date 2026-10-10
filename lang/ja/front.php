@@ -41,4 +41,15 @@ return [
     'feed_title' => ':site のブログ',
     'feed_description' => ':site の最新ブログ記事。',
 
+
+    'pagination' => [
+        'label' => 'ページ送り',
+        'previous' => '新しい記事',
+        'next' => '古い記事',
+        'status' => ':current / :last ページ',
+    ],
+
+    'post' => [
+        'back_to_index' => '← 記事一覧へ戻る',
+    ],
 ];

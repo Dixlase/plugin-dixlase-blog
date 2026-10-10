@@ -33,6 +33,16 @@ cd plugins/DixlaseBlog && npm ci && npm run build
 
 記事の公開 URL は `/blog/{slug}` です。slug は短い英語にしてください。記事の恒久的なアドレスになります。
 
+## テンプレートの変更
+
+表側のページは、プラグインのテンプレートとスタイルシートで表示します。テンプレートを変えるには、`resources/views/` からファイルを次のどちらかのディレクトリへ、相対パスを保ったまま(例: `front/show.blade.php`)コピーします。最初にファイルが見つかったディレクトリのものが使われます。
+
+1. `custom/plugins/DixlaseBlog/resources/views/` — そのサイトだけ
+2. `themes/<有効なテーマ>/plugins/DixlaseBlog/resources/views/` — そのテーマだけ
+3. `plugins/DixlaseBlog/resources/views/` — 標準
+
+テンプレートは `front/index`、`front/show`、`front/archive`(カテゴリーとタグのページ)、`front/_card`(一覧の記事 1 件)、`front/_pagination`、`front/feed`(RSS)です。色はテーマの Tailwind の色とダークモードに合わせます。テンプレートをコピーせずに見た目を変えるときは、`.dixlase-blog` の `--dlsb-*` の CSS 変数を上書きします。
+
 ## ライセンス
 
 Dixlase Blog は **デュアルライセンス** で配布されています。
