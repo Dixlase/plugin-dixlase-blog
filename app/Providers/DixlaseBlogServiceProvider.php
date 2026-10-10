@@ -64,7 +64,11 @@ class DixlaseBlogServiceProvider extends ServiceProvider
     {
         $this->registerViews();
         $this->loadTranslationsFrom(__DIR__.'/../../lang', 'dixlase-blog');
-        $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
+
+        // Migrations are deliberately NOT registered with Laravel's migrator.
+        // Core's plugin migrator applies them (dls:plugin:migrate, install,
+        // enable) and records them in the plugin migration ledger; a bare
+        // `php artisan migrate` would otherwise try to re-create the tables.
     }
 
     /**
