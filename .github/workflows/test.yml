@@ -24,7 +24,6 @@ jobs:
         with:
           repository: Dixlase/dixlase-core
           ref: main
-          token: ${{ secrets.CORE_REPO_TOKEN }}
           path: core
 
       - name: Setup PHP
