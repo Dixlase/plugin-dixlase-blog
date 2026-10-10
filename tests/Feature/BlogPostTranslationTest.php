@@ -87,6 +87,9 @@ class BlogPostTranslationTest extends TestCase
             Route::get('/blog/tag/{slug}', [DixlaseBlogFrontController::class, 'tag'])->name('tag');
             Route::get('/blog/{slug}', [DixlaseBlogFrontController::class, 'show'])->name('show');
         });
+        // Routes added after boot are not in the name index until it is rebuilt.
+        Route::getRoutes()->refreshNameLookups();
+        Route::getRoutes()->refreshActionLookups();
     }
 
     public function test_source_text_is_shown_without_a_translation_resolver(): void
