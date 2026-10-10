@@ -37,7 +37,6 @@ namespace Plugins\DixlaseBlog\App\Http\Controllers\Admin;
 use App\Enums\ContentEditorType;
 use App\Helpers\AdminHelper;
 use App\Helpers\LocaleHelper;
-use App\Services\ContentPreviewService;
 use App\Traits\AdminInterfaceTrait;
 use App\Traits\AdminLoggedInTrait;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -51,7 +50,9 @@ use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogPostStoreRequest;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogPostUpdateRequest;
 use Plugins\DixlaseBlog\App\Models\BlogCategory;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
+use Plugins\DixlaseBlog\App\Services\BlogContentRenderer;
 use Plugins\DixlaseBlog\App\Services\BlogPostService;
+use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 
 class DixlaseBlogAdminPostsController extends Controller
 {
@@ -130,6 +131,9 @@ class DixlaseBlogAdminPostsController extends Controller
             ->with(['categories', 'tags', 'featuredMedia'])
             ->findOrFail((int) $request->route('post'));
 
+        // An HTML body is script-capable; see BlogScriptAuthoringPolicy.
+        abort_unless(BlogScriptAuthoringPolicy::canEditEditorType(AdminHelper::getMember(), $post->editor_type), 403);
+
         return view('dixlase-blog::admin.posts.edit', array_merge($this->viewParams, $this->languageParams($post), [
             'post' => $post,
             'categoryTree' => $this->loadCategoryTree(),
@@ -200,10 +204,10 @@ class DixlaseBlogAdminPostsController extends Controller
      * Server-side preview render endpoint. The post-form Alpine editor
      * (blogPostEditor) POSTs the current { content, editor_type } here on
      * each debounced edit, receives the rendered HTML in JSON, and pushes
-     * it into the iframe via postMessage. Mirrors core's FrontPage admin
-     * preview() — we intentionally reuse ContentPreviewService so that
-     * Markdown / HTML / shortcode rendering stays in lockstep with the
-     * front-page editor.
+     * it into the iframe via postMessage. It renders through
+     * BlogContentRenderer, as the public post page does, so the preview
+     * shows what will be published. HTML from a member who may not author
+     * scripts is shown as text, as it could not be saved anyway.
      */
     public function preview(Request $request): JsonResponse
     {
@@ -212,8 +216,12 @@ class DixlaseBlogAdminPostsController extends Controller
             'editor_type' => ['required', 'string'],
         ]);
 
-        $html = app(ContentPreviewService::class)
-            ->renderFromSlug($data['content'] ?? '', $data['editor_type']);
+        $editorType = ContentEditorType::tryFromSlug($data['editor_type']);
+        if ($editorType === ContentEditorType::HTML && ! BlogScriptAuthoringPolicy::canAuthorScripts(AdminHelper::getMember())) {
+            $editorType = null;
+        }
+
+        $html = app(BlogContentRenderer::class)->render($data['content'] ?? '', $editorType);
 
         return response()->json(['html' => $html]);
     }
@@ -224,7 +232,7 @@ class DixlaseBlogAdminPostsController extends Controller
      * from the parent window and swaps the title / content nodes.
      *
      * Initial render uses the saved post's content (rendered via
-     * ContentPreviewService) so the iframe is not blank for the
+     * BlogContentRenderer) so the iframe is not blank for the
      * pre-first-edit moment; subsequent edits flow in via postMessage.
      * For create-mode there is no $post, so the iframe loads empty and
      * the very first edit fills it in.
@@ -245,11 +253,9 @@ class DixlaseBlogAdminPostsController extends Controller
         $initialTitle = '';
         if ($resolvedPost) {
             $initialTitle = (string) $resolvedPost->title;
-            $initialContent = app(ContentPreviewService::class)->render(
-                (string) ($resolvedPost->content ?? ''),
-                $resolvedPost->editor_type instanceof ContentEditorType
-                    ? $resolvedPost->editor_type
-                    : ContentEditorType::MARKDOWN,
+            $initialContent = app(BlogContentRenderer::class)->render(
+                $resolvedPost->content,
+                $resolvedPost->editor_type,
             );
         }
 

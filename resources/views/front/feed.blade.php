@@ -30,7 +30,7 @@ included; readers are expected to follow the link to the site).
             @if ($post->author)
             <dc:creator>{{ $post->author->display_name ?? $post->author->account_name }}</dc:creator>
             @endif
-            <description><![CDATA[{!! $post->localized('excerpt') ?? '' !!}]]></description>
+            <description>{{ $post->localized('excerpt') ?? '' }}</description>
         </item>
         @endforeach
     </channel>

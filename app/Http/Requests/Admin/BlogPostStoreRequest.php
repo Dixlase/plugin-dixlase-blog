@@ -34,12 +34,13 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\App\Http\Requests\Admin;
 
-use App\Enums\ContentEditorType;
 use App\Enums\ContentStatus;
 use App\Helpers\LocaleHelper;
 use App\Rules\UniqueContentSlug;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 
 class BlogPostStoreRequest extends FormRequest
 {
@@ -53,7 +54,6 @@ class BlogPostStoreRequest extends FormRequest
      */
     public function rules(): array
     {
-        $editorTypes = array_map(fn ($case) => $case->slug(), ContentEditorType::cases());
         $statuses = array_map(fn ($case) => $case->slug(), ContentStatus::cases());
 
         return [
@@ -65,7 +65,11 @@ class BlogPostStoreRequest extends FormRequest
             'content' => ['nullable', 'string', 'max:500000'],
             'excerpt' => ['nullable', 'string', 'max:500'],
             'featured_media_id' => ['nullable', 'integer', 'exists:media,id'],
-            'editor_type' => ['required', 'string', Rule::in($editorTypes)],
+            // HTML is accepted only from members who may author scripts, and
+            // not in Simple mode; Blade never. See BlogScriptAuthoringPolicy.
+            'editor_type' => ['required', 'string', Rule::in(
+                BlogScriptAuthoringPolicy::creatableEditorSlugs(Auth::guard('member')->user())
+            )],
             'status' => ['required', 'string', Rule::in($statuses)],
             'lang' => ['nullable', 'string', Rule::in(LocaleHelper::supportedLocales())],
             'published_at' => ['nullable', 'date'],
@@ -74,6 +78,16 @@ class BlogPostStoreRequest extends FormRequest
             'categories.*' => ['integer', 'exists:plg_dixlase_blog_categories,id'],
             'tags' => ['nullable', 'array', 'max:50'],
             'tags.*' => ['string', 'max:100'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'editor_type.in' => __('dixlase-blog::admin.post.editor_type_not_allowed'),
         ];
     }
 }

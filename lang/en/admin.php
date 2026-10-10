@@ -73,6 +73,7 @@ return [
         'closed_at_help' => 'Optional. Auto-unpublish at this time.',
         'lang_label' => 'Language',
         'lang_help' => 'The language this post is written in. Other languages are added as translations after saving.',
+        'editor_type_not_allowed' => 'You cannot use this editor type.',
         'categories_label' => 'Categories',
         'categories_help' => 'A post can belong to multiple categories.',
         'no_categories' => 'No categories yet — create one first.',

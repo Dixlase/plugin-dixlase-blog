@@ -24,11 +24,16 @@ use Illuminate\View\View;
 use Plugins\DixlaseBlog\App\Models\BlogCategory;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Models\BlogTag;
+use Plugins\DixlaseBlog\App\Services\BlogContentRenderer;
 
 class DixlaseBlogFrontController extends Controller
 {
     /** Posts per page on listing pages. */
     private const PER_PAGE = 12;
+
+    public function __construct(private readonly BlogContentRenderer $renderer)
+    {
+    }
 
     public function index(): View
     {
@@ -59,6 +64,7 @@ class DixlaseBlogFrontController extends Controller
 
         return view('dixlase-blog::front.show', [
             'post' => $post,
+            'contentHtml' => $this->renderer->renderPost($post),
         ]);
     }
 
