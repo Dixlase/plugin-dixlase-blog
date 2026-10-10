@@ -37,17 +37,20 @@ namespace Plugins\DixlaseBlog\App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Plugins\DixlaseBlog\App\Models\Concerns\HasLocalizedFields;
 
 /**
  * @property int $id
  * @property string $name
  * @property string $slug
+ * @property string|null $lang Source language of the name; other languages are DixlaseMultilingual overlays
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  */
 class BlogTag extends Model
 {
     use HasFactory;
+    use HasLocalizedFields;
 
     protected $table = 'plg_dixlase_blog_tags';
 
@@ -55,6 +58,7 @@ class BlogTag extends Model
     protected $fillable = [
         'name',
         'slug',
+        'lang',
     ];
 
     /**

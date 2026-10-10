@@ -34,6 +34,7 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\App\Http\Requests\Admin;
 
+use App\Helpers\LocaleHelper;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -57,6 +58,7 @@ class BlogCategoryStoreRequest extends FormRequest
             ],
             'parent_id' => ['nullable', 'integer', 'exists:plg_dixlase_blog_categories,id'],
             'display_order' => ['nullable', 'integer', 'min:0'],
+            'lang' => ['nullable', 'string', Rule::in(LocaleHelper::supportedLocales())],
         ];
     }
 }

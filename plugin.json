@@ -62,6 +62,30 @@
                         "rules": "nullable|string|max:500000"
                     }
                 ]
+            },
+            {
+                "key": "dixlase-blog:category",
+                "model": "Plugins\\DixlaseBlog\\App\\Models\\BlogCategory",
+                "label_field": "label",
+                "fields": [
+                    {
+                        "name": "label",
+                        "type": "text",
+                        "rules": "required|string|max:255"
+                    }
+                ]
+            },
+            {
+                "key": "dixlase-blog:tag",
+                "model": "Plugins\\DixlaseBlog\\App\\Models\\BlogTag",
+                "label_field": "name",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "text",
+                        "rules": "required|string|max:100"
+                    }
+                ]
             }
         ]
     },

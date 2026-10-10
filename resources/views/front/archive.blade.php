@@ -7,7 +7,8 @@ https://exc-d.com
 Dixlase Blog is dual-licensed. Same terms as edit.blade.php.
 
 Shared archive view for category and tag listings; the controller passes
-$archiveType ('category' or 'tag') and $archiveLabel for the heading.
+$archiveType ('category' or 'tag'), and $archiveLabel with its language
+$archiveLang for the heading.
 Themes can override by copying this to
 themes/<theme>/views/dixlase-blog/front/archive.blade.php.
 --}}
@@ -40,7 +41,7 @@ themes/<theme>/views/dixlase-blog/front/archive.blade.php.
                 {{ __('dixlase-blog::front.archive.tag_kicker') }}
             @endif
         </p>
-        <h1 class="dixlase-blog-archive__heading">{{ $archiveLabel }}</h1>
+        <h1 class="dixlase-blog-archive__heading" lang="{{ $archiveLang }}">{{ $archiveLabel }}</h1>
     </header>
 
     @if ($posts->isEmpty())

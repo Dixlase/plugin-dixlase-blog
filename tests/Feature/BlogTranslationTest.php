@@ -47,16 +47,19 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Route;
 use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFeedController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFrontController;
+use Plugins\DixlaseBlog\App\Models\BlogCategory;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
+use Plugins\DixlaseBlog\App\Models\BlogTag;
 use Plugins\DixlaseBlog\App\Services\BlogPostService;
 use Tests\TestCase;
 
 /**
- * Posts are translated through the core TranslationResolver contract
+ * Posts, category names and tag names are translated through the core
+ * TranslationResolver contract
  * (bound by DixlaseMultilingual). A stand-in resolver keeps these tests
  * independent of that plugin.
  */
-class BlogPostTranslationTest extends TestCase
+class BlogTranslationTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -186,7 +189,7 @@ class BlogPostTranslationTest extends TestCase
         $response->assertDontSee('日本語のタイトル', false);
     }
 
-    public function test_manifest_declares_the_post_as_translatable(): void
+    public function test_manifest_declares_the_translatable_types(): void
     {
         $manifest = json_decode(
             (string) file_get_contents(base_path('plugins/DixlaseBlog/plugin.json')),
@@ -196,10 +199,52 @@ class BlogPostTranslationTest extends TestCase
 
         $this->assertContains('multilingual-content', $manifest['capabilities']);
 
-        $type = $manifest['multilingual_content']['types'][0];
-        $this->assertSame('dixlase-blog:post', $type['key']);
-        $this->assertSame(BlogPost::class, $type['model']);
-        $this->assertSame(['title', 'excerpt', 'content'], array_column($type['fields'], 'name'));
+        $types = array_column($manifest['multilingual_content']['types'], null, 'key');
+        $this->assertSame(BlogPost::class, $types['dixlase-blog:post']['model']);
+        $this->assertSame(['title', 'excerpt', 'content'], array_column($types['dixlase-blog:post']['fields'], 'name'));
+        $this->assertSame(BlogCategory::class, $types['dixlase-blog:category']['model']);
+        $this->assertSame(['label'], array_column($types['dixlase-blog:category']['fields'], 'name'));
+        $this->assertSame(BlogTag::class, $types['dixlase-blog:tag']['model']);
+        $this->assertSame(['name'], array_column($types['dixlase-blog:tag']['fields'], 'name'));
+    }
+
+    public function test_category_and_tag_names_are_translated_with_shared_slugs(): void
+    {
+        $this->bindResolver();
+        $category = BlogCategory::create(['label' => 'お知らせ', 'slug' => 'news', 'lang' => 'ja', 'depth' => 0, 'display_order' => 0]);
+        $tag = BlogTag::create(['name' => '日本語タグ', 'slug' => 'release', 'lang' => 'ja']);
+        $this->overlays[$category->getKey().'|en|label'] = 'News';
+
+        App::setLocale('en');
+        $this->assertSame('News', $category->localized('label'));
+        $this->assertSame('en', $category->localizedLang('label'));
+        $this->assertSame('日本語タグ', $tag->localized('name'));
+        $this->assertSame('ja', $tag->localizedLang('name'));
+        $this->assertSame('お知らせ', $category->label);
+
+        App::setLocale('ja');
+        $this->assertSame('お知らせ', $category->fresh()->localized('label'));
+    }
+
+    public function test_category_or_tag_without_lang_uses_the_site_default_locale(): void
+    {
+        $category = BlogCategory::create(['label' => 'News', 'slug' => 'news', 'depth' => 0, 'display_order' => 0]);
+
+        $this->assertSame(LocaleHelper::getSiteDefaultLocale(), $category->sourceLocale());
+    }
+
+    public function test_new_tag_takes_the_language_of_its_post(): void
+    {
+        $post = app(BlogPostService::class)->create([
+            'title' => '日本語の記事',
+            'content' => '本文',
+            'editor_type' => 'markdown',
+            'status' => 'draft',
+            'lang' => 'ja',
+            'tags' => ['お知らせ'],
+        ], null);
+
+        $this->assertSame('ja', $post->tags->first()?->lang);
     }
 
     private function makePost(?string $lang, string $slug = 'hello', string $title = '日本語のタイトル'): BlogPost

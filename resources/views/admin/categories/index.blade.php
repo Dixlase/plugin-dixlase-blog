@@ -96,6 +96,16 @@ the New Category button) coherent without prop-drilling.
                         </select>
                         <x-form-error name="parent_id" />
                     </div>
+                    {{-- Source language of the name; fixed once saved. Other
+                         languages are added in the translation editor. --}}
+                    @if ($multilingualEnabled)
+                        <div>
+                            <x-form-label :for="'create-lang'" :text="__('dixlase-blog::admin.category.lang_label')" />
+                            <x-form-select id="create-lang" name="lang" :options="$languageOptions" :value="$langValue" />
+                            <x-form-help-text :text="__('dixlase-blog::admin.category.lang_help')" />
+                            <x-form-error name="lang" />
+                        </div>
+                    @endif
                 </div>
                 <div class="flex gap-2">
                     <x-form-button type="submit" icon="fas fa-save" size="sm" variant="primary">

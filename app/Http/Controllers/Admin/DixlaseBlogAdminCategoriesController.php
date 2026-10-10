@@ -34,6 +34,7 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\App\Http\Controllers\Admin;
 
+use App\Helpers\LocaleHelper;
 use App\Traits\AdminInterfaceTrait;
 use App\Traits\AdminLoggedInTrait;
 use DomainException;
@@ -73,6 +74,11 @@ class DixlaseBlogAdminCategoriesController extends Controller
 
         return view('dixlase-blog::admin.categories.index', array_merge($this->viewParams, [
             'categories' => $categories,
+            // The name's source language is chosen on create while the site
+            // serves more than one locale; see DixlaseBlogAdminPostsController.
+            'multilingualEnabled' => (bool) config('dixlase_multilingual.locale_url_routing_enabled', false),
+            'languageOptions' => LocaleHelper::supportedLocaleOptions(),
+            'langValue' => (string) old('lang', LocaleHelper::getSiteDefaultLocale()),
         ]));
     }
 
@@ -80,6 +86,7 @@ class DixlaseBlogAdminCategoriesController extends Controller
     {
         $data = $request->validated();
         $data['slug'] = $this->resolveSlug($data['slug'] ?? null, $data['label']);
+        $data['lang'] = filled($data['lang'] ?? null) ? $data['lang'] : LocaleHelper::getSiteDefaultLocale();
         $data['display_order'] = $data['display_order'] ?? $this->nextDisplayOrder($data['parent_id'] ?? null);
 
         try {
