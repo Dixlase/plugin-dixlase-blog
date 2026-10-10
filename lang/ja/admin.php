@@ -239,4 +239,8 @@ return [
         'revision_note_updated' => 'リビジョンのメモを更新しました。',
     ],
 
+
+    'provider' => [
+        'label' => 'ブログ記事',
+    ],
 ];

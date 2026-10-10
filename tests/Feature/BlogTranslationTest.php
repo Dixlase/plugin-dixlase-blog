@@ -203,7 +203,7 @@ class BlogTranslationTest extends TestCase
 
         $types = array_column($manifest['multilingual_content']['types'], null, 'key');
         $this->assertSame(BlogPost::class, $types['dixlase-blog:post']['model']);
-        $this->assertSame(['title', 'excerpt', 'content'], array_column($types['dixlase-blog:post']['fields'], 'name'));
+        $this->assertSame(['title', 'excerpt', 'content', 'seo_description'], array_column($types['dixlase-blog:post']['fields'], 'name'));
         $this->assertSame(BlogCategory::class, $types['dixlase-blog:category']['model']);
         $this->assertSame(['label'], array_column($types['dixlase-blog:category']['fields'], 'name'));
         $this->assertSame(BlogTag::class, $types['dixlase-blog:tag']['model']);

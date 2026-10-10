@@ -19,6 +19,14 @@ BlogContentRenderer).
     // the lang of the language it is actually shown in.
     $title = $post->localized('title');
     $excerpt = $post->localized('excerpt');
+
+    // With DixlaseSEO enabled, it writes the description, canonical and OGP
+    // tags into the head; it reads the description through
+    // BlogPost::getTranslation('seo_description').
+    $seoHandlesHead = function_exists('dls_seo_set_page_meta');
+    if ($seoHandlesHead) {
+        dls_seo_set_page_meta($post, 'dixlase-blog');
+    }
 @endphp
 
 @section('title', $title)
@@ -26,6 +34,9 @@ BlogContentRenderer).
 
 @include('dixlase-blog::front._assets')
 
+{{-- Without DixlaseSEO, the post's own tags; they appear once the theme
+     renders a head stack. --}}
+@unless ($seoHandlesHead)
 @push('head')
     @if ($excerpt)
         <meta property="og:description" content="{{ $excerpt }}">
@@ -37,6 +48,7 @@ BlogContentRenderer).
         <meta property="og:image" content="{{ asset('storage/media/'.$post->featuredMedia->path) }}">
     @endif
 @endpush
+@endunless
 
 @section('content')
 <div class="dixlase-blog">

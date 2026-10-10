@@ -78,7 +78,23 @@ class BlogPostStoreRequest extends FormRequest
             'categories.*' => ['integer', 'exists:plg_dixlase_blog_categories,id'],
             'tags' => ['nullable', 'array', 'max:50'],
             'tags.*' => ['string', 'max:100'],
+            // Stored by DixlaseSEO; only submitted when its integration is on.
+            'seo_meta' => ['sometimes', 'array'],
+            'seo_meta.description' => ['nullable', 'string', 'max:300'],
+            'seo_meta.ogp_media_id' => ['nullable', 'integer', 'exists:media,id'],
         ];
+    }
+
+    /**
+     * The media picker submits 0 (or an empty string) for "no image".
+     */
+    protected function prepareForValidation(): void
+    {
+        $seoMeta = $this->input('seo_meta');
+        if (is_array($seoMeta) && in_array($seoMeta['ogp_media_id'] ?? null, ['', '0', 0], true)) {
+            $seoMeta['ogp_media_id'] = null;
+            $this->merge(['seo_meta' => $seoMeta]);
+        }
     }
 
     /**

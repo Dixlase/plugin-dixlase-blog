@@ -239,4 +239,8 @@ return [
         'revision_note_updated' => 'Revision note updated.',
     ],
 
+
+    'provider' => [
+        'label' => 'Blog posts',
+    ],
 ];
