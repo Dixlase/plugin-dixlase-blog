@@ -72,7 +72,6 @@ class BlogPostUpdateRequest extends FormRequest
             'featured_media_id' => ['nullable', 'integer', 'exists:media,id'],
             'editor_type' => ['required', 'string', Rule::in($editorTypes)],
             'status' => ['required', 'string', Rule::in($statuses)],
-            'lang' => ['nullable', 'string', 'max:10'],
             'published_at' => ['nullable', 'date'],
             'closed_at' => ['nullable', 'date', 'after:published_at'],
             'categories' => ['nullable', 'array'],

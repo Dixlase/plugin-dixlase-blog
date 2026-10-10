@@ -18,14 +18,22 @@ Editor type rendering:
 
 @extends('themes::layouts.app')
 
-@section('title', $post->title)
-@section('description', $post->excerpt ?? '')
+@php
+    // Translated fields fall back to the source text, so each one carries
+    // the lang of the language it is actually shown in.
+    $title = $post->localized('title');
+    $excerpt = $post->localized('excerpt');
+    $content = $post->localized('content');
+@endphp
+
+@section('title', $title)
+@section('description', $excerpt ?? '')
 
 @push('head')
-    @if ($post->excerpt)
-        <meta property="og:description" content="{{ $post->excerpt }}">
+    @if ($excerpt)
+        <meta property="og:description" content="{{ $excerpt }}">
     @endif
-    <meta property="og:title" content="{{ $post->title }}">
+    <meta property="og:title" content="{{ $title }}">
     <meta property="og:type" content="article">
     <meta property="og:url" content="{{ route('dixlase-blog::front.show', ['slug' => $post->slug]) }}">
     @if ($post->featuredMedia)
@@ -38,12 +46,12 @@ Editor type rendering:
     @if ($post->featuredMedia)
         <figure class="dixlase-blog-post__featured">
             <img src="{{ asset('storage/media/'.$post->featuredMedia->path) }}"
-                 alt="{{ $post->featuredMedia->alt_text ?? $post->title }}">
+                 alt="{{ $post->featuredMedia->alt_text ?? $title }}">
         </figure>
     @endif
 
     <header class="dixlase-blog-post__header">
-        <h1 class="dixlase-blog-post__title">{{ $post->title }}</h1>
+        <h1 class="dixlase-blog-post__title" lang="{{ $post->localizedLang('title') }}">{{ $title }}</h1>
         <div class="dixlase-blog-post__meta">
             @if ($post->published_at)
                 <time datetime="{{ $post->published_at->toIso8601String() }}">{{ $post->published_at->format('Y-m-d') }}</time>
@@ -54,20 +62,20 @@ Editor type rendering:
         </div>
     </header>
 
-    <div class="dixlase-blog-post__content prose">
+    <div class="dixlase-blog-post__content prose" lang="{{ $post->localizedLang('content') }}">
         @switch($post->editor_type?->slug())
             @case('markdown')
-                {!! \Illuminate\Support\Str::markdown($post->content ?? '') !!}
+                {!! \Illuminate\Support\Str::markdown($content ?? '') !!}
                 @break
             @case('html')
-                {!! $post->content !!}
+                {!! $content !!}
                 @break
             @default
                 {{-- Fallback for unsupported editor types (gui / blade etc.):
                      output the raw stored content as escaped plain text so
                      no script tag from a future GUI-editor JSON payload can
                      be interpreted. --}}
-                <pre>{{ $post->content }}</pre>
+                <pre>{{ $content }}</pre>
         @endswitch
     </div>
 

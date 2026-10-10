@@ -21,7 +21,7 @@ included; readers are expected to follow the link to the site).
         @endif
         @foreach ($posts as $post)
         <item>
-            <title>{{ $post->title }}</title>
+            <title>{{ $post->localized('title') }}</title>
             <link>{{ route('dixlase-blog::front.show', ['slug' => $post->slug]) }}</link>
             <guid isPermaLink="true">{{ route('dixlase-blog::front.show', ['slug' => $post->slug]) }}</guid>
             @if ($post->published_at)
@@ -30,7 +30,7 @@ included; readers are expected to follow the link to the site).
             @if ($post->author)
             <dc:creator>{{ $post->author->display_name ?? $post->author->account_name }}</dc:creator>
             @endif
-            <description><![CDATA[{!! $post->excerpt ?? '' !!}]]></description>
+            <description><![CDATA[{!! $post->localized('excerpt') ?? '' !!}]]></description>
         </item>
         @endforeach
     </channel>

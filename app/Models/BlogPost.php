@@ -46,6 +46,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Plugins\DixlaseBlog\App\Models\Concerns\HasLocalizedFields;
+use Plugins\DixlaseBlog\App\Support\BlogExcerpt;
 
 /**
  * @property int $id
@@ -56,7 +58,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $featured_media_id
  * @property ContentEditorType $editor_type
  * @property ContentStatus $status
- * @property string|null $lang
+ * @property string|null $lang Source language; other languages are DixlaseMultilingual overlays
  * @property int|null $user_id
  * @property \Illuminate\Support\Carbon|null $published_at
  * @property \Illuminate\Support\Carbon|null $closed_at
@@ -67,6 +69,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class BlogPost extends Model implements Revisionable
 {
     use HasFactory;
+    use HasLocalizedFields;
     use HasRevisions;
     use SoftDeletes;
 
@@ -196,6 +199,23 @@ class BlogPost extends Model implements Revisionable
     public function scopeForLang(Builder $query, string $lang): Builder
     {
         return $query->where('lang', $lang);
+    }
+
+    /**
+     * A translation that carries content but no excerpt gets one derived
+     * from the translated content, the same way a source excerpt is
+     * generated on save, rather than falling back to the source excerpt.
+     */
+    public function translationFor(string $field, ?string $locale = null): ?string
+    {
+        $locale ??= app()->getLocale();
+        $value = $this->resolveOverlay($field, $locale);
+
+        if ($value === null && $field === 'excerpt') {
+            $value = BlogExcerpt::fromContent($this->resolveOverlay('content', $locale));
+        }
+
+        return $value;
     }
 
     public function isPublished(): bool

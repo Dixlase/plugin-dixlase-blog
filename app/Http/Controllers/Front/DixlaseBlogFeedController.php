@@ -42,7 +42,7 @@ class DixlaseBlogFeedController extends Controller
             'siteUrl' => url('/'),
             'feedUrl' => route('dixlase-blog::front.feed'),
             'blogUrl' => route('dixlase-blog::front.index'),
-            'language' => str_replace('_', '-', config('app.locale', 'en')),
+            'language' => str_replace('_', '-', app()->getLocale()),
         ])->render();
 
         return response($xml, 200, [

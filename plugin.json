@@ -36,7 +36,35 @@
         "content",
         "rss"
     ],
-    "capabilities": [],
+    "capabilities": [
+        "multilingual-content"
+    ],
+    "multilingual_content": {
+        "types": [
+            {
+                "key": "dixlase-blog:post",
+                "model": "Plugins\\DixlaseBlog\\App\\Models\\BlogPost",
+                "label_field": "title",
+                "fields": [
+                    {
+                        "name": "title",
+                        "type": "text",
+                        "rules": "required|string|max:255"
+                    },
+                    {
+                        "name": "excerpt",
+                        "type": "textarea",
+                        "rules": "nullable|string|max:500"
+                    },
+                    {
+                        "name": "content",
+                        "type": "richtext",
+                        "rules": "nullable|string|max:500000"
+                    }
+                ]
+            }
+        ]
+    },
     "requires": {
         "dixlase": "^0.1.0",
         "dixlase_api": "^0.1",
