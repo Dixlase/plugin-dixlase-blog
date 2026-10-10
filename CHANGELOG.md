@@ -11,6 +11,11 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Added
 
+- Editors can write posts (#31). They create, edit, preview and trash posts, restore them
+  from the trash, work with revisions and manage categories; permanent deletion, deleting
+  a category and protecting a revision stay with ADMIN. Writing an HTML body is still
+  ADMIN-only. The defaults are in `config/admin/roles.php` and can be changed per role in
+  the admin panel.
 - DixlaseSEO integration (#11): published posts appear in the sitemap, blog pages offer
   their other-language URLs for hreflang, and each post has an SEO description and OGP
   image on its edit screen. The description is translatable and falls back to the
