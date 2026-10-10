@@ -41,4 +41,15 @@ return [
     'feed_title' => ':site — Blog',
     'feed_description' => 'Latest blog posts from :site.',
 
+
+    'pagination' => [
+        'label' => 'Pagination',
+        'previous' => 'Newer posts',
+        'next' => 'Older posts',
+        'status' => 'Page :current of :last',
+    ],
+
+    'post' => [
+        'back_to_index' => '← Back to all posts',
+    ],
 ];

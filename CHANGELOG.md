@@ -11,6 +11,11 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Added
 
+- Default templates and styles for the blog index, post, category and tag pages, with
+  previous / next pagination and dark mode (#12). A site or theme overrides a template
+  under `custom/plugins/DixlaseBlog/resources/views/` or
+  `themes/<theme>/plugins/DixlaseBlog/resources/views/`, as with DixlasePages; the old
+  `themes/<theme>/views/dixlase-blog/` path is no longer read.
 - Posts can be translated with DixlaseMultilingual (#8). A post is written in one language,
   chosen when it is created, and other languages are added as translations sharing the
   post's slug. Where a translation is missing, the original text is shown.
