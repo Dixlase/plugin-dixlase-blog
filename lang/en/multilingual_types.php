@@ -21,4 +21,6 @@
 // when no entry exists here.
 return [
     'post' => 'Post',
+    'category' => 'Category',
+    'tag' => 'Tag',
 ];

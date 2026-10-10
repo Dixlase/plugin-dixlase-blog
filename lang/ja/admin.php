@@ -152,6 +152,8 @@ return [
         'saved' => '保存しました',
         'new_button' => '新規カテゴリ',
         'col_label' => '名称',
+        'lang_label' => '言語',
+        'lang_help' => 'この名前を書く言語です。ほかの言語は翻訳として追加します。',
         'col_slug' => 'スラッグ',
         'col_posts' => '記事数',
         'col_actions' => '',

@@ -49,11 +49,13 @@ themes/<theme>/views/dixlase-blog/front/_card.blade.php.
             <div class="dixlase-blog-card__taxonomies">
                 @foreach ($post->categories as $category)
                     <a href="{{ route('dixlase-blog::front.category', ['slug' => $category->slug]) }}"
-                       class="dixlase-blog-card__category">{{ $category->label }}</a>
+                       class="dixlase-blog-card__category"
+                       lang="{{ $category->localizedLang('label') }}">{{ $category->localized('label') }}</a>
                 @endforeach
                 @foreach ($post->tags as $tag)
                     <a href="{{ route('dixlase-blog::front.tag', ['slug' => $tag->slug]) }}"
-                       class="dixlase-blog-card__tag">#{{ $tag->name }}</a>
+                       class="dixlase-blog-card__tag"
+                       lang="{{ $tag->localizedLang('name') }}">#{{ $tag->localized('name') }}</a>
                 @endforeach
             </div>
         @endif

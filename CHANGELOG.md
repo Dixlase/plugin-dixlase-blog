@@ -14,6 +14,9 @@ Work toward the first release, 0.1.0 (#13).
 - Posts can be translated with DixlaseMultilingual (#8). A post is written in one language,
   chosen when it is created, and other languages are added as translations sharing the
   post's slug. Where a translation is missing, the original text is shown.
+- Category and tag names can be translated the same way (#9); slugs stay shared. A
+  category's language is chosen when it is created, and a new tag takes the language of
+  its post. Run the plugin's migrations to add the language column.
 
 ### Changed
 

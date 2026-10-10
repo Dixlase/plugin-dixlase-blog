@@ -152,6 +152,8 @@ return [
         'saved' => 'Saved',
         'new_button' => 'New category',
         'col_label' => 'Name',
+        'lang_label' => 'Language',
+        'lang_help' => 'The language this name is written in. Other languages are added as translations.',
         'col_slug' => 'Slug',
         'col_posts' => 'Posts',
         'col_actions' => '',

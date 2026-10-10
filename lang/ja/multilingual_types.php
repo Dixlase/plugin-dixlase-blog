@@ -21,4 +21,6 @@
 // when no entry exists here.
 return [
     'post' => '記事',
+    'category' => 'カテゴリー',
+    'tag' => 'タグ',
 ];

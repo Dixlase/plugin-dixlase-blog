@@ -70,7 +70,8 @@ class DixlaseBlogFrontController extends Controller
         return view('dixlase-blog::front.archive', [
             'archiveType' => 'category',
             'archiveTerm' => $category,
-            'archiveLabel' => $category->label,
+            'archiveLabel' => $category->localized('label'),
+            'archiveLang' => $category->localizedLang('label'),
             'posts' => $posts,
         ]);
     }
@@ -90,7 +91,8 @@ class DixlaseBlogFrontController extends Controller
         return view('dixlase-blog::front.archive', [
             'archiveType' => 'tag',
             'archiveTerm' => $tag,
-            'archiveLabel' => $tag->name,
+            'archiveLabel' => $tag->localized('name'),
+            'archiveLang' => $tag->localizedLang('name'),
             'posts' => $posts,
         ]);
     }

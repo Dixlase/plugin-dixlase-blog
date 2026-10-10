@@ -41,11 +41,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Plugins\DixlaseBlog\App\Models\Concerns\HasLocalizedFields;
 
 /**
  * @property int $id
  * @property string $label
  * @property string $slug
+ * @property string|null $lang Source language of the name; other languages are DixlaseMultilingual overlays
  * @property int|null $parent_id
  * @property int $depth
  * @property int $display_order
@@ -55,6 +57,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class BlogCategory extends Model
 {
     use HasFactory;
+    use HasLocalizedFields;
 
     protected $table = 'plg_dixlase_blog_categories';
 
@@ -62,6 +65,7 @@ class BlogCategory extends Model
     protected $fillable = [
         'label',
         'slug',
+        'lang',
         'parent_id',
         'depth',
         'display_order',

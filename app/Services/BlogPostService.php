@@ -248,7 +248,8 @@ class BlogPostService
                 $slug = 'tag-'.substr(md5($name), 0, 8);
             }
             // Use slug as the lookup key; name may be re-displayed but slug is the identity.
-            $tag = BlogTag::firstOrCreate(['slug' => $slug], ['name' => $name]);
+            // A new tag's name is in the language of the post it is first used on.
+            $tag = BlogTag::firstOrCreate(['slug' => $slug], ['name' => $name, 'lang' => $post->sourceLocale()]);
             $tagIds[] = $tag->id;
         }
         $post->tags()->sync(array_values(array_unique($tagIds)));

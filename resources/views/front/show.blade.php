@@ -85,7 +85,8 @@ Editor type rendering:
                 <div class="dixlase-blog-post__categories">
                     <span class="dixlase-blog-post__taxonomy-label">{{ __('dixlase-blog::front.taxonomy.categories') }}:</span>
                     @foreach ($post->categories as $category)
-                        <a href="{{ route('dixlase-blog::front.category', ['slug' => $category->slug]) }}">{{ $category->label }}</a>
+                        <a href="{{ route('dixlase-blog::front.category', ['slug' => $category->slug]) }}"
+                           lang="{{ $category->localizedLang('label') }}">{{ $category->localized('label') }}</a>
                     @endforeach
                 </div>
             @endif
@@ -93,7 +94,8 @@ Editor type rendering:
                 <div class="dixlase-blog-post__tags">
                     <span class="dixlase-blog-post__taxonomy-label">{{ __('dixlase-blog::front.taxonomy.tags') }}:</span>
                     @foreach ($post->tags as $tag)
-                        <a href="{{ route('dixlase-blog::front.tag', ['slug' => $tag->slug]) }}">#{{ $tag->name }}</a>
+                        <a href="{{ route('dixlase-blog::front.tag', ['slug' => $tag->slug]) }}"
+                           lang="{{ $tag->localizedLang('name') }}">#{{ $tag->localized('name') }}</a>
                     @endforeach
                 </div>
             @endif
