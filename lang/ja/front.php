@@ -21,6 +21,7 @@ return [
         'heading' => 'ブログ',
         'description' => '最新の記事一覧です。',
         'no_posts' => 'まだ公開された記事はありません。',
+        'feed_link' => 'RSS フィード',
     ],
 
     'archive' => [

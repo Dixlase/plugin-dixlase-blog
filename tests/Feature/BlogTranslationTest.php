@@ -41,7 +41,6 @@ use App\Enums\ContentStatus;
 use App\Helpers\LocaleHelper;
 use App\Http\Middleware\CheckInstallationReady;
 use App\Http\Middleware\CheckMaintenanceMode;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Route;
@@ -51,6 +50,7 @@ use Plugins\DixlaseBlog\App\Models\BlogCategory;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Models\BlogTag;
 use Plugins\DixlaseBlog\App\Services\BlogPostService;
+use Plugins\DixlaseBlog\Tests\Support\FakeTranslationResolver;
 use Tests\TestCase;
 
 /**
@@ -63,8 +63,7 @@ class BlogTranslationTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @var array<string, string|null> Overlays keyed by "id|locale|field". */
-    private array $overlays = [];
+    private FakeTranslationResolver $translations;
 
     protected function setUp(): void
     {
@@ -216,7 +215,7 @@ class BlogTranslationTest extends TestCase
         $this->bindResolver();
         $category = BlogCategory::create(['label' => 'お知らせ', 'slug' => 'news', 'lang' => 'ja', 'depth' => 0, 'display_order' => 0]);
         $tag = BlogTag::create(['name' => '日本語タグ', 'slug' => 'release', 'lang' => 'ja']);
-        $this->overlays[$category->getKey().'|en|label'] = 'News';
+        $this->translations->set($category, 'en', ['label' => 'News']);
 
         App::setLocale('en');
         $this->assertSame('News', $category->localized('label'));
@@ -269,54 +268,12 @@ class BlogTranslationTest extends TestCase
      */
     private function translate(BlogPost $post, string $locale, array $fields): void
     {
-        foreach ($fields as $field => $value) {
-            $this->overlays[$post->getKey().'|'.$locale.'|'.$field] = $value;
-        }
+        $this->translations->set($post, $locale, $fields);
     }
 
     private function bindResolver(): void
     {
-        $overlays = &$this->overlays;
-
-        $this->app->instance(TranslationResolver::class, new class($overlays) implements TranslationResolver
-        {
-            /** @param array<string, string|null> $overlays */
-            public function __construct(private array &$overlays)
-            {
-            }
-
-            public function resolve(Model $model, string $field, string $locale): mixed
-            {
-                return $this->overlays[$model->getKey().'|'.$locale.'|'.$field] ?? null;
-            }
-
-            public function store(Model $model, string $field, mixed $value, string $locale): void
-            {
-                $this->overlays[$model->getKey().'|'.$locale.'|'.$field] = $value;
-            }
-
-            public function all(Model $model, string $field): array
-            {
-                return [];
-            }
-
-            public function exists(Model $model, string $field, string $locale): bool
-            {
-                return array_key_exists($model->getKey().'|'.$locale.'|'.$field, $this->overlays);
-            }
-
-            public function delete(Model $model, string $field, ?string $locale = null): void
-            {
-            }
-
-            public function getAvailableLocales(Model $model): array
-            {
-                return [];
-            }
-
-            public function copy(Model $source, Model $target, ?array $fields = null, ?array $locales = null): void
-            {
-            }
-        });
+        $this->translations = new FakeTranslationResolver();
+        $this->app->instance(TranslationResolver::class, $this->translations);
     }
 }

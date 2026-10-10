@@ -18,6 +18,12 @@ Work toward the first release, 0.1.0 (#13).
   category's language is chosen when it is created, and a new tag takes the language of
   its post. Run the plugin's migrations to add the language column.
 
+### Fixed
+
+- Post, category and tag pages open under a language prefix such as `/en/blog/{slug}`;
+  they used to read the language as the slug (#10). Links and the RSS feed stay in the
+  current language, and the blog index links its feed.
+
 ### Changed
 
 - The built front-end assets under `resources/assets/` are no longer tracked in git, and

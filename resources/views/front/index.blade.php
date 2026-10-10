@@ -25,6 +25,11 @@ themes/<theme>/views/dixlase-blog/front/index.blade.php.
 <section class="dixlase-blog-index">
     <header class="dixlase-blog-index__header">
         <h1>{{ __('dixlase-blog::front.index.heading') }}</h1>
+        {{-- Visible as well as in <head>: the feed follows the current
+             locale, so each language's index links its own feed. --}}
+        <p class="dixlase-blog-index__feed">
+            <a href="{{ route('dixlase-blog::front.feed') }}" type="application/rss+xml">{{ __('dixlase-blog::front.index.feed_link') }}</a>
+        </p>
     </header>
 
     @if ($posts->isEmpty())
