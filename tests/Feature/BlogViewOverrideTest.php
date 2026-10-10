@@ -60,7 +60,7 @@ class BlogViewOverrideTest extends TestCase
             'themes.theme_directory' => $this->root.'/themes',
         ]);
 
-        $theme = $this->createMock(ThemeRepositoryInterface::class);
+        $theme = $this->createStub(ThemeRepositoryInterface::class);
         $theme->method('getEnabledThemeDirectory')->willReturn('TestTheme');
         $this->app->instance(ThemeRepositoryInterface::class, $theme);
 
