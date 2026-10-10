@@ -40,8 +40,8 @@ import path from 'path';
 export default defineConfig({
     build: {
         outDir: path.resolve(__dirname, 'resources/assets'),
-        // Keep any pre-existing assets so a partial build does not
-        // remove e.g. images that are committed alongside the JS/CSS.
+        // Built files are not tracked in git (see .gitignore); keep
+        // emptyOutDir off so a partial build does not wipe other files.
         emptyOutDir: false,
         copyPublicDir: false,
         manifest: 'manifest.json',
@@ -51,9 +51,13 @@ export default defineConfig({
                 style: path.resolve(__dirname, 'resources/src/css/style.scss'),
             },
             output: {
-                entryFileNames: 'js/[name].js',
-                chunkFileNames: 'js/[name].js',
-                assetFileNames: 'css/[name][extname]',
+                // Content-hash the file names so a changed build gets a new
+                // URL and browsers do not keep serving a cached copy. An
+                // identical build keeps the same names. Matches the other
+                // Dixlase plugins.
+                entryFileNames: 'js/[name]-[hash].js',
+                chunkFileNames: 'js/[name]-[hash].js',
+                assetFileNames: 'css/[name]-[hash][extname]',
             },
         },
     },

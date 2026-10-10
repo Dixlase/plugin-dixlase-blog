@@ -106,9 +106,11 @@ class DixlaseBlogAdminPostsController extends Controller
      *
      * We deliberately avoid both Laravel's implicit model binding
      * (BlogPost $post) and positional scalar binding (int $post). The
-     * admin URL on this Brand setup runs through a {locale} prefix
-     * group (PluginHelper::loadEnabledWebRoutes() is mounted inside
-     * /{locale}/...), so the effective route is
+     * admin path segment comes from the admin_url security setting (a
+     * prefix plus a string each site chooses). With locale URLs on,
+     * DixlaseMultilingual includes this routes/web.php a second time
+     * inside a {locale} prefix group (PluginHelper::loadEnabledWebRoutes()
+     * mounted under /{locale}/...), so the effective route becomes
      * /{locale}/<admin-url>/blog/{post}/edit.
      *
      * Under that two-parameter route Laravel hands the controller the

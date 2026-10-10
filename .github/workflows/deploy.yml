@@ -1,0 +1,299 @@
+name: Deploy Plugin
+
+# Manual only until the blog launches: a merge to main must not deploy
+# anywhere while the plugin is unreleased. At launch, a separate pull
+# request adds the `push` trigger on main that the other official plugins
+# use (the `sites` fallback below keeps that working without an input).
+on:
+  workflow_dispatch:
+    inputs:
+      sites:
+        description: Sites to deploy to
+        type: choice
+        options:
+          - brand
+          - brand demo
+        default: brand
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set deploy target
+        id: target
+        run: |
+          if [ "${{ github.repository }}" = "Dixlase/plugin-dixlase-blog" ]; then
+            echo "env=production" >> $GITHUB_OUTPUT
+            echo "base_dir=/srv/dixlase" >> $GITHUB_OUTPUT
+          else
+            echo "env=staging" >> $GITHUB_OUTPUT
+            echo "base_dir=/srv/dixlase/staging" >> $GITHUB_OUTPUT
+          fi
+
+      # ------------------------------------------------------------------
+      # Frontend build (npm run build).
+      #
+      # The plugin's resources/assets/ directory is gitignored, so
+      # the git-clone-on-server step that follows never brings the
+      # compiled CSS / JS / manifest along. Build them here on the
+      # runner and rsync into a per-plugin _shared/ directory on the
+      # deploy server; the SSH deploy script then copies from
+      # _shared/ into the plugin's resources/assets/ inside every
+      # site's checkout.
+      #
+      # The build step is written to be safe on plugins that carry a
+      # `vite.config.js` but no `package.json` (some older shells of
+      # this workflow do): the shell guard turns it into a clean no-op
+      # that still populates an empty dist/, keeping the rsync target
+      # deterministic across every deploy.
+      # ------------------------------------------------------------------
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+
+      - name: Build frontend assets (skipped when no package.json)
+        run: |
+          if [ -f package.json ] && jq -e '.scripts.build' package.json > /dev/null 2>&1; then
+            npm ci --no-audit --no-fund
+            NODE_ENV=production npx vite build --outDir dist
+          else
+            echo "No package.json with a build script — skipping frontend build."
+            mkdir -p dist
+          fi
+
+      - name: Create shared build directory on server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: mkdir -p ${{ steps.target.outputs.base_dir }}/_shared/plugins/DixlaseBlog
+
+      - name: Deploy built assets via rsync
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete
+          path: dist/
+          remote_path: ${{ steps.target.outputs.base_dir }}/_shared/plugins/DixlaseBlog/
+          remote_host: ${{ secrets.SERVER_HOST }}
+          remote_user: ${{ secrets.SERVER_USER }}
+          remote_key: ${{ secrets.SERVER_SSH_KEY }}
+
+      - name: Deploy plugin via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -e
+            BASE="${{ steps.target.outputs.base_dir }}"
+            PLUGIN_DIR="DixlaseBlog"
+            EXPECTED_URL="git@github.com:${{ github.repository }}.git"
+
+            for SITE in ${{ inputs.sites || 'brand demo' }}; do
+              # Resolve the site layout. A Docker Installer instance keeps the app in
+              # $BASE/$SITE/html and runs its own PHP container named after
+              # CONTAINER_PREFIX in $BASE/$SITE/.env, with files owned by
+              # deploy:www-data. The legacy shared stack mounts $BASE/$SITE into
+              # compose-php-1 at /var/www/apps/$SITE, owned by deploy:deploy.
+              if [ -f "$BASE/$SITE/docker-compose.yml" ] && [ -d "$BASE/$SITE/html" ]; then
+                SITE_ROOT="$BASE/$SITE/html"
+                APP_ROOT="/var/www/html"
+                PREFIX=$(grep -E '^CONTAINER_PREFIX=' "$BASE/$SITE/.env" 2>/dev/null | cut -d= -f2)
+                PHP_CONTAINER="${PREFIX:-dixlase-$SITE}-app"
+                OWNER="1001:33"
+                RUN_AS="-u www-data"
+                # The installer keeps dev packages in vendor/, so an autoload map
+                # built with --no-dev drops their service providers and every request
+                # then fails in package discovery.
+                NO_DEV=""
+              else
+                SITE_ROOT="$BASE/$SITE"
+                APP_ROOT="/var/www/apps/$SITE"
+                PHP_CONTAINER="compose-php-1"
+                OWNER="1001:1001"
+                RUN_AS=""
+                NO_DEV="--no-dev"
+              fi
+              # Installer sites need group write too: www-data writes caches and the
+              # deploy user's next rsync must be able to replace what it wrote.
+              fix_owner() {
+                docker exec "$PHP_CONTAINER" chown -R "$OWNER" "$@"
+                if [ -n "$RUN_AS" ]; then docker exec "$PHP_CONTAINER" chmod -R g+rwX "$@"; fi
+              }
+              DEST="$SITE_ROOT/plugins/$PLUGIN_DIR"
+              CONTAINER_DEST="$APP_ROOT/plugins/$PLUGIN_DIR"
+              echo "=== Deploying plugin $PLUGIN_DIR to $SITE (${{ steps.target.outputs.env }}) ==="
+
+              # Deploy backups must NOT sit in plugins/: core's
+              # scripts/sync-local-autoload.php registers every directory there
+              # that has an app/ subdir as an extension, including
+              # <Plugin>.stale.<timestamp>. That pulls the copy's
+              # autoload.files entry into composer.local.json, and composer
+              # requires those files unconditionally -- so deleting such a copy
+              # later takes the WHOLE SITE down, not just this plugin. Park them
+              # outside the scan (dot-prefixed entries are skipped) and migrate
+              # anything an earlier revision of this workflow left behind, so
+              # the first deploy after this change self-heals.
+              BACKUP_ROOT="$SITE_ROOT/.plugin-backups"
+              CONTAINER_BACKUP_ROOT="$APP_ROOT/.plugin-backups"
+              mkdir -p "$BACKUP_ROOT"
+              for LEGACY in "$SITE_ROOT/plugins/$PLUGIN_DIR".stale.*; do
+                [ -d "$LEGACY" ] || continue
+                echo "  Migrating legacy copy out of plugins/: $LEGACY"
+                mv "$LEGACY" "$BACKUP_ROOT/$(basename "$LEGACY")"
+              done
+
+              # ------------------------------------------------------------------
+              # Resolve $DEST into one of three shapes and act accordingly:
+              #
+              #   (a) Proper nested clone of this plugin
+              #       -> restore ownership, fetch + reset to origin/main
+              #
+              #   (b) Directory exists but with no nested .git
+              #       -> likely the outer parent repo was re-cloned over it and
+              #          the plugin's git metadata was lost. Without this guard
+              #          the next branch would silently fetch+reset against
+              #          WHICHEVER repo the parent .git tracks (Core, usually),
+              #          leaving plugin files frozen forever -- exactly the bug
+              #          that hid in DixlaseInquiry from 2026-05-13 to 2026-05-17.
+              #          Move the stale tree aside (recoverable as .stale.<ts>)
+              #          and re-clone from $EXPECTED_URL.
+              #
+              #   (c) Directory does not exist at all
+              #       -> first-time deploy, clone fresh.
+              #
+              # Any other anomaly (.git exists but its origin URL points at a
+              # different repo) is treated as operator intent we shouldn't
+              # second-guess: fail loud so manual recovery is forced.
+              # ------------------------------------------------------------------
+              if [ -d "$DEST/.git" ]; then
+                ACTUAL_URL=$(cd "$DEST" && git config --get remote.origin.url || echo "")
+                if [ "$ACTUAL_URL" != "$EXPECTED_URL" ]; then
+                  echo "ERROR: $DEST/.git origin URL does not match this plugin." >&2
+                  echo "       Expected: $EXPECTED_URL" >&2
+                  echo "       Actual:   $ACTUAL_URL" >&2
+                  echo "       Refusing to fetch+reset against an unrelated repo." >&2
+                  echo "       Manual recovery (one-time):" >&2
+                  echo "         sudo mv $DEST ${DEST}.stale.\$(date +%Y%m%d-%H%M%S)" >&2
+                  echo "         git clone --branch main $EXPECTED_URL $DEST" >&2
+                  exit 1
+                fi
+
+                fix_owner "$CONTAINER_DEST"
+                cd "$DEST"
+                git fetch origin
+                git reset --hard origin/main
+
+              elif [ -d "$DEST" ]; then
+                BACKUP_BASENAME="${PLUGIN_DIR}.stale.$(date +%Y%m%d-%H%M%S)"
+                echo "WARNING: $DEST exists but has no nested .git; moving aside to .plugin-backups/$BACKUP_BASENAME and re-cloning fresh."
+                # This branch should fire once, not on every deploy. If it
+                # recurs, something between deploys removes the nested .git.
+                echo "  Contents before move-aside: $(ls -A "$DEST" | wc -l) entr(ies); .git present: no"
+                docker exec "$PHP_CONTAINER" mv "$CONTAINER_DEST" "$CONTAINER_BACKUP_ROOT/$BACKUP_BASENAME"
+                git clone --branch main "$EXPECTED_URL" "$DEST"
+                fix_owner "$CONTAINER_DEST"
+
+              else
+                git clone --branch main "$EXPECTED_URL" "$DEST"
+                fix_owner "$CONTAINER_DEST"
+              fi
+
+              # Keep only the newest backup, ordered by the timestamp in the
+              # NAME. `ls -t` orders by mtime, which mv carries over from the
+              # original tree, so the copy this run just made can look older
+              # than one from months ago and get pruned in its place.
+              STALE_KEEP=1
+              for OLD in $(ls -d "$BACKUP_ROOT/$PLUGIN_DIR".stale.* 2>/dev/null | sort -r | tail -n +$((STALE_KEEP + 1))); do
+                case "$OLD" in
+                  "$BACKUP_ROOT/$PLUGIN_DIR".stale.*)
+                    echo "  Pruning old move-aside copy: $OLD"
+                    rm -rf "$OLD"
+                    ;;
+                  *)
+                    echo "  Refusing to prune unexpected path: $OLD" >&2
+                    ;;
+                esac
+              done
+
+              if [ -f "$DEST/composer.json" ]; then
+                # Regenerate composer.local.json too, not just the autoload
+                # map: it is built from whatever plugins/ and themes/ hold at
+                # that moment, so on its own `dump-autoload` happily re-reads a
+                # file that still names a directory this run moved.
+                docker exec $RUN_AS "$PHP_CONTAINER" sh -c "cd $APP_ROOT && if [ -f scripts/sync-local-autoload.php ]; then php scripts/sync-local-autoload.php; fi && composer dump-autoload $NO_DEV --optimize"
+              fi
+
+              # Copy the frontend build produced on the runner into the
+              # plugin's resources/assets/. The directory is gitignored,
+              # so the git-clone/pull above never brought the compiled
+              # CSS / JS / manifest along, and the on-server prod host
+              # does not have npm to build them locally. A blanket
+              # `rsync --delete` would remove hand-authored files such
+              # as thumbnail.png (and its predecessors) that live at
+              # the same asset root, so that approach stays off — the
+              # manifest-driven sweep below handles cleanup instead.
+              if [ -d "$BASE/_shared/plugins/$PLUGIN_DIR" ]; then
+                mkdir -p "$DEST/resources/assets"
+                rsync -a "$BASE/_shared/plugins/$PLUGIN_DIR/" "$DEST/resources/assets/"
+                fix_owner "$CONTAINER_DEST/resources/assets"
+              fi
+
+              # Sweep stale build artefacts. Vite content-hashes JS/CSS
+              # entry filenames so every build's URLs are unique; without
+              # this sweep, the `rsync -a` above (no --delete) leaves
+              # every prior build's files stacked forever. Files from
+              # the pre-hash era (bare `style.css` / `app.js`) also get
+              # collected on the first run.
+              #
+              # `manifest.json` is the source of truth for what the
+              # newly-compiled views will reference — anything under
+              # css/ / js/ / fonts/ / images/ / assets/ that isn't
+              # listed is dead weight and gets removed. Hand-authored
+              # files at the resources/assets/ root (thumbnails, etc.)
+              # are deliberately NOT swept — only the known subdirs.
+              #
+              # Trade-off: a browser holding stale HTML with an old
+              # hashed URL will 404 on that asset after this runs,
+              # until the next navigation re-fetches the HTML. HTML is
+              # served without Cache-Control so that window is short.
+              ASSET_ROOT="$DEST/resources/assets"
+              MANIFEST="$ASSET_ROOT/manifest.json"
+              if [ -f "$MANIFEST" ]; then
+                KEEP_LIST=$(mktemp)
+                grep -oE '"file"[[:space:]]*:[[:space:]]*"[^"]+"' "$MANIFEST" \
+                  | sed -E 's/.*"file"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/' \
+                  | sort -u > "$KEEP_LIST"
+                echo "manifest.json" >> "$KEEP_LIST"
+
+                REMOVED=0
+                for SUBDIR in css js fonts images assets; do
+                  DIR="$ASSET_ROOT/$SUBDIR"
+                  [ -d "$DIR" ] || continue
+                  while IFS= read -r -d '' F; do
+                    REL="${F#$ASSET_ROOT/}"
+                    if ! grep -qxF "$REL" "$KEEP_LIST"; then
+                      rm -f "$F"
+                      REMOVED=$((REMOVED + 1))
+                    fi
+                  done < <(find "$DIR" -type f -print0)
+                done
+                rm -f "$KEEP_LIST"
+                echo "Stale-asset sweep: removed $REMOVED file(s) not present in manifest.json"
+              fi
+
+              # Invalidate Laravel's compiled bootstrap caches (views, config,
+              # routes, events) so blade / config / route changes shipped by
+              # this push take effect on the next request without waiting for
+              # OPcache revalidation or a PHP-FPM reload.
+              docker exec $RUN_AS "$PHP_CONTAINER" php $APP_ROOT/artisan optimize:clear
+            done
+
+            echo "=== Plugin deploy complete ==="
