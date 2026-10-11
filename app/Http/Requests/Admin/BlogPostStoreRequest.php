@@ -40,10 +40,13 @@ use App\Rules\UniqueContentSlug;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\NullsBlankInput;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 
 class BlogPostStoreRequest extends FormRequest
 {
+    use NullsBlankInput;
+
     public function authorize(): bool
     {
         return true;
@@ -90,6 +93,8 @@ class BlogPostStoreRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        $this->nullBlankInput(['published_at', 'closed_at'], ['featured_media_id']);
+
         $seoMeta = $this->input('seo_meta');
         if (is_array($seoMeta) && in_array($seoMeta['ogp_media_id'] ?? null, ['', '0', 0], true)) {
             $seoMeta['ogp_media_id'] = null;

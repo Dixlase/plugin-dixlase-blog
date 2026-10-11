@@ -34,6 +34,8 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Fixed
 
+- Saving a new post or creating a category no longer fails with a 500 error on MySQL (#33).
+  Fields left empty are stored as NULL instead of an empty string.
 - The admin routes moved to `routes/admin.php` (#21): the admin screens no longer sit under
   a language prefix, and they get the same middleware as core's admin screens, including
   the role check (`config/admin/roles.php`; without one, ADMIN and above).

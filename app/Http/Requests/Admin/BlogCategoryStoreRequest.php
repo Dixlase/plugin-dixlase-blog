@@ -37,9 +37,12 @@ namespace Plugins\DixlaseBlog\App\Http\Requests\Admin;
 use App\Helpers\LocaleHelper;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\NullsBlankInput;
 
 class BlogCategoryStoreRequest extends FormRequest
 {
+    use NullsBlankInput;
+
     public function authorize(): bool
     {
         return true;
@@ -60,5 +63,10 @@ class BlogCategoryStoreRequest extends FormRequest
             'display_order' => ['nullable', 'integer', 'min:0'],
             'lang' => ['nullable', 'string', Rule::in(LocaleHelper::supportedLocales())],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->nullBlankInput(['slug', 'display_order'], ['parent_id']);
     }
 }

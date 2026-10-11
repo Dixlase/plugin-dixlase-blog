@@ -87,7 +87,9 @@ class DixlaseBlogAdminCategoriesController extends Controller
         $data = $request->validated();
         $data['slug'] = $this->resolveSlug($data['slug'] ?? null, $data['label']);
         $data['lang'] = filled($data['lang'] ?? null) ? $data['lang'] : LocaleHelper::getSiteDefaultLocale();
-        $data['display_order'] = $data['display_order'] ?? $this->nextDisplayOrder($data['parent_id'] ?? null);
+        // Form input is text: "3", not 3.
+        $parentId = isset($data['parent_id']) ? (int) $data['parent_id'] : null;
+        $data['display_order'] = $data['display_order'] ?? $this->nextDisplayOrder($parentId);
 
         try {
             BlogCategory::create($data);
