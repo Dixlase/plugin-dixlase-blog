@@ -68,6 +68,13 @@ class BlogTranslateButtonTest extends TestCase
         $this->app['translator']->addNamespace('dixlase-blog', base_path('plugins/DixlaseBlog/lang'));
         $this->app['view']->addNamespace('dixlase-blog', base_path('plugins/DixlaseBlog/resources/views'));
 
+        // AppServiceProvider registers these after a database query, which
+        // fails while the test app boots before migrating; core's own admin
+        // tests register them the same way.
+        $this->app['view']->addNamespace('admin', resource_path('views/'.config('themes.admin_theme', 'admin')));
+        $this->app['view']->addNamespace('components', resource_path('views/components'));
+        $this->app['view']->addNamespace('layouts', resource_path('views/layouts'));
+
         Route::middleware('plugin')->prefix('admin-custom')->group(base_path('plugins/DixlaseBlog/routes/admin.php'));
         Route::getRoutes()->refreshNameLookups();
         Route::getRoutes()->refreshActionLookups();
