@@ -34,6 +34,8 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Fixed
 
+- The language badge on the post edit screen names the language in the admin's language
+  ("日本語" in the Japanese admin) instead of its English name (#37).
 - Saving a new post or creating a category no longer fails with a 500 error on MySQL (#33).
   Fields left empty are stored as NULL instead of an empty string.
 - The admin routes moved to `routes/admin.php` (#21): the admin screens no longer sit under

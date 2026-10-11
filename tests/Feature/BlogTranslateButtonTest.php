@@ -117,6 +117,18 @@ class BlogTranslateButtonTest extends TestCase
             ->assertDontSee('translate-button-stub', false);
     }
 
+    public function test_the_language_badge_names_the_language_in_the_admin_language(): void
+    {
+        $member = auth()->user();
+        $member->forceFill(['locale' => 'ja'])->save();
+        $post = $this->makePost('ja');
+
+        $this->get(route('dixlase-blog::admin.blog.edit', ['post' => $post->id]))
+            ->assertOk()
+            ->assertSee('日本語')
+            ->assertDontSee('Japanese');
+    }
+
     /**
      * Stand in for DixlaseMultilingual's anonymous component, under a
      * throwaway directory rather than the real plugin.

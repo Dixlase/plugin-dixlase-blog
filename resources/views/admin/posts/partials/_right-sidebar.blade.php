@@ -56,9 +56,10 @@ side validation continues to enforce it.
         ? $post->editor_type
         : \App\Enums\ContentEditorType::tryFromSlug($editorTypeSlug ?? 'markdown');
 
-    $languages = (array) config('language.languages', []);
+    // Named in the admin's language, as DixlaseMultilingual's translate
+    // button names it.
     $langCode = $post->exists ? $post->sourceLocale() : ($langValue ?? config('app.locale'));
-    $langName = $languages[$langCode] ?? $langCode;
+    $langName = \App\Helpers\LocaleHelper::getLocaleName($langCode, false);
 @endphp
 
 <x-admin.right-sidebar
