@@ -40,6 +40,7 @@ use App\Http\Middleware\CheckInstallationReady;
 use App\Http\Middleware\CheckMaintenanceMode;
 use App\Models\Member;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Plugins\DixlaseBlog\App\Models\BlogCategory;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
@@ -62,6 +63,8 @@ class BlogAdminScreensTest extends TestCase
 
     private BlogPostRevision $revision;
 
+    private string $themeDirectory;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -80,6 +83,13 @@ class BlogAdminScreensTest extends TestCase
         $this->app['view']->addNamespace('admin', resource_path('views/'.config('themes.admin_theme', 'admin')));
         $this->app['view']->addNamespace('components', resource_path('views/components'));
         $this->app['view']->addNamespace('layouts', resource_path('views/layouts'));
+
+        // The preview frame extends the theme's preview layout. A bare one in
+        // a throwaway directory stands in for the theme.
+        $this->themeDirectory = storage_path('framework/testing/blog-admin-theme-'.uniqid());
+        File::ensureDirectoryExists($this->themeDirectory.'/layouts');
+        File::put($this->themeDirectory.'/layouts/preview.blade.php', '<html><body>@yield(\'content\')@stack(\'scripts\')</body></html>');
+        $this->app['view']->replaceNamespace('themes', [$this->themeDirectory]);
 
         // The admin screens link to the public pages, so the front routes too.
         Route::middleware('web')->group(base_path('plugins/DixlaseBlog/routes/web.php'));
@@ -123,6 +133,13 @@ class BlogAdminScreensTest extends TestCase
             'editor_type' => 'markdown',
             'status' => 'draft',
         ], $author->id)->delete();
+    }
+
+    protected function tearDown(): void
+    {
+        File::deleteDirectory($this->themeDirectory);
+
+        parent::tearDown();
     }
 
     public function test_every_admin_screen_opens_for_an_admin(): void
