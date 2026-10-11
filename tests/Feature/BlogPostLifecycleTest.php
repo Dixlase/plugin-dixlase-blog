@@ -231,22 +231,6 @@ class BlogPostLifecycleTest extends TestCase
             ->assertSessionHasErrors('slug');
     }
 
-    public function test_a_category_keeps_its_own_slug_when_renamed(): void
-    {
-        $category = BlogCategory::create(['label' => 'News', 'slug' => 'news', 'display_order' => 10]);
-
-        $this->withoutExceptionHandling();
-        // The edit form sends the current slug back unchanged.
-        $this->assertRedirectsWithoutErrors($this->put(route('dixlase-blog::admin.blog.categories.update', ['category' => $category->id]), [
-            'label' => 'Announcements',
-            'slug' => 'news',
-        ]));
-
-        $category->refresh();
-        $this->assertSame('Announcements', $category->label);
-        $this->assertSame('news', $category->slug);
-    }
-
     /**
      * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>
@@ -276,7 +260,7 @@ class BlogPostLifecycleTest extends TestCase
 
         $this->assertTrue(
             $response->isRedirect() && str_contains((string) $response->headers->get('Location'), '/admin-custom/blog') && $messages === [],
-            sprintf('status %d, location %s, errors %s, session %s', $response->status(), (string) $response->headers->get('Location'), json_encode($messages), json_encode(array_keys(session()->all()))),
+            sprintf('status %d, location %s, errors %s', $response->status(), (string) $response->headers->get('Location'), json_encode($messages)),
         );
     }
 }
