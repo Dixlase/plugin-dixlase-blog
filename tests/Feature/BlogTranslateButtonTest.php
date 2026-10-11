@@ -75,6 +75,8 @@ class BlogTranslateButtonTest extends TestCase
         $this->app['view']->addNamespace('components', resource_path('views/components'));
         $this->app['view']->addNamespace('layouts', resource_path('views/layouts'));
 
+        // The edit screen links to the public post, so the front routes too.
+        Route::middleware('web')->group(base_path('plugins/DixlaseBlog/routes/web.php'));
         Route::middleware('plugin')->prefix('admin-custom')->group(base_path('plugins/DixlaseBlog/routes/admin.php'));
         Route::getRoutes()->refreshNameLookups();
         Route::getRoutes()->refreshActionLookups();
