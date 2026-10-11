@@ -11,7 +11,30 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: PHPUnit Tests
+    name: PHPUnit Tests (${{ matrix.db }})
+
+    # SQLite accepts values MariaDB refuses (an empty string in an integer
+    # or datetime column, for one), so the suite also runs on the database
+    # the Docker installer ships. The service container exists only for
+    # this job; the SQLite leg ignores it.
+    strategy:
+      fail-fast: false
+      matrix:
+        db: [sqlite, mariadb]
+
+    services:
+      mariadb:
+        image: mariadb:12.2.2
+        env:
+          MARIADB_ROOT_PASSWORD: password
+          MARIADB_DATABASE: dixlase_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - name: Checkout plugin
@@ -30,7 +53,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: sodium, mbstring, json, sqlite3, pdo_sqlite
+          extensions: sodium, mbstring, json, sqlite3, pdo_sqlite, pdo_mysql
           coverage: none
 
       - name: Place plugin into core directory
@@ -75,10 +98,28 @@ jobs:
           fi
           echo "APP_KEY=${APP_KEY}" >> .env
 
-      - name: Run PHPUnit tests
+      - name: Run PHPUnit tests (SQLite)
+        if: matrix.db == 'sqlite'
         working-directory: core/plugins/DixlaseBlog
         env:
           APP_KEY: base64:dGVzdGtleWZvcmRpeGxhc2VibG9nY2l0ZXN0czEyMzQ=
+        run: ../../vendor/bin/phpunit
+
+      - name: Run PHPUnit tests (MariaDB)
+        if: matrix.db == 'mariadb'
+        working-directory: core/plugins/DixlaseBlog
+        env:
+          APP_KEY: base64:dGVzdGtleWZvcmRpeGxhc2VibG9nY2l0ZXN0czEyMzQ=
+          # phpunit.xml's <env> entries are not forced, so these win. Core's
+          # TestCase refuses MySQL drivers unless told the database is a
+          # disposable one -- which the service container above is.
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: dixlase_test
+          DB_USERNAME: root
+          DB_PASSWORD: password
+          DLS_TESTS_ALLOW_NON_SQLITE: '1'
         run: ../../vendor/bin/phpunit
 
   build:
