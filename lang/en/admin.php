@@ -114,8 +114,6 @@ return [
         'meta_section' => 'Title, slug & excerpt',
         'meta_info_section' => 'Meta',
         'meta_editor_locked_help' => 'The editor type is locked once a post has been saved — switching it would risk losing content fidelity. Create a new post if you need a different editor.',
-        'translate_button' => 'Translate',
-        'translate_help' => 'Written in :language. Add or edit the other languages in the translation editor.',
         'author_info_section' => 'Author info',
         'revision_section' => 'Revisions',
         'revision_link' => 'View history',

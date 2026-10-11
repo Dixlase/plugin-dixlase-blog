@@ -114,8 +114,6 @@ return [
         'meta_section' => 'タイトル・スラッグ・抜粋',
         'meta_info_section' => 'メタ情報',
         'meta_editor_locked_help' => '記事を一度保存するとエディタータイプは固定されます — 切り替えると本文の変換ロスが発生する恐れがあるためです。別のエディタータイプを使いたい場合は新規記事を作成してください。',
-        'translate_button' => '翻訳する',
-        'translate_help' => '原文は:languageです。ほかの言語は翻訳の画面で追加・編集します。',
         'author_info_section' => '作成者情報',
         'revision_section' => 'リビジョン',
         'revision_link' => '履歴を見る',

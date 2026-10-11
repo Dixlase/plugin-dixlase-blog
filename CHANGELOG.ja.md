@@ -45,6 +45,9 @@ Dixlase Blog プラグインの主要な変更はすべてこのファイルに�
 
 ### 変更
 
+- 記事の編集画面の「翻訳する」ボタンを、独自のものから DixlaseMultilingual のものに
+  替えた(#35)。説明文の原文の言語名が管理画面の言語で出る。文言
+  `post_form.translate_button` と `post_form.translate_help` は削除した。
 - `resources/assets/` のビルドした画面用ファイルを git で追跡しないようにし、ブラウザが
   新しいビルドを読み込むようファイル名に内容のハッシュを付けた(#5)。ローカルの
   チェックアウトでは `npm run build` を実行する。

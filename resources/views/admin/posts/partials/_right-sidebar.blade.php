@@ -135,19 +135,18 @@ side validation continues to enforce it.
             </div>
             <x-form-help-text :text="__('dixlase-blog::admin.post_form.meta_editor_locked_help')" />
 
-            @if (! empty($translationUrl))
+            {{-- DixlaseMultilingual's button; it renders nothing for an unsaved
+                 post. <x-dynamic-component> keeps this view compiling without
+                 the plugin, and the view check keeps it rendering: a missing
+                 component throws instead of rendering empty. --}}
+            @if (view()->exists('dixlase-multilingual::components.translate-button'))
                 <div class="mt-4">
-                    <x-form-button
-                        type="link"
-                        :href="$translationUrl"
-                        icon="fas fa-language"
-                        variant="secondary"
-                        size="sm"
-                        class="w-full"
-                    >
-                        {{ __('dixlase-blog::admin.post_form.translate_button') }}
-                    </x-form-button>
-                    <x-form-help-text :text="__('dixlase-blog::admin.post_form.translate_help', ['language' => $langName])" />
+                    <x-dynamic-component
+                        component="dixlase-multilingual::translate-button"
+                        type="dixlase-blog:post"
+                        :id="$post->id"
+                        :sourceLocale="$post->sourceLocale()"
+                    />
                 </div>
             @endif
         </div>

@@ -44,7 +44,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogPostStoreRequest;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogPostUpdateRequest;
@@ -262,35 +261,30 @@ class DixlaseBlogAdminPostsController extends Controller
     }
 
     /**
+     * Source-language picker for the post form.
+     *
+     * The picker shows only while DixlaseMultilingual's locale URLs are on;
+     * a single-language site has nothing to choose and the post takes the
+     * site's default locale. The translate button comes from
+     * DixlaseMultilingual itself (see the post form's right sidebar).
+     *
+     * @return array{multilingualEnabled: bool, languageOptions: array<string, string>, langValue: string}
+     */
+    private function languageParams(BlogPost $post): array
+    {
+        return [
+            'multilingualEnabled' => (bool) config('dixlase_multilingual.locale_url_routing_enabled', false),
+            'languageOptions' => LocaleHelper::supportedLocaleOptions(),
+            'langValue' => (string) old('lang', $post->exists ? $post->sourceLocale() : LocaleHelper::getSiteDefaultLocale()),
+        ];
+    }
+
+    /**
      * Flat list of categories with depth info, for rendering an indented
      * <select> or checkbox tree in the admin form.
      *
      * @return \Illuminate\Database\Eloquent\Collection<int, BlogCategory>
      */
-    /**
-     * Source-language picker and translation-editor link for the post form.
-     *
-     * The picker shows only while DixlaseMultilingual's locale URLs are on;
-     * a single-language site has nothing to choose and the post takes the
-     * site's default locale. The translation link appears when
-     * DixlaseMultilingual is installed and the post has been saved.
-     *
-     * @return array{multilingualEnabled: bool, languageOptions: array<string, string>, langValue: string, translationUrl: string|null}
-     */
-    private function languageParams(BlogPost $post): array
-    {
-        $translationRoute = 'dixlase-multilingual::admin.multilingual.translations.edit';
-
-        return [
-            'multilingualEnabled' => (bool) config('dixlase_multilingual.locale_url_routing_enabled', false),
-            'languageOptions' => LocaleHelper::supportedLocaleOptions(),
-            'langValue' => (string) old('lang', $post->exists ? $post->sourceLocale() : LocaleHelper::getSiteDefaultLocale()),
-            'translationUrl' => $post->exists && Route::has($translationRoute)
-                ? route($translationRoute, ['type' => 'dixlase-blog:post', 'id' => $post->id])
-                : null,
-        ];
-    }
-
     private function loadCategoryTree(): \Illuminate\Database\Eloquent\Collection
     {
         return BlogCategory::query()

@@ -47,6 +47,9 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Changed
 
+- The post edit screen uses DixlaseMultilingual's translate button instead of its own
+  (#35); the help text now names the source language in the admin's language. The
+  `post_form.translate_button` and `post_form.translate_help` strings were removed.
 - The built front-end assets under `resources/assets/` are no longer tracked in git, and
   their file names carry a content hash so browsers pick up a new build (#5). Run
   `npm run build` in a local checkout.
