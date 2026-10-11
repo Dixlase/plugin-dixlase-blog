@@ -36,10 +36,13 @@ namespace Plugins\DixlaseBlog\App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\NullsBlankInput;
 use Plugins\DixlaseBlog\App\Models\BlogCategory;
 
 class BlogCategoryUpdateRequest extends FormRequest
 {
+    use NullsBlankInput;
+
     public function authorize(): bool
     {
         return true;
@@ -73,5 +76,10 @@ class BlogCategoryUpdateRequest extends FormRequest
             ],
             'display_order' => ['nullable', 'integer', 'min:0'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->nullBlankInput(['slug', 'display_order'], ['parent_id']);
     }
 }
