@@ -235,6 +235,7 @@ class BlogPostLifecycleTest extends TestCase
     {
         $category = BlogCategory::create(['label' => 'News', 'slug' => 'news', 'display_order' => 10]);
 
+        $this->withoutExceptionHandling();
         // The edit form sends the current slug back unchanged.
         $this->assertRedirectsWithoutErrors($this->put(route('dixlase-blog::admin.blog.categories.update', ['category' => $category->id]), [
             'label' => 'Announcements',
