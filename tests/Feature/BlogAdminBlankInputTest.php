@@ -73,7 +73,7 @@ class BlogAdminBlankInputTest extends TestCase
 
     public function test_a_post_saved_with_empty_optional_fields_stores_null(): void
     {
-        $this->post(route('dixlase-blog::admin.blog.store'), [
+        $response = $this->post(route('dixlase-blog::admin.blog.store'), [
             'title' => 'Hello',
             'content' => 'Body',
             'editor_type' => 'markdown',
@@ -81,7 +81,8 @@ class BlogAdminBlankInputTest extends TestCase
             'featured_media_id' => '',
             'published_at' => '',
             'closed_at' => '',
-        ])->assertRedirect()->assertSessionHasNoErrors();
+        ]);
+        $this->assertSaved($response);
 
         $row = DB::table('plg_dixlase_blog_posts')->first();
         $this->assertNotNull($row);
@@ -92,25 +93,28 @@ class BlogAdminBlankInputTest extends TestCase
 
     public function test_a_media_picker_zero_means_no_featured_image(): void
     {
-        $this->post(route('dixlase-blog::admin.blog.store'), [
+        $response = $this->post(route('dixlase-blog::admin.blog.store'), [
             'title' => 'Hello',
             'content' => 'Body',
             'editor_type' => 'markdown',
             'status' => 'draft',
             'featured_media_id' => '0',
-        ])->assertRedirect()->assertSessionHasNoErrors();
+        ]);
+        $this->assertSaved($response);
 
+        $this->assertSame(1, DB::table('plg_dixlase_blog_posts')->count());
         $this->assertNull(DB::table('plg_dixlase_blog_posts')->value('featured_media_id'));
     }
 
     public function test_a_top_level_category_is_created_from_an_empty_parent(): void
     {
-        $this->post(route('dixlase-blog::admin.blog.categories.store'), [
+        $response = $this->post(route('dixlase-blog::admin.blog.categories.store'), [
             'label' => 'News',
             'slug' => '',
             'parent_id' => '',
             'display_order' => '',
-        ])->assertRedirect()->assertSessionHasNoErrors();
+        ]);
+        $this->assertSaved($response);
 
         $row = DB::table('plg_dixlase_blog_categories')->where('label', 'News')->first();
         $this->assertNotNull($row);
@@ -122,14 +126,30 @@ class BlogAdminBlankInputTest extends TestCase
     {
         $parent = BlogCategory::create(['label' => 'News', 'slug' => 'news', 'display_order' => 10]);
 
-        $this->post(route('dixlase-blog::admin.blog.categories.store'), [
+        $response = $this->post(route('dixlase-blog::admin.blog.categories.store'), [
             'label' => 'Releases',
             'parent_id' => (string) $parent->id,
-        ])->assertRedirect()->assertSessionHasNoErrors();
+        ]);
+        $this->assertSaved($response);
 
         $child = BlogCategory::query()->where('label', 'Releases')->first();
         $this->assertNotNull($child);
         $this->assertSame($parent->id, (int) $child->parent_id);
         $this->assertSame(10, (int) $child->display_order);
+    }
+
+    /**
+     * The store actions redirect back to the list or the edit screen; show
+     * where else a request went, and why, instead of a bare failure.
+     */
+    private function assertSaved(\Illuminate\Testing\TestResponse $response): void
+    {
+        $errors = session('errors')?->getBags() ?? [];
+        $messages = array_map(fn ($bag) => $bag->all(), $errors);
+
+        $this->assertTrue(
+            $response->isRedirect() && $messages === [],
+            sprintf('status %d, location %s, errors %s', $response->status(), (string) $response->headers->get('Location'), json_encode($messages)),
+        );
     }
 }
