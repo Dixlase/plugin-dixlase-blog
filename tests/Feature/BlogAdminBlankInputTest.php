@@ -64,7 +64,9 @@ class BlogAdminBlankInputTest extends TestCase
 
         $this->app['translator']->addNamespace('dixlase-blog', base_path('plugins/DixlaseBlog/lang'));
 
-        Route::middleware('web')->prefix('admin-custom')->group(base_path('plugins/DixlaseBlog/routes/admin.php'));
+        // Core's `plugin` group: session and bindings without the site-wide
+        // web middleware (safe mode, maintenance), which is not under test.
+        Route::middleware('plugin')->prefix('admin-custom')->group(base_path('plugins/DixlaseBlog/routes/admin.php'));
         Route::getRoutes()->refreshNameLookups();
         Route::getRoutes()->refreshActionLookups();
 
@@ -148,7 +150,7 @@ class BlogAdminBlankInputTest extends TestCase
         $messages = array_map(fn ($bag) => $bag->all(), $errors);
 
         $this->assertTrue(
-            $response->isRedirect() && $messages === [],
+            $response->isRedirect() && str_contains((string) $response->headers->get('Location'), '/admin-custom/blog') && $messages === [],
             sprintf('status %d, location %s, errors %s', $response->status(), (string) $response->headers->get('Location'), json_encode($messages)),
         );
     }
