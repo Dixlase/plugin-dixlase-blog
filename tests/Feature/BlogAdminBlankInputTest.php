@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace Plugins\DixlaseBlog\Tests\Feature;
 
 use App\Enums\MemberRole;
+use App\Http\Middleware\CheckInstallationReady;
 use App\Models\Member;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -69,6 +70,10 @@ class BlogAdminBlankInputTest extends TestCase
         Route::middleware('plugin')->prefix('admin-custom')->group(base_path('plugins/DixlaseBlog/routes/admin.php'));
         Route::getRoutes()->refreshNameLookups();
         Route::getRoutes()->refreshActionLookups();
+
+        // CI has no INSTALLED flag, and this global middleware would send
+        // every request to the installer.
+        $this->withoutMiddleware(CheckInstallationReady::class);
 
         $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
     }
