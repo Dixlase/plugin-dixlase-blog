@@ -167,11 +167,12 @@ class BlogPostLifecycleTest extends TestCase
         ])));
 
         $this->assertSame(['release'], $post->fresh()->tags->pluck('slug')->all());
-        // The state before the restore is kept, so the restore can be undone.
-        $this->assertTrue(BlogPostRevision::query()
-            ->where('post_id', $post->id)
-            ->where('type', BlogPostRevision::TYPE_RESTORE_BACKUP)
-            ->exists());
+        // The state before the restore is the latest revision already, so
+        // it is not recorded twice and the restore can still be undone.
+        $notes = BlogTag::query()->where('slug', 'notes')->value('id');
+        $latest = BlogPostRevision::query()->where('post_id', $post->id)->latest('id')->firstOrFail();
+        $this->assertSame([(int) $notes], $latest->snapshot['tag_ids']);
+        $this->assertSame(2, $this->revisionCount($post));
     }
 
     public function test_posts_with_the_same_title_get_numbered_slugs(): void
@@ -274,7 +275,7 @@ class BlogPostLifecycleTest extends TestCase
 
         $this->assertTrue(
             $response->isRedirect() && str_contains((string) $response->headers->get('Location'), '/admin-custom/blog') && $messages === [],
-            sprintf('status %d, location %s, errors %s', $response->status(), (string) $response->headers->get('Location'), json_encode($messages)),
+            sprintf('status %d, location %s, errors %s, session %s', $response->status(), (string) $response->headers->get('Location'), json_encode($messages), json_encode(array_keys(session()->all()))),
         );
     }
 }
