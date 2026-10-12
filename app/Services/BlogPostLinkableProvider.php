@@ -37,6 +37,7 @@ namespace Plugins\DixlaseBlog\App\Services;
 use App\Contracts\PluginIntegration\LinkableProviderInterface;
 use App\DTO\PluginIntegration\LinkableDTO;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
+use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
 /**
  * Lists published posts for link pickers and for DixlaseSEO's sitemap.
@@ -104,7 +105,7 @@ final class BlogPostLinkableProvider implements LinkableProviderInterface
         return new LinkableDTO(
             id: (string) $post->id,
             title: (string) ($post->title ?: $post->slug),
-            url: '/blog/'.$post->slug,
+            url: '/'.app(BlogSettings::class)->routeSlug().'/'.$post->slug,
             type: 'post',
             source: BlogPost::PLUGIN_SLUG,
             sourceTable: $post->getTable(),

@@ -11,6 +11,10 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Added
 
+- The blog's URL prefix can be changed on the settings screen (`/blog` by default, e.g. `/news`)
+  (#79). Through core's route slug registry, a prefix another plugin, the admin URL or a reserved
+  word already uses is refused, as are the site's language codes; other plugins' checks see the
+  blog's prefix too. The route cache is cleared when the prefix changes.
 - Breadcrumbs on every public blog page — Home > Blog > the category path, the date or the search
   > the page — with matching BreadcrumbList structured data (#60). Overridable as
   `front/_breadcrumbs.blade.php`.

@@ -36,7 +36,10 @@ declare(strict_types=1);
 namespace Plugins\DixlaseBlog\App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\LocaleHelper;
+use App\Rules\UniqueRouteSlug;
 use Illuminate\Validation\Rule;
+use Plugins\DixlaseBlog\App\Providers\DixlaseBlogServiceProvider;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
 class BlogSettingsUpdateRequest extends FormRequest
@@ -53,6 +56,17 @@ class BlogSettingsUpdateRequest extends FormRequest
     {
         return [
             // Each section is checked when it is sent; the screen sends all.
+            'route_slug' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:'.BlogSettings::ROUTE_SLUG_MAX,
+                'regex:'.BlogSettings::ROUTE_SLUG_PATTERN,
+                // Another plugin's prefix, the admin URL or a reserved word.
+                UniqueRouteSlug::for(DixlaseBlogServiceProvider::ROUTE_SLUG_OWNER),
+                // Locale codes are the first segment of localized URLs.
+                Rule::notIn(LocaleHelper::supportedLocales()),
+            ],
             'posts_per_page' => [
                 'sometimes',
                 'required',
@@ -77,6 +91,17 @@ class BlogSettingsUpdateRequest extends FormRequest
                 'min:'.BlogSettings::RECENT_POSTS_MIN,
                 'max:'.BlogSettings::RECENT_POSTS_MAX,
             ],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'route_slug.regex' => __('dixlase-blog::admin.settings.route_slug_format'),
+            'route_slug.not_in' => __('dixlase-blog::admin.settings.route_slug_locale'),
         ];
     }
 
@@ -117,6 +142,7 @@ class BlogSettingsUpdateRequest extends FormRequest
     {
         return [
             'posts_per_page' => __('dixlase-blog::admin.settings.posts_per_page_label'),
+            'route_slug' => __('dixlase-blog::admin.settings.route_slug_label'),
             'sidebar_position' => __('dixlase-blog::admin.settings.sidebar_position_label'),
             'sidebar_recent_count' => __('dixlase-blog::admin.settings.sidebar_recent_count_label'),
         ];

@@ -38,6 +38,7 @@ namespace Plugins\DixlaseBlog\App\Http\Controllers\Admin;
 use App\Traits\AdminInterfaceTrait;
 use App\Traits\AdminLoggedInTrait;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogSettingsUpdateRequest;
@@ -60,6 +61,8 @@ class DixlaseBlogAdminSettingsController extends Controller
     {
         return view('dixlase-blog::admin.settings.edit', array_merge($this->viewParams, [
             'blogSettings' => $this->blogSettings->all(),
+            'siteUrl' => rtrim(url('/'), '/'),
+            'routeSlugMax' => BlogSettings::ROUTE_SLUG_MAX,
             'postsPerPageMin' => BlogSettings::POSTS_PER_PAGE_MIN,
             'postsPerPageMax' => BlogSettings::POSTS_PER_PAGE_MAX,
             // Labels resolved here, as admin views take no logic.
@@ -94,7 +97,14 @@ class DixlaseBlogAdminSettingsController extends Controller
 
     public function update(BlogSettingsUpdateRequest $request): RedirectResponse
     {
+        $previousSlug = $this->blogSettings->routeSlug();
         $this->blogSettings->save($request->settingsValues());
+
+        // The prefix is baked into the routes when they are registered, so
+        // a cached route table would keep serving the old one.
+        if ($this->blogSettings->routeSlug() !== $previousSlug && app()->routesAreCached()) {
+            Artisan::call('route:clear');
+        }
 
         return redirect()
             ->route('dixlase-blog::admin.blog.settings.edit')

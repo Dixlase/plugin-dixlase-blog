@@ -235,6 +235,10 @@ return [
 
     'settings' => [
         'listing_heading' => '一覧',
+        'route_slug_label' => 'ブログの URL',
+        'route_slug_help' => 'ブログの公開ページの URL の先頭です（/blog、/news など）。変えると、すべての記事・カテゴリ・フィードの URL が変わり、ほかで共有されたリンクはリダイレクトしない限り開けなくなります。ほかのプラグインが使っている先頭や、サイトが予約している語は使えません。',
+        'route_slug_format' => '小文字の英字・数字・ハイフンで、英字か数字から始めてください。',
+        'route_slug_locale' => '言語コードはブログの URL にできません。',
         'posts_per_page_label' => '1 ページの表示件数',
         'posts_per_page_help' => 'ブログの一覧と、カテゴリー・タグ・日付のアーカイブで 1 ページに出す記事の数です（:min〜:max）。',
         'sidebar_heading' => 'サイドバー',
