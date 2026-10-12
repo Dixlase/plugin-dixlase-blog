@@ -11,6 +11,10 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Added
 
+- Month and day archives (`/blog/2026/10`, `/blog/2026/10/10`) and a blog search
+  (`/blog/search?q=`) (#56). Search matches every word in the title, excerpt or body of the text a
+  post was written in; translations are not searched yet. Search results send
+  `X-Robots-Tag: noindex`.
 - Posts can be pinned to the top of the blog index (#55), with a toggle on the edit screen; the
   card shows a "Pinned" badge. Archives and the feed keep date order. Run the plugin's migrations
   to add the column.

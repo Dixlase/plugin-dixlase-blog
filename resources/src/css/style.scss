@@ -114,6 +114,49 @@
     letter-spacing: -0.01em;
 }
 
+// Search form on the search page; the sidebar's search widget reuses it.
+.dixlase-blog-search {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.dixlase-blog-search__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.dixlase-blog-search__input {
+    flex: 1 1 12rem;
+    min-width: 0;
+    padding: 0.5rem 0.75rem;
+    font: inherit;
+    color: var(--dlsb-text);
+    background: var(--dlsb-surface);
+    border: 1px solid var(--dlsb-border);
+    border-radius: calc(var(--dlsb-radius) / 2);
+}
+
+.dixlase-blog-search__button {
+    padding: 0.5rem 1rem;
+    font: inherit;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    background: var(--dlsb-accent);
+    border: 0;
+    border-radius: calc(var(--dlsb-radius) / 2);
+
+    &:hover {
+        background: var(--dlsb-accent-strong);
+    }
+}
+
 .dixlase-blog-archive__kicker {
     margin: 0;
     font-size: 0.75rem;
