@@ -52,13 +52,14 @@ class BlogSettingsUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // Each section is checked when it is sent; the screen sends all.
             'posts_per_page' => [
+                'sometimes',
                 'required',
                 'integer',
                 'min:'.BlogSettings::POSTS_PER_PAGE_MIN,
                 'max:'.BlogSettings::POSTS_PER_PAGE_MAX,
             ],
-            // Each section is checked when it is sent; the screen sends all.
             'sidebar_enabled' => ['sometimes', 'required', 'boolean'],
             'sidebar_position' => ['sometimes', 'required', Rule::in(BlogSettings::SIDEBAR_POSITIONS)],
             // The widget rows in their order on the form, and which are on.
