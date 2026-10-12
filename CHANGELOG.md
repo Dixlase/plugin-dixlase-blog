@@ -34,6 +34,8 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Fixed
 
+- Editing a category no longer fails with "The slug has already been taken" when its slug is
+  unchanged, and a category can no longer be chosen as its own parent (#45).
 - The language badge on the post edit screen names the language in the admin's language
   ("日本語" in the Japanese admin) instead of its English name (#37).
 - Saving a new post or creating a category no longer fails with a 500 error on MySQL (#33).
