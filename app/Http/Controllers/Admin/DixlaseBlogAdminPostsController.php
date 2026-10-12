@@ -177,11 +177,14 @@ class DixlaseBlogAdminPostsController extends Controller
     public function restore(Request $request): RedirectResponse
     {
         $post = BlogPost::onlyTrashed()->findOrFail((int) $request->route('id'));
-        $post->restore();
+        $slug = $post->slug;
+        $post = $this->postService->restoreFromTrash($post);
 
         return redirect()
             ->route('dixlase-blog::admin.blog.trash')
-            ->with('success', __('dixlase-blog::admin.flash.post_restored'));
+            ->with('success', $post->slug === $slug
+                ? __('dixlase-blog::admin.flash.post_restored')
+                : __('dixlase-blog::admin.flash.post_restored_renamed', ['slug' => $post->slug]));
     }
 
     public function forceDelete(Request $request): RedirectResponse

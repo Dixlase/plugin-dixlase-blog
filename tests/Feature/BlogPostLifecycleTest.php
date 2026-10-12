@@ -200,14 +200,51 @@ class BlogPostLifecycleTest extends TestCase
         $this->assertSame('other', $otherPost->fresh()->slug);
     }
 
-    public function test_a_trashed_post_does_not_hold_its_slug(): void
+    public function test_a_post_restored_from_the_trash_moves_off_a_taken_slug(): void
     {
         $this->post(route('dixlase-blog::admin.blog.store'), $this->postForm(['title' => 'Hello']));
-        BlogPost::query()->sole()->delete();
+        $old = BlogPost::query()->sole();
+        $old->delete();
 
-        $this->assertRedirectsWithoutErrors($this->post(route('dixlase-blog::admin.blog.store'), $this->postForm(['title' => 'Hello', 'slug' => 'hello'])));
+        // A trashed post does not hold its slug.
+        $this->assertRedirectsWithoutErrors($this->post(route('dixlase-blog::admin.blog.store'), $this->postForm(['title' => 'Hello again', 'slug' => 'hello'])));
+        $new = BlogPost::query()->sole();
+        $this->assertSame('hello', $new->slug);
 
-        $this->assertSame('hello', BlogPost::query()->sole()->slug);
+        $this->post(route('dixlase-blog::admin.blog.restore', ['id' => $old->id]))
+            ->assertSessionHas('success', __('dixlase-blog::admin.flash.post_restored_renamed', ['slug' => 'hello-2']));
+
+        $this->assertNotSoftDeleted($old);
+        $this->assertSame('hello-2', $old->fresh()->slug);
+        $this->assertSame('hello', $new->fresh()->slug);
+    }
+
+    public function test_a_post_restored_from_the_trash_keeps_a_free_slug(): void
+    {
+        $this->post(route('dixlase-blog::admin.blog.store'), $this->postForm(['title' => 'Hello']));
+        $post = BlogPost::query()->sole();
+        $post->delete();
+
+        $this->post(route('dixlase-blog::admin.blog.restore', ['id' => $post->id]))
+            ->assertSessionHas('success', __('dixlase-blog::admin.flash.post_restored'));
+
+        $this->assertSame('hello', $post->fresh()->slug);
+    }
+
+    public function test_a_revision_restored_onto_a_taken_slug_gets_a_free_one(): void
+    {
+        $this->post(route('dixlase-blog::admin.blog.store'), $this->postForm(['title' => 'Hello']));
+        $post = BlogPost::query()->sole();
+        $first = BlogPostRevision::query()->where('post_id', $post->id)->sole();
+
+        $this->put(route('dixlase-blog::admin.blog.update', ['post' => $post->id]), $this->postForm(['title' => 'Hello', 'slug' => 'renamed']));
+        $this->post(route('dixlase-blog::admin.blog.store'), $this->postForm(['title' => 'Other', 'slug' => 'hello']));
+
+        $this->post(route('dixlase-blog::admin.blog.revisions.restore', ['post' => $post->id, 'revisionId' => $first->id]))
+            ->assertSessionHas('success', __('dixlase-blog::admin.flash.revision_restored_renamed', ['slug' => 'hello-2']));
+
+        $this->assertSame('hello-2', $post->fresh()->slug);
+        $this->assertSame(1, BlogPost::query()->where('slug', 'hello')->count());
     }
 
     public function test_a_scheduled_post_needs_a_publish_date(): void

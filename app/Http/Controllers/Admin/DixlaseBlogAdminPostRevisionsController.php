@@ -162,11 +162,14 @@ class DixlaseBlogAdminPostRevisionsController extends Controller
             403,
         );
 
-        $this->postService->restoreRevision($revision, $member?->id);
+        $snapshotSlug = $revision->snapshot['slug'] ?? null;
+        $restored = $this->postService->restoreRevision($revision, $member?->id);
 
         return redirect()
             ->route('dixlase-blog::admin.blog.revisions.index', ['post' => $post->id])
-            ->with('success', __('dixlase-blog::admin.flash.revision_restored'));
+            ->with('success', $snapshotSlug === null || $restored->slug === $snapshotSlug
+                ? __('dixlase-blog::admin.flash.revision_restored')
+                : __('dixlase-blog::admin.flash.revision_restored_renamed', ['slug' => $restored->slug]));
     }
 
     public function toggleProtection(Request $request): RedirectResponse
