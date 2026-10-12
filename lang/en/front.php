@@ -74,6 +74,10 @@ return [
     ],
 
     'post' => [
+        'nav_label' => 'More posts',
+        'previous' => 'Previous post',
+        'next' => 'Next post',
+        'related' => 'Related posts',
         'back_to_index' => '← Back to all posts',
         'pinned' => 'Pinned',
     ],

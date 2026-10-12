@@ -109,6 +109,9 @@ BlogContentRenderer).
             </footer>
         @endif
 
+        @include('dixlase-blog::front._post-nav')
+        @include('dixlase-blog::front._related')
+
         <p class="dixlase-blog-back">
             <a href="{{ route('dixlase-blog::front.index') }}">{{ __('dixlase-blog::front.post.back_to_index') }}</a>
         </p>

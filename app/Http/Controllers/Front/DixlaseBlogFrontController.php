@@ -28,6 +28,7 @@ use Plugins\DixlaseBlog\App\Models\BlogCategory;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Models\BlogTag;
 use Plugins\DixlaseBlog\App\Services\BlogContentRenderer;
+use Plugins\DixlaseBlog\App\Services\BlogPostNeighbours;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
 class DixlaseBlogFrontController extends Controller
@@ -38,6 +39,7 @@ class DixlaseBlogFrontController extends Controller
     public function __construct(
         private readonly BlogContentRenderer $renderer,
         private readonly BlogSettings $settings,
+        private readonly BlogPostNeighbours $neighbours,
     ) {
     }
 
@@ -73,6 +75,9 @@ class DixlaseBlogFrontController extends Controller
         return view('dixlase-blog::front.show', [
             'post' => $post,
             'contentHtml' => $this->renderer->renderPost($post),
+            'previousPost' => $this->neighbours->previous($post),
+            'nextPost' => $this->neighbours->next($post),
+            'relatedPosts' => $this->neighbours->related($post),
         ]);
     }
 

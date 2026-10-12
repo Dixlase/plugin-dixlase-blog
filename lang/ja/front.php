@@ -74,6 +74,10 @@ return [
     ],
 
     'post' => [
+        'nav_label' => 'ほかの記事',
+        'previous' => '前の記事',
+        'next' => '次の記事',
+        'related' => '関連記事',
         'back_to_index' => '← 記事一覧へ戻る',
         'pinned' => '固定',
     ],
