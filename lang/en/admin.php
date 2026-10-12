@@ -94,6 +94,8 @@ return [
     ],
 
     'post_index' => [
+        'permalink_not_public' => 'Not public yet',
+        'datetime_format' => 'Y-m-d H:i',
         'heading' => 'Posts',
         'description' => 'Manage blog posts.',
         'new_button' => 'New post',

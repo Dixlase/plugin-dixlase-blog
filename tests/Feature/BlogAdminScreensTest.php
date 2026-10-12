@@ -142,6 +142,27 @@ class BlogAdminScreensTest extends TestCase
         parent::tearDown();
     }
 
+    public function test_the_post_list_shows_each_permalink(): void
+    {
+        $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
+        app(BlogPostService::class)->create([
+            'title' => 'Draft post',
+            'slug' => 'draft-post',
+            'content' => 'Body',
+            'editor_type' => 'markdown',
+            'status' => 'draft',
+        ], null);
+
+        $public = route('dixlase-blog::front.show', ['slug' => $this->post->slug]);
+        $draft = route('dixlase-blog::front.show', ['slug' => 'draft-post']);
+
+        $this->get(route('dixlase-blog::admin.blog.index'))->assertOk()
+            // A visible post's permalink is a link; a draft's is only text.
+            ->assertSee('href="'.$public.'"', false)
+            ->assertSee($draft, false)
+            ->assertDontSee('href="'.$draft.'"', false);
+    }
+
     public function test_every_admin_screen_opens_for_an_admin(): void
     {
         $this->assertScreensOpenFor(MemberRole::ADMIN);

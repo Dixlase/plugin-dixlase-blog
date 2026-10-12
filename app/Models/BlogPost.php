@@ -276,6 +276,18 @@ class BlogPost extends Model implements Revisionable
         return $fallback ? $this->getAttribute($field) : null;
     }
 
+    /**
+     * Whether the public pages show this post now; the same test as
+     * scopeCurrentlyVisible().
+     */
+    public function isCurrentlyVisible(): bool
+    {
+        return $this->isPublished()
+            && $this->published_at !== null
+            && ! $this->published_at->isFuture()
+            && ($this->closed_at === null || $this->closed_at->isFuture());
+    }
+
     public function isPublished(): bool
     {
         return match ($this->status) {

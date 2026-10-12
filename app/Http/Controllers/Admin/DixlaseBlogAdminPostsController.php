@@ -77,6 +77,9 @@ class DixlaseBlogAdminPostsController extends Controller
 
         return view('dixlase-blog::admin.posts.index', array_merge($this->viewParams, [
             'posts' => $posts,
+            'permalinks' => $posts->getCollection()->mapWithKeys(fn (BlogPost $post) => [
+                $post->id => route('dixlase-blog::front.show', ['slug' => $post->slug]),
+            ])->all(),
         ]));
     }
 

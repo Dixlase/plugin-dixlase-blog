@@ -94,6 +94,8 @@ return [
     ],
 
     'post_index' => [
+        'permalink_not_public' => 'まだ公開されていません',
+        'datetime_format' => 'Y年m月d日 H:i',
         'heading' => '記事一覧',
         'description' => 'ブログ記事を管理します。',
         'new_button' => '新規記事',
