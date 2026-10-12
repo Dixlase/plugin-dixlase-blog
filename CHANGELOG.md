@@ -16,6 +16,7 @@ Work toward the first release, 0.1.0 (#13).
   recent posts, monthly archive, calendar, tags). It moves below the content on narrow screens.
   Each item is its own overridable template under `front/sidebar/`, and every page now renders
   through `front/_layout.blade.php`.
+- The settings entry in the Blog menu reads "Blog Settings" (#70).
 - Month and day archives (`/blog/2026/10`, `/blog/2026/10/10`) and a blog search
   (`/blog/search?q=`) (#56). Search matches every word in the title, excerpt or body of the text a
   post was written in; translations are not searched yet. Search results send

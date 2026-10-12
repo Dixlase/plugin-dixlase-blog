@@ -26,7 +26,7 @@ return [
             'create' => '新規作成',
             'categories' => 'カテゴリ',
             'trash' => 'ゴミ箱',
-            'settings' => '設定',
+            'settings' => 'ブログ設定',
         ],
     ],
 
@@ -47,7 +47,7 @@ return [
             'show' => ['heading' => 'リビジョン差分'],
         ],
         'settings' => [
-            'edit' => ['heading' => 'ブログの設定'],
+            'edit' => ['heading' => 'ブログ設定'],
         ],
     ],
 
