@@ -171,11 +171,12 @@ class BlogPost extends Model implements Revisionable
     }
 
     /**
-     * Apply all three public-visibility filters together: PUBLISHED status,
-     * non-null published_at not in the future, and a closed_at that is
-     * either unset or still in the future. Used by every public-facing
-     * query so a SCHEDULED post (or a PUBLISHED post past its closed_at)
-     * never leaks to the front-end.
+     * Apply all three public-visibility filters together: PUBLISHED or
+     * SCHEDULED status, non-null published_at not in the future, and a
+     * closed_at that is either unset or still in the future. Used by every
+     * public-facing query, so a SCHEDULED post appears once its
+     * published_at passes (as in DixlasePages; nothing flips the status)
+     * and no post shows before published_at or after closed_at.
      *
      * @param  Builder<self>  $query
      * @return Builder<self>
@@ -185,7 +186,7 @@ class BlogPost extends Model implements Revisionable
         $now = now();
 
         return $query
-            ->where('status', ContentStatus::PUBLISHED->value)
+            ->whereIn('status', [ContentStatus::PUBLISHED->value, ContentStatus::SCHEDULED->value])
             ->whereNotNull('published_at')
             ->where('published_at', '<=', $now)
             ->where(function (Builder $q) use ($now) {
@@ -263,7 +264,11 @@ class BlogPost extends Model implements Revisionable
 
     public function isPublished(): bool
     {
-        return $this->status === ContentStatus::PUBLISHED;
+        return match ($this->status) {
+            ContentStatus::PUBLISHED => true,
+            ContentStatus::SCHEDULED => $this->published_at !== null && $this->published_at->isPast(),
+            default => false,
+        };
     }
 
     public function revisionModel(): string
