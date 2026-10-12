@@ -44,6 +44,7 @@ use App\Http\Middleware\SetFrontLocale;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
+use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFeedController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFrontController;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\Tests\Support\FakeTranslationResolver;
@@ -100,6 +101,7 @@ class BlogPostSeoPageMetaTest extends TestCase
             ->name('dixlase-blog::front.')
             ->group(function () {
                 Route::get('/blog', [DixlaseBlogFrontController::class, 'index'])->name('index');
+                Route::get('/blog/feed.xml', [DixlaseBlogFeedController::class, 'feed'])->name('feed');
                 Route::get('/blog/category/{slug}', [DixlaseBlogFrontController::class, 'category'])->name('category');
                 Route::get('/blog/tag/{slug}', [DixlaseBlogFrontController::class, 'tag'])->name('tag');
                 Route::get('/blog/{slug}', [DixlaseBlogFrontController::class, 'show'])->name('show');
