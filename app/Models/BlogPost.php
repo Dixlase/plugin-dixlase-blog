@@ -95,6 +95,17 @@ class BlogPost extends Model implements Revisionable
         'closed_at',
     ];
 
+    /**
+     * Matches the column default, so a new post carries it before it is
+     * read back: the first revision snapshot is taken from this instance,
+     * and a null there would differ from every later snapshot.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'is_pinned' => false,
+    ];
+
     protected static function booted(): void
     {
         // The SEO meta row belongs to the post; a soft delete keeps it so a
