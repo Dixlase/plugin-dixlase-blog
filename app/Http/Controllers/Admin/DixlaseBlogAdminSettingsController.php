@@ -62,12 +62,31 @@ class DixlaseBlogAdminSettingsController extends Controller
             'blogSettings' => $this->blogSettings->all(),
             'postsPerPageMin' => BlogSettings::POSTS_PER_PAGE_MIN,
             'postsPerPageMax' => BlogSettings::POSTS_PER_PAGE_MAX,
+            // Labels resolved here, as admin views take no logic.
+            'sidebarWidgets' => array_map(
+                fn (array $widget) => $widget + ['label' => __('dixlase-blog::admin.settings.sidebar_widget_'.$widget['key'])],
+                $this->blogSettings->sidebarWidgets(),
+            ),
+            'sidebarPositionOptions' => $this->sidebarPositionOptions(),
+            'recentPostsMin' => BlogSettings::RECENT_POSTS_MIN,
+            'recentPostsMax' => BlogSettings::RECENT_POSTS_MAX,
         ]));
+    }
+
+    /**
+     * @return list<array{value: string, label: string, icon: string}>
+     */
+    private function sidebarPositionOptions(): array
+    {
+        return [
+            ['value' => 'right', 'label' => __('dixlase-blog::admin.settings.sidebar_position_right'), 'icon' => 'fas fa-table-columns'],
+            ['value' => 'left', 'label' => __('dixlase-blog::admin.settings.sidebar_position_left'), 'icon' => 'fas fa-table-columns fa-flip-horizontal'],
+        ];
     }
 
     public function update(BlogSettingsUpdateRequest $request): RedirectResponse
     {
-        $this->blogSettings->save($request->validated());
+        $this->blogSettings->save($request->settingsValues());
 
         return redirect()
             ->route('dixlase-blog::admin.blog.settings.edit')

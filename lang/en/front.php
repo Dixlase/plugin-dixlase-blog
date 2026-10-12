@@ -47,6 +47,16 @@ return [
         'no_results' => 'No posts match your search.',
     ],
 
+    'sidebar' => [
+        'label' => 'Blog sidebar',
+        'search' => 'Search',
+        'categories' => 'Categories',
+        'recent' => 'Recent posts',
+        'archives' => 'Archives',
+        'calendar' => 'Calendar',
+        'tags' => 'Tags',
+    ],
+
     'taxonomy' => [
         'categories' => 'Categories',
         'tags' => 'Tags',

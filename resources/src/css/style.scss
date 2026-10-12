@@ -88,6 +88,142 @@
     --dlsb-code-bg: var(--color-gray-800, #1f2937);
 }
 
+// --- Sidebar -------------------------------------------------------------
+
+// Below the content on narrow screens; beside it from 1024px.
+.dixlase-blog--with-sidebar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3rem;
+
+    @media (min-width: 1024px) {
+        grid-template-columns: minmax(0, 1fr) 17rem;
+        align-items: start;
+    }
+}
+
+.dixlase-blog--sidebar-left {
+    @media (min-width: 1024px) {
+        grid-template-columns: 17rem minmax(0, 1fr);
+
+        .dixlase-blog-sidebar {
+            order: -1;
+        }
+    }
+}
+
+.dixlase-blog__main {
+    min-width: 0;
+}
+
+.dixlase-blog-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    font-size: 0.9375rem;
+}
+
+.dixlase-blog-widget__title {
+    margin: 0 0 0.75rem;
+    padding-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--dlsb-border);
+}
+
+.dixlase-blog-widget__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+        padding: 0.25rem 0;
+    }
+
+    a {
+        text-decoration: none;
+
+        &:hover {
+            color: var(--dlsb-accent);
+            text-decoration: underline;
+        }
+    }
+
+    // Nested categories.
+    .dixlase-blog-widget__list {
+        padding-left: 1rem;
+    }
+}
+
+.dixlase-blog-widget__count,
+.dixlase-blog-widget__date {
+    font-size: 0.8125rem;
+    color: var(--dlsb-muted);
+}
+
+.dixlase-blog-widget__date {
+    display: block;
+}
+
+.dixlase-blog-widget__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+}
+
+.dixlase-blog-sidebar .dixlase-blog-search {
+    margin-top: 0;
+}
+
+.dixlase-blog-calendar {
+    width: 100%;
+    font-size: 0.8125rem;
+    text-align: center;
+    border-collapse: collapse;
+
+    caption {
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    th {
+        padding: 0.25rem 0;
+        font-weight: 500;
+        color: var(--dlsb-muted);
+    }
+
+    td {
+        padding: 0.25rem 0;
+    }
+}
+
+.dixlase-blog-calendar__day--has-posts a {
+    font-weight: 700;
+    color: var(--dlsb-accent);
+}
+
+.dixlase-blog-calendar__nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+
+    a {
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    [rel="next"] {
+        margin-left: auto;
+    }
+}
+
 // --- Index and archive headers ---------------------------------------
 
 .dixlase-blog-index__header,
@@ -198,6 +334,13 @@
 
     @media (min-width: 1024px) {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    // Beside a sidebar the main column is narrower: two cards per row.
+    .dixlase-blog--with-sidebar & {
+        @media (min-width: 1024px) {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
     }
 }
 

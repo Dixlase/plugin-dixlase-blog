@@ -40,6 +40,7 @@ use Illuminate\Support\ServiceProvider;
 use Plugins\DixlaseBlog\App\Services\BlogLocalizedUrlProvider;
 use Plugins\DixlaseBlog\App\Services\BlogPostLinkableProvider;
 use Plugins\DixlaseBlog\App\Services\BlogSeoMeta;
+use Plugins\DixlaseBlog\App\Services\BlogSidebar;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 use Throwable;
 
@@ -68,20 +69,18 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
         $this->registerViews();
         $this->loadTranslationsFrom(__DIR__.'/../../lang', 'dixlase-blog');
 
+        // The sidebar is built where the layout is rendered, so a theme or a
+        // site that overrides the page templates keeps it.
+        View::composer('dixlase-blog::front._layout', function ($view): void {
+            $view->with('sidebar', app(BlogSidebar::class)->build(request()));
+        });
+
         // Migrations are deliberately NOT registered with Laravel's migrator.
         // Core's plugin migrator applies them (dls:plugin:migrate, install,
         // enable) and records them in the plugin migration ledger; a bare
         // `php artisan migrate` would otherwise try to re-create the tables.
     }
 
-    /**
-     * Register the plugin's views, with overrides, in the same order as
-     * DixlasePages. The first directory holding a view wins:
-     *
-     * 1. custom/plugins/DixlaseBlog/resources/views/ (site customisation)
-     * 2. themes/<active theme>/plugins/DixlaseBlog/resources/views/
-     * 3. plugins/DixlaseBlog/resources/views/ (the defaults)
-     */
     /**
      * Core inserts the settings rows a site does not have yet on install
      * and update, leaving stored values alone.
@@ -99,6 +98,14 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
         return BlogSettings::DEFAULTS;
     }
 
+    /**
+     * Register the plugin's views, with overrides, in the same order as
+     * DixlasePages. The first directory holding a view wins:
+     *
+     * 1. custom/plugins/DixlaseBlog/resources/views/ (site customisation)
+     * 2. themes/<active theme>/plugins/DixlaseBlog/resources/views/
+     * 3. plugins/DixlaseBlog/resources/views/ (the defaults)
+     */
     public function registerViews(): void
     {
         foreach ($this->overridePaths() as $path) {

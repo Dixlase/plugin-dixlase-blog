@@ -57,7 +57,7 @@ BlogContentRenderer).
 @endunless
 
 @section('content')
-<div class="dixlase-blog">
+@component('dixlase-blog::front._layout')
     <article class="dixlase-blog-post">
         <header class="dixlase-blog-post__header">
             <div class="dixlase-blog-meta">
@@ -113,5 +113,5 @@ BlogContentRenderer).
             <a href="{{ route('dixlase-blog::front.index') }}">{{ __('dixlase-blog::front.post.back_to_index') }}</a>
         </p>
     </article>
-</div>
+@endcomponent
 @endsection

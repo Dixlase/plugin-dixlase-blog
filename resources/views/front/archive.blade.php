@@ -30,7 +30,7 @@ $archiveLang for the heading. Overridable like index.blade.php.
 @include('dixlase-blog::front._assets')
 
 @section('content')
-<div class="dixlase-blog">
+@component('dixlase-blog::front._layout')
     <section class="dixlase-blog-archive">
         <header class="dixlase-blog-archive__header">
             <p class="dixlase-blog-archive__kicker">
@@ -85,5 +85,5 @@ $archiveLang for the heading. Overridable like index.blade.php.
             <a href="{{ route('dixlase-blog::front.index') }}">{{ __('dixlase-blog::front.archive.back_to_index') }}</a>
         </p>
     </section>
-</div>
+@endcomponent
 @endsection
