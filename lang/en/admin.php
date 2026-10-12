@@ -217,6 +217,8 @@ return [
         'diff_field_published_at' => 'Publish at',
         'diff_field_closed_at' => 'Close at',
         'diff_field_user_id' => 'Author',
+        'diff_field_category_ids' => 'Categories',
+        'diff_field_tag_ids' => 'Tags',
         'pivot_heading' => 'Categories & tags',
         'pivot_added' => 'Added',
         'pivot_removed' => 'Removed',

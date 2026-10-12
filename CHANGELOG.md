@@ -34,6 +34,8 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Fixed
 
+- The revision diff screen labels the category and tag rows instead of showing translation
+  keys (#49).
 - Restoring a post from the trash, or restoring a revision, no longer gives it a slug that
   another post uses; it takes the next free one (such as `hello-2`) and the message says so (#43).
 - A post saved as scheduled appears once its publish date passes; it used to stay hidden for
