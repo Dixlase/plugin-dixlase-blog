@@ -57,6 +57,15 @@ return [
         'tags' => 'Tags',
     ],
 
+    'share' => [
+        'label' => 'Share',
+        'x' => 'X',
+        'facebook' => 'Facebook',
+        'line' => 'LINE',
+        'copy' => 'Copy link',
+        'copied' => 'Copied',
+    ],
+
     'taxonomy' => [
         'categories' => 'Categories',
         'tags' => 'Tags',

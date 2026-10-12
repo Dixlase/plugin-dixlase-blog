@@ -169,7 +169,9 @@
                 "css/style.scss"
             ],
             "admin": [],
-            "front": []
+            "front": [
+                "js/front.js"
+            ]
         },
         "contracts": [],
         "migrations": true,

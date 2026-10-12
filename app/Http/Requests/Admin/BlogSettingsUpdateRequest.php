@@ -66,6 +66,9 @@ class BlogSettingsUpdateRequest extends FormRequest
             'sidebar_widgets.*' => ['distinct', Rule::in(BlogSettings::SIDEBAR_WIDGETS)],
             'sidebar_widget_enabled' => ['array'],
             'sidebar_widget_enabled.*' => ['boolean'],
+            // One switch per service, keyed by service.
+            'share_services' => ['sometimes', 'array'],
+            'share_services.*' => ['boolean'],
             'sidebar_recent_count' => [
                 'sometimes',
                 'required',
@@ -94,6 +97,14 @@ class BlogSettingsUpdateRequest extends FormRequest
             );
         }
         unset($data['sidebar_widget_enabled']);
+
+        if (isset($data['share_services'])) {
+            $switches = $data['share_services'];
+            $data['share_services'] = array_values(array_filter(
+                BlogSettings::SHARE_SERVICES,
+                fn (string $key) => (bool) ($switches[$key] ?? false),
+            ));
+        }
 
         return $data;
     }

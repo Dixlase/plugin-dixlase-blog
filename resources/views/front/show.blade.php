@@ -109,6 +109,7 @@ BlogContentRenderer).
             </footer>
         @endif
 
+        @include('dixlase-blog::front._share')
         @include('dixlase-blog::front._post-nav')
         @include('dixlase-blog::front._related')
 

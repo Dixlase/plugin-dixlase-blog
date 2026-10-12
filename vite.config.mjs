@@ -48,6 +48,7 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 app: path.resolve(__dirname, 'resources/src/js/app.js'),
+                front: path.resolve(__dirname, 'resources/src/js/front.js'),
                 style: path.resolve(__dirname, 'resources/src/css/style.scss'),
             },
             output: {

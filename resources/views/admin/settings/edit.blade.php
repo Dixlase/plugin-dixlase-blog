@@ -112,6 +112,23 @@ sharing) has its own <section> in this one form.
                 </div>
             </div>
         </section>
+
+        <section class="mb-8">
+            <h2 class="mb-4 text-xl font-semibold">{{ __('dixlase-blog::admin.settings.share_heading') }}</h2>
+            <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">{{ __('dixlase-blog::admin.settings.share_help') }}</p>
+
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                @foreach ($shareServices as $service)
+                    <x-form-toggle
+                        :id="'share_service_'.$service['key']"
+                        :name="'share_services['.$service['key'].']'"
+                        :label="$service['label']"
+                        :checked="(bool) old('share_services.'.$service['key'], $service['enabled'])"
+                    />
+                @endforeach
+            </div>
+            <x-form-error name="share_services" />
+        </section>
     </form>
 @endsection
 

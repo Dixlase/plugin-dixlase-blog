@@ -29,6 +29,7 @@ use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Models\BlogTag;
 use Plugins\DixlaseBlog\App\Services\BlogContentRenderer;
 use Plugins\DixlaseBlog\App\Services\BlogPostNeighbours;
+use Plugins\DixlaseBlog\App\Services\BlogShareLinks;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
 class DixlaseBlogFrontController extends Controller
@@ -40,6 +41,7 @@ class DixlaseBlogFrontController extends Controller
         private readonly BlogContentRenderer $renderer,
         private readonly BlogSettings $settings,
         private readonly BlogPostNeighbours $neighbours,
+        private readonly BlogShareLinks $shareLinks,
     ) {
     }
 
@@ -72,12 +74,16 @@ class DixlaseBlogFrontController extends Controller
             ->with(['categories', 'tags', 'featuredMedia', 'author'])
             ->firstOrFail();
 
+        $postUrl = route('dixlase-blog::front.show', ['slug' => $post->slug]);
+
         return view('dixlase-blog::front.show', [
             'post' => $post,
             'contentHtml' => $this->renderer->renderPost($post),
             'previousPost' => $this->neighbours->previous($post),
             'nextPost' => $this->neighbours->next($post),
             'relatedPosts' => $this->neighbours->related($post),
+            'postUrl' => $postUrl,
+            'shareLinks' => $this->shareLinks->for($postUrl, (string) $post->localized('title')),
         ]);
     }
 

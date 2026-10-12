@@ -68,6 +68,14 @@ class DixlaseBlogAdminSettingsController extends Controller
                 $this->blogSettings->sidebarWidgets(),
             ),
             'sidebarPositionOptions' => $this->sidebarPositionOptions(),
+            'shareServices' => array_map(
+                fn (string $key) => [
+                    'key' => $key,
+                    'label' => __('dixlase-blog::admin.settings.share_service_'.$key),
+                    'enabled' => in_array($key, $this->blogSettings->shareServices(), true),
+                ],
+                BlogSettings::SHARE_SERVICES,
+            ),
             'recentPostsMin' => BlogSettings::RECENT_POSTS_MIN,
             'recentPostsMax' => BlogSettings::RECENT_POSTS_MAX,
         ]));
