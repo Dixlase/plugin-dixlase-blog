@@ -11,7 +11,7 @@ current locale's RSS feed. Included by every front page.
 --}}
 
 @push('styles')
-    {!! load_plugin_assets('DixlaseBlog', ['css/style.scss']) !!}
+    {!! load_plugin_assets('DixlaseBlog', ['css/style.scss', 'js/front.js']) !!}
     <link rel="alternate" type="application/rss+xml"
           title="{{ __('dixlase-blog::front.feed_title', ['site' => config('app.name')]) }}"
           href="{{ route('dixlase-blog::front.feed') }}">

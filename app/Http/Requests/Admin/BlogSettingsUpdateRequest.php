@@ -52,13 +52,14 @@ class BlogSettingsUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // Each section is checked when it is sent; the screen sends all.
             'posts_per_page' => [
+                'sometimes',
                 'required',
                 'integer',
                 'min:'.BlogSettings::POSTS_PER_PAGE_MIN,
                 'max:'.BlogSettings::POSTS_PER_PAGE_MAX,
             ],
-            // Each section is checked when it is sent; the screen sends all.
             'sidebar_enabled' => ['sometimes', 'required', 'boolean'],
             'sidebar_position' => ['sometimes', 'required', Rule::in(BlogSettings::SIDEBAR_POSITIONS)],
             // The widget rows in their order on the form, and which are on.
@@ -66,6 +67,9 @@ class BlogSettingsUpdateRequest extends FormRequest
             'sidebar_widgets.*' => ['distinct', Rule::in(BlogSettings::SIDEBAR_WIDGETS)],
             'sidebar_widget_enabled' => ['array'],
             'sidebar_widget_enabled.*' => ['boolean'],
+            // One switch per service, keyed by service.
+            'share_services' => ['sometimes', 'array'],
+            'share_services.*' => ['boolean'],
             'sidebar_recent_count' => [
                 'sometimes',
                 'required',
@@ -94,6 +98,14 @@ class BlogSettingsUpdateRequest extends FormRequest
             );
         }
         unset($data['sidebar_widget_enabled']);
+
+        if (isset($data['share_services'])) {
+            $switches = $data['share_services'];
+            $data['share_services'] = array_values(array_filter(
+                BlogSettings::SHARE_SERVICES,
+                fn (string $key) => (bool) ($switches[$key] ?? false),
+            ));
+        }
 
         return $data;
     }

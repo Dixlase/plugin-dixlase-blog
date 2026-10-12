@@ -57,6 +57,15 @@ return [
         'tags' => 'タグ',
     ],
 
+    'share' => [
+        'label' => '共有',
+        'x' => 'X',
+        'facebook' => 'Facebook',
+        'line' => 'LINE',
+        'copy' => 'リンクをコピー',
+        'copied' => 'コピーしました',
+    ],
+
     'taxonomy' => [
         'categories' => 'カテゴリ',
         'tags' => 'タグ',

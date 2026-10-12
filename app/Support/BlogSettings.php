@@ -56,6 +56,9 @@ class BlogSettings
 
     public const RECENT_POSTS_MAX = 20;
 
+    /** Share buttons on the post page, in display order. */
+    public const SHARE_SERVICES = ['x', 'facebook', 'line', 'copy'];
+
     /**
      * Every setting and its default, as stored (strings). Core inserts the
      * missing rows on install and update; see DixlaseBlogServiceProvider.
@@ -69,6 +72,8 @@ class BlogSettings
         // JSON list of {"key": ..., "enabled": ...} in display order.
         'sidebar_widgets' => '[{"key":"search","enabled":true},{"key":"categories","enabled":true},{"key":"recent","enabled":true},{"key":"archives","enabled":true},{"key":"calendar","enabled":true},{"key":"tags","enabled":true}]',
         'sidebar_recent_count' => '5',
+        // JSON list of the share buttons shown; none hides the row.
+        'share_services' => '["x","facebook","line","copy"]',
     ];
 
     /** @var array<string, string|null>|null */
@@ -126,6 +131,19 @@ class BlogSettings
         $value = (int) $this->value('sidebar_recent_count');
 
         return max(self::RECENT_POSTS_MIN, min(self::RECENT_POSTS_MAX, $value));
+    }
+
+    /**
+     * The share buttons shown, in SHARE_SERVICES order.
+     *
+     * @return list<string>
+     */
+    public function shareServices(): array
+    {
+        $stored = json_decode((string) $this->value('share_services'), true);
+        $stored = is_array($stored) ? $stored : [];
+
+        return array_values(array_filter(self::SHARE_SERVICES, fn (string $key) => in_array($key, $stored, true)));
     }
 
     /**
