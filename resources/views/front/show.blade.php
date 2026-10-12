@@ -22,10 +22,16 @@ BlogContentRenderer).
 
     // With DixlaseSEO enabled, it writes the description, canonical and OGP
     // tags into the head; it reads the description through
-    // BlogPost::getTranslation('seo_description').
+    // BlogPost::getTranslation('seo_description'). Since DixlaseSEO 0.2.0 it
+    // also takes the title, a fallback OGP image (the featured image, used
+    // when the post has no OGP image of its own) and the og:type.
     $seoHandlesHead = function_exists('dls_seo_set_page_meta');
     if ($seoHandlesHead) {
-        dls_seo_set_page_meta($post, 'dixlase-blog');
+        // Positional, not named: DixlaseSEO 0.1.x declares only the first two
+        // parameters, and PHP ignores extra positional arguments while an
+        // unknown named argument is a fatal Error. Keep this call positional
+        // so the page still renders on a site running 0.1.x.
+        dls_seo_set_page_meta($post, 'dixlase-blog', $title, $post->featured_media_id, 'article');
     }
 @endphp
 

@@ -16,6 +16,8 @@ Work toward the first release, 0.1.0 (#13).
   a category and protecting a revision stay with ADMIN. Writing an HTML body is still
   ADMIN-only. The defaults are in `config/admin/roles.php` and can be changed per role in
   the admin panel.
+- With DixlaseSEO 0.2.0 or later, a shared post shows its own title, its OGP image or else its
+  featured image, and `og:type` `article` (#26). Older DixlaseSEO versions keep working as before.
 - DixlaseSEO integration (#11): published posts appear in the sitemap, blog pages offer
   their other-language URLs for hreflang, and each post has an SEO description and OGP
   image on its edit screen. The description is translatable and falls back to the
