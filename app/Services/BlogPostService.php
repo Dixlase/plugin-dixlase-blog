@@ -267,9 +267,12 @@ class BlogPostService
             if ($slug === '') {
                 $slug = 'tag-'.substr(md5($name), 0, 8);
             }
-            // Use slug as the lookup key; name may be re-displayed but slug is the identity.
-            // A new tag's name is in the language of the post it is first used on.
-            $tag = BlogTag::firstOrCreate(['slug' => $slug], ['name' => $name, 'lang' => $post->sourceLocale()]);
+            // An existing tag is found by its name first: its slug need not
+            // derive from the name (the sample tag's does not), and the
+            // name is unique too. A new tag's name is in the language of
+            // the post it is first used on.
+            $tag = BlogTag::query()->where('name', $name)->first()
+                ?? BlogTag::firstOrCreate(['slug' => $slug], ['name' => $name, 'lang' => $post->sourceLocale()]);
             $tagIds[] = $tag->id;
         }
         $post->tags()->sync(array_values(array_unique($tagIds)));

@@ -271,6 +271,20 @@ class BlogPostLifecycleTest extends TestCase
         $this->assertNotNull($post->fresh()->published_at);
     }
 
+    public function test_an_existing_tag_is_found_by_its_name(): void
+    {
+        // Like the sample tag: the slug does not come from the name.
+        $tag = BlogTag::create(['name' => 'はじめまして', 'slug' => 'welcome', 'lang' => 'ja']);
+
+        $this->assertRedirectsWithoutErrors($this->post(route('dixlase-blog::admin.blog.store'), $this->postForm([
+            'title' => 'Hello',
+            'tags' => ['はじめまして'],
+        ])));
+
+        $this->assertSame(1, BlogTag::query()->count());
+        $this->assertSame([$tag->id], BlogPost::query()->sole()->tags->pluck('id')->all());
+    }
+
     public function test_tags_are_shared_by_slug(): void
     {
         $this->post(route('dixlase-blog::admin.blog.store'), $this->postForm(['title' => 'One', 'tags' => ['Release']]));

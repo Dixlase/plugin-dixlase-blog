@@ -52,6 +52,8 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Fixed
 
+- Saving a post with an existing tag whose slug does not come from its name (such as the sample
+  tag 「はじめまして」) no longer fails with a 500 error (#72).
 - The revision diff screen labels the category and tag rows instead of showing translation
   keys (#49).
 - Restoring a post from the trash, or restoring a revision, no longer gives it a slug that
