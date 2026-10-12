@@ -26,7 +26,7 @@ return [
             'create' => 'Create New',
             'categories' => 'Categories',
             'trash' => 'Trash',
-            'settings' => 'Settings',
+            'settings' => 'Blog Settings',
         ],
     ],
 
