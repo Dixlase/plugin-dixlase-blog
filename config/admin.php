@@ -35,10 +35,8 @@ return [
     //
     // AdminPluginsSettingsController::getPluginSettingsUrl() reads this
     // key to decide whether to render the "Settings" button on the
-    // installed-plugin card. Blog does not have a dedicated settings
-    // screen, so the button lands on the post list — the primary place
-    // operators start from.
-    'settings_route' => 'dixlase-blog::admin.blog.index',
+    // installed-plugin card.
+    'settings_route' => 'dixlase-blog::admin.blog.settings.edit',
 
     'nav' => [
         'blog' => [
@@ -77,6 +75,12 @@ return [
                     'text' => 'dixlase-blog::admin.nav.blog.trash',
                     'route' => 'dixlase-blog::admin.blog.trash',
                     'icon' => 'fas fa-fw fa-trash-can',
+                    'can' => 'admin',
+                ],
+                'settings' => [
+                    'text' => 'dixlase-blog::admin.nav.blog.settings',
+                    'route' => 'dixlase-blog::admin.blog.settings.edit',
+                    'icon' => 'fas fa-fw fa-gear',
                     'can' => 'admin',
                 ],
             ],

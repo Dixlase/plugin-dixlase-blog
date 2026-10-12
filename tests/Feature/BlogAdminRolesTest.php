@@ -59,6 +59,8 @@ class BlogAdminRolesTest extends TestCase
         'dixlase-blog::admin.blog.forceDelete',
         'dixlase-blog::admin.blog.categories.destroy',
         'dixlase-blog::admin.blog.revisions.protect',
+        'dixlase-blog::admin.blog.settings.edit',
+        'dixlase-blog::admin.blog.settings.update',
     ];
 
     protected function setUp(): void
@@ -144,6 +146,18 @@ class BlogAdminRolesTest extends TestCase
             $this->assertArrayHasKey($child, $nav['children']);
             $this->assertTrue(AdminHelper::canViewMenuOrPlugin('DixlaseBlog', "blog.{$child}"), "blog.{$child}");
         }
+    }
+
+    public function test_the_settings_menu_is_for_admins_only(): void
+    {
+        $nav = (require base_path('plugins/DixlaseBlog/config/admin.php'))['nav']['blog'];
+        $this->assertSame('dixlase-blog::admin.blog.settings.edit', $nav['children']['settings']['route']);
+
+        $this->actingAs($this->member(MemberRole::EDITOR));
+        $this->assertFalse(AdminHelper::canViewMenuOrPlugin('DixlaseBlog', 'blog.settings'));
+
+        $this->actingAs($this->member(MemberRole::ADMIN));
+        $this->assertTrue(AdminHelper::canViewMenuOrPlugin('DixlaseBlog', 'blog.settings'));
     }
 
     /**

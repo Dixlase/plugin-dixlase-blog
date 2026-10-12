@@ -25,14 +25,14 @@ use Plugins\DixlaseBlog\App\Models\BlogCategory;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Models\BlogTag;
 use Plugins\DixlaseBlog\App\Services\BlogContentRenderer;
+use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
 class DixlaseBlogFrontController extends Controller
 {
-    /** Posts per page on listing pages. */
-    private const PER_PAGE = 12;
-
-    public function __construct(private readonly BlogContentRenderer $renderer)
-    {
+    public function __construct(
+        private readonly BlogContentRenderer $renderer,
+        private readonly BlogSettings $settings,
+    ) {
     }
 
     public function index(): View
@@ -41,7 +41,7 @@ class DixlaseBlogFrontController extends Controller
             ->currentlyVisible()
             ->with(['categories', 'tags', 'featuredMedia', 'author'])
             ->orderByDesc('published_at')
-            ->paginate(self::PER_PAGE);
+            ->paginate($this->settings->postsPerPage());
 
         return view('dixlase-blog::front.index', [
             'posts' => $posts,
@@ -78,7 +78,7 @@ class DixlaseBlogFrontController extends Controller
             ->currentlyVisible()
             ->with(['categories', 'tags', 'featuredMedia', 'author'])
             ->orderByDesc('published_at')
-            ->paginate(self::PER_PAGE);
+            ->paginate($this->settings->postsPerPage());
 
         return view('dixlase-blog::front.archive', [
             'archiveType' => 'category',
@@ -99,7 +99,7 @@ class DixlaseBlogFrontController extends Controller
             ->currentlyVisible()
             ->with(['categories', 'tags', 'featuredMedia', 'author'])
             ->orderByDesc('published_at')
-            ->paginate(self::PER_PAGE);
+            ->paginate($this->settings->postsPerPage());
 
         return view('dixlase-blog::front.archive', [
             'archiveType' => 'tag',

@@ -101,6 +101,16 @@ return [
                     ],
                 ],
 
+                // Settings change how the whole blog behaves.
+                'settings' => [
+                    'access_roles' => MemberRole::ADMIN->value,
+                    'view_roles' => MemberRole::ADMIN->value,
+                    'children' => [
+                        'edit' => $admin,
+                        'update' => $admin,
+                    ],
+                ],
+
                 // Revisions. Restoring is authoring (and still checks the
                 // editor type of both versions). No bare `revisions` route
                 // exists, so the parent has no roles of its own.

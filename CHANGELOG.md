@@ -11,6 +11,9 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Added
 
+- A blog settings screen (#54), under the Blog menu and behind the plugin card's Settings button,
+  for ADMIN and above. Its first setting is the number of posts per page on the index and the
+  archives (default 12). Run the plugin's migrations to add the settings table.
 - Editors can write posts (#31). They create, edit, preview and trash posts, restore them
   from the trash, work with revisions and manage categories; permanent deletion, deleting
   a category and protecting a revision stay with ADMIN. Writing an HTML body is still

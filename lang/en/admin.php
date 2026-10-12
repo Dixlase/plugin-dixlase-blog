@@ -26,6 +26,7 @@ return [
             'create' => 'Create New',
             'categories' => 'Categories',
             'trash' => 'Trash',
+            'settings' => 'Settings',
         ],
     ],
 
@@ -44,6 +45,9 @@ return [
         'revisions' => [
             'index' => ['heading' => 'Revisions'],
             'show' => ['heading' => 'Revision Diff'],
+        ],
+        'settings' => [
+            'edit' => ['heading' => 'Blog Settings'],
         ],
     ],
 
@@ -224,7 +228,16 @@ return [
         'pivot_removed' => 'Removed',
     ],
 
+    'settings' => [
+        'listing_heading' => 'Listings',
+        'posts_per_page_label' => 'Posts per page',
+        'posts_per_page_help' => 'How many posts the blog index and the category, tag and date archives show on one page (:min to :max).',
+        'confirm_title' => 'Save the settings?',
+        'confirm_message' => 'The changes apply to the public blog pages right away.',
+    ],
+
     'flash' => [
+        'settings_saved' => 'Settings saved.',
         'post_created' => 'Post created.',
         'post_updated' => 'Post updated.',
         'post_trashed' => 'Post moved to trash.',

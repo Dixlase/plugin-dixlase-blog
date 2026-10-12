@@ -32,6 +32,7 @@
 
 namespace Plugins\DixlaseBlog\App\Providers;
 
+use App\Contracts\Extension\ProvidesSettingsDefaultsInterface;
 use App\Contracts\Repositories\ThemeRepositoryInterface;
 use App\Traits\PluginLoaderTrait;
 use Illuminate\Support\Facades\View;
@@ -39,9 +40,10 @@ use Illuminate\Support\ServiceProvider;
 use Plugins\DixlaseBlog\App\Services\BlogLocalizedUrlProvider;
 use Plugins\DixlaseBlog\App\Services\BlogPostLinkableProvider;
 use Plugins\DixlaseBlog\App\Services\BlogSeoMeta;
+use Plugins\DixlaseBlog\App\Support\BlogSettings;
 use Throwable;
 
-class DixlaseBlogServiceProvider extends ServiceProvider
+class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSettingsDefaultsInterface
 {
     use PluginLoaderTrait;
 
@@ -58,6 +60,7 @@ class DixlaseBlogServiceProvider extends ServiceProvider
         $this->app->tag([BlogLocalizedUrlProvider::class], 'localized-url.providers');
 
         $this->app->singleton(BlogSeoMeta::class);
+        $this->app->singleton(BlogSettings::class);
     }
 
     public function boot(): void
@@ -79,6 +82,23 @@ class DixlaseBlogServiceProvider extends ServiceProvider
      * 2. themes/<active theme>/plugins/DixlaseBlog/resources/views/
      * 3. plugins/DixlaseBlog/resources/views/ (the defaults)
      */
+    /**
+     * Core inserts the settings rows a site does not have yet on install
+     * and update, leaving stored values alone.
+     */
+    public function getSettingsTable(): string
+    {
+        return 'plg_dixlase_blog_settings';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function getSettingsDefaults(): array
+    {
+        return BlogSettings::DEFAULTS;
+    }
+
     public function registerViews(): void
     {
         foreach ($this->overridePaths() as $path) {

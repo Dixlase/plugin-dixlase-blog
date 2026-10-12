@@ -34,6 +34,7 @@ use Illuminate\Support\Facades\Route;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminCategoriesController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostRevisionsController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostsController;
+use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminSettingsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,8 +47,8 @@ use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostsControll
 | no-cache and plugin.admin.access, which applies config/admin/roles.php;
 | without one, ADMIN and above).
 |
-| Route ordering matters: the literal segments /blog/trash and
-| /blog/categories are declared before the /blog/{post}/... patterns so
+| Route ordering matters: the literal segments /blog/trash,
+| /blog/categories and /blog/settings are declared before the /blog/{post}/... patterns so
 | that "trash" or "categories" is not bound as a post id.
 |
 */
@@ -90,6 +91,11 @@ Route::name('dixlase-blog::admin.')
                 Route::put('/{category}', [DixlaseBlogAdminCategoriesController::class, 'update'])->name('update');
                 Route::delete('/{category}', [DixlaseBlogAdminCategoriesController::class, 'destroy'])->name('destroy');
             });
+
+        // ===== Settings =====
+        // Before /blog/{post} so "settings" is not bound as a post id.
+        Route::get('/blog/settings', [DixlaseBlogAdminSettingsController::class, 'edit'])->name('blog.settings.edit');
+        Route::put('/blog/settings', [DixlaseBlogAdminSettingsController::class, 'update'])->name('blog.settings.update');
 
         // ===== Posts: item-level routes =====
         Route::get('/blog/{post}/edit', [DixlaseBlogAdminPostsController::class, 'edit'])->name('blog.edit');
