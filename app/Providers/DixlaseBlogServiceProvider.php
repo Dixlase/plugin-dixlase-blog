@@ -34,6 +34,9 @@ namespace Plugins\DixlaseBlog\App\Providers;
 
 use App\Contracts\Extension\ProvidesSettingsDefaultsInterface;
 use App\Contracts\Repositories\ThemeRepositoryInterface;
+use App\Contracts\RouteSlugProvider;
+use App\DTO\RouteSlug\RegisteredSlug;
+use App\Services\RouteSlugRegistry;
 use App\Traits\PluginLoaderTrait;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -44,9 +47,12 @@ use Plugins\DixlaseBlog\App\Services\BlogSidebar;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 use Throwable;
 
-class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSettingsDefaultsInterface
+class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSettingsDefaultsInterface, RouteSlugProvider
 {
     use PluginLoaderTrait;
+
+    /** The owner of the blog's prefix in core's RouteSlugRegistry. */
+    public const ROUTE_SLUG_OWNER = 'dixlase-blog:route_slug';
 
     public function register(): void
     {
@@ -69,6 +75,13 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
         $this->registerViews();
         $this->loadTranslationsFrom(__DIR__.'/../../lang', 'dixlase-blog');
 
+        // Core refuses a prefix another plugin, the admin URL or a reserved
+        // word already uses (UniqueRouteSlug), and other plugins' checks
+        // see the blog's prefix through this registration.
+        if ($this->app->bound(RouteSlugRegistry::class)) {
+            $this->app->make(RouteSlugRegistry::class)->registerProvider('dixlase-blog', $this);
+        }
+
         // The sidebar is built where the layout is rendered, so a theme or a
         // site that overrides the page templates keeps it.
         View::composer('dixlase-blog::front._layout', function ($view): void {
@@ -79,6 +92,26 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
         // Core's plugin migrator applies them (dls:plugin:migrate, install,
         // enable) and records them in the plugin migration ledger; a bare
         // `php artisan migrate` would otherwise try to re-create the tables.
+    }
+
+    /**
+     * @return array<RegisteredSlug>
+     */
+    public function getRouteSlugs(): array
+    {
+        try {
+            $slug = $this->app->make(BlogSettings::class)->routeSlug();
+        } catch (\Throwable) {
+            $slug = BlogSettings::ROUTE_SLUG_DEFAULT;
+        }
+
+        return [
+            new RegisteredSlug(
+                slug: $slug,
+                owner: self::ROUTE_SLUG_OWNER,
+                label: 'dixlase-blog::route-slug.owners.route_slug',
+            ),
+        ];
     }
 
     /**

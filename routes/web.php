@@ -33,29 +33,36 @@
 use Illuminate\Support\Facades\Route;
 use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFeedController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFrontController;
+use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
 // Front-end routes only; the admin routes are in routes/admin.php. With
 // DixlaseMultilingual's locale URLs on, this file is also loaded under
 // /{locale}. The front.ip middleware is required to enforce the IP
 // filter — omitting it materially weakens security.
 //
+// The prefix ("blog" by default) is the route_slug setting, read when the
+// routes are registered; core's RouteSlugRegistry keeps it apart from
+// other plugins' prefixes (see DixlaseBlogServiceProvider).
+//
 // Route ordering matters: literal paths /blog/feed.xml, /blog/category/...,
 // /blog/tag/... and /blog/search are declared before the catch-all
 // /blog/{slug} so the catch-all does not bind "feed.xml" or "search" as a
 // post slug. Date archives use two-digit months and days (/blog/2026/04).
+$blog = '/'.app(BlogSettings::class)->routeSlug();
+
 Route::middleware(['front.ip'])
     ->name('dixlase-blog::front.')
-    ->group(function () {
-        Route::get('/blog', [DixlaseBlogFrontController::class, 'index'])->name('index');
-        Route::get('/blog/feed.xml', [DixlaseBlogFeedController::class, 'feed'])->name('feed');
-        Route::get('/blog/category/{slug}', [DixlaseBlogFrontController::class, 'category'])->name('category');
-        Route::get('/blog/tag/{slug}', [DixlaseBlogFrontController::class, 'tag'])->name('tag');
-        Route::get('/blog/search', [DixlaseBlogFrontController::class, 'search'])->name('search');
-        Route::get('/blog/{year}/{month}', [DixlaseBlogFrontController::class, 'date'])
+    ->group(function () use ($blog) {
+        Route::get($blog, [DixlaseBlogFrontController::class, 'index'])->name('index');
+        Route::get($blog.'/feed.xml', [DixlaseBlogFeedController::class, 'feed'])->name('feed');
+        Route::get($blog.'/category/{slug}', [DixlaseBlogFrontController::class, 'category'])->name('category');
+        Route::get($blog.'/tag/{slug}', [DixlaseBlogFrontController::class, 'tag'])->name('tag');
+        Route::get($blog.'/search', [DixlaseBlogFrontController::class, 'search'])->name('search');
+        Route::get($blog.'/{year}/{month}', [DixlaseBlogFrontController::class, 'date'])
             ->where(['year' => '[0-9]{4}', 'month' => '0[1-9]|1[0-2]'])
             ->name('month');
-        Route::get('/blog/{year}/{month}/{day}', [DixlaseBlogFrontController::class, 'date'])
+        Route::get($blog.'/{year}/{month}/{day}', [DixlaseBlogFrontController::class, 'date'])
             ->where(['year' => '[0-9]{4}', 'month' => '0[1-9]|1[0-2]', 'day' => '0[1-9]|[12][0-9]|3[01]'])
             ->name('day');
-        Route::get('/blog/{slug}', [DixlaseBlogFrontController::class, 'show'])->name('show');
+        Route::get($blog.'/{slug}', [DixlaseBlogFrontController::class, 'show'])->name('show');
     });

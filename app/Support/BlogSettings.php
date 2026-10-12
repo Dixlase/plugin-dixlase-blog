@@ -56,6 +56,13 @@ class BlogSettings
 
     public const RECENT_POSTS_MAX = 20;
 
+    public const ROUTE_SLUG_DEFAULT = 'blog';
+
+    /** Lower-case letters, digits and hyphens, starting with a letter or digit. */
+    public const ROUTE_SLUG_PATTERN = '/^[a-z0-9][a-z0-9\-]*$/';
+
+    public const ROUTE_SLUG_MAX = 50;
+
     /** Share buttons on the post page, in display order. */
     public const SHARE_SERVICES = ['x', 'facebook', 'line', 'copy'];
 
@@ -66,6 +73,8 @@ class BlogSettings
      * @var array<string, string>
      */
     public const DEFAULTS = [
+        // The first path segment of every public blog URL.
+        'route_slug' => 'blog',
         'posts_per_page' => '12',
         'sidebar_enabled' => '1',
         'sidebar_position' => 'right',
@@ -78,6 +87,20 @@ class BlogSettings
 
     /** @var array<string, string|null>|null */
     private ?array $values = null;
+
+    /**
+     * The first path segment of the public blog URLs. A stored value that
+     * is not a valid slug reads as the default, so a bad row cannot break
+     * route registration.
+     */
+    public function routeSlug(): string
+    {
+        $slug = (string) $this->value('route_slug');
+
+        return preg_match(self::ROUTE_SLUG_PATTERN, $slug) === 1 && strlen($slug) <= self::ROUTE_SLUG_MAX
+            ? $slug
+            : self::ROUTE_SLUG_DEFAULT;
+    }
 
     /**
      * Posts per page on the index and the archives.

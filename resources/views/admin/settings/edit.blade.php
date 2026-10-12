@@ -21,6 +21,29 @@ sharing) has its own <section> in this one form.
             <h2 class="mb-4 text-xl font-semibold">{{ __('dixlase-blog::admin.settings.listing_heading') }}</h2>
 
             <div class="grid grid-cols-1 gap-6">
+                <div>
+                    <x-form-label
+                        for="route_slug"
+                        :text="__('dixlase-blog::admin.settings.route_slug_label')"
+                        :required="true"
+                    />
+                    <div class="mt-1 flex max-w-xl items-center">
+                        <span class="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                            {{ $siteUrl }}/
+                        </span>
+                        <x-form-text
+                            id="route_slug"
+                            name="route_slug"
+                            :maxlength="$routeSlugMax"
+                            :value="old('route_slug', $blogSettings['route_slug'])"
+                            :required="true"
+                            class="rounded-l-none font-mono"
+                        />
+                    </div>
+                    <x-form-help-text :text="__('dixlase-blog::admin.settings.route_slug_help')" />
+                    <x-form-error name="route_slug" />
+                </div>
+
                 <div class="max-w-xs">
                     <x-form-label
                         for="posts_per_page"

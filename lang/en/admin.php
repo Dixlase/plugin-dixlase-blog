@@ -235,6 +235,10 @@ return [
 
     'settings' => [
         'listing_heading' => 'Listings',
+        'route_slug_label' => 'Blog URL',
+        'route_slug_help' => 'The first part of every public blog address, such as /blog or /news. Changing it changes the address of every post, category and feed: links shared elsewhere stop working unless you redirect them. A prefix used by another plugin or reserved by the site is refused.',
+        'route_slug_format' => 'Use lower-case letters, digits and hyphens, starting with a letter or digit.',
+        'route_slug_locale' => 'A language code cannot be the blog URL.',
         'posts_per_page_label' => 'Posts per page',
         'posts_per_page_help' => 'How many posts the blog index and the category, tag and date archives show on one page (:min to :max).',
         'sidebar_heading' => 'Sidebar',
