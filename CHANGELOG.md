@@ -77,6 +77,9 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Changed
 
+- The admin post list shows each post's permalink instead of its slug (a link while the post is
+  public) and uses the DixlasePages table: ID column, status badge, Actions header, icon buttons
+  (#74).
 - A click anywhere on a post card in the listings opens the post; the category and tag chips
   still open their archives (#52). Hovering a card lightens its background; the title keeps its
   colour (#64).

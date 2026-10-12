@@ -52,89 +52,119 @@ Dixlase Blog is dual-licensed. You may use this file under either:
             </p>
         </div>
     @else
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead class="bg-gray-50 dark:bg-gray-900/50">
-                    <tr>
-                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('dixlase-blog::admin.post_index.col_title') }}</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('dixlase-blog::admin.post_index.col_status') }}</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('dixlase-blog::admin.post_index.col_categories') }}</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('dixlase-blog::admin.post_index.col_published_at') }}</th>
-                        <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('dixlase-blog::admin.post_index.col_actions') }}</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                    @foreach ($posts as $post)
-                        <tr>
-                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
-                                <a href="{{ route('dixlase-blog::admin.blog.edit', ['post' => $post->id]) }}"
-                                   class="font-medium text-blue-600 hover:underline dark:text-blue-400">
-                                    {{ $post->title }}
-                                </a>
-                                @if ($post->is_pinned)
-                                    <i class="fas fa-thumbtack ml-1 text-xs text-gray-500 dark:text-gray-400"
-                                       title="{{ __('dixlase-blog::admin.post.pinned_label') }}"
-                                       aria-label="{{ __('dixlase-blog::admin.post.pinned_label') }}"></i>
-                                @endif
-                                <div class="text-xs text-gray-500 dark:text-gray-400 font-mono">{{ $post->slug }}</div>
-                            </td>
-                            <td class="px-4 py-2 text-sm whitespace-nowrap">
-                                <span class="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium {{ $post->status?->cssClass() ?? 'bg-gray-100 text-gray-800' }}">
-                                    {{ $post->status?->label() ?? '-' }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
-                                @forelse ($post->categories as $category)
-                                    <span class="inline-flex items-center rounded px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 mr-1">
-                                        {{ $category->label }}
-                                    </span>
-                                @empty
-                                    <span class="text-xs text-gray-400">—</span>
-                                @endforelse
-                            </td>
-                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                                {{ $post->published_at?->format('Y-m-d H:i') ?? '—' }}
-                            </td>
-                            <td class="px-4 py-2 text-sm text-right whitespace-nowrap">
-                                <x-form-button
-                                    type="link"
-                                    :href="route('dixlase-blog::admin.blog.edit', ['post' => $post->id])"
-                                    icon="fas fa-pen"
-                                    size="xs"
-                                    variant="secondary"
-                                    :title="__('dixlase-blog::admin.post_index.edit')"
-                                />
-                                <form id="delete-post-{{ $post->id }}"
-                                      method="POST"
-                                      action="{{ route('dixlase-blog::admin.blog.destroy', ['post' => $post->id]) }}"
-                                      class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <x-form-button
-                                        type="button"
-                                        icon="fas fa-trash"
-                                        size="xs"
-                                        variant="danger"
-                                        :title="__('dixlase-blog::admin.post_index.delete')"
-                                        @click="openModal('delete-post-modal-{{ $post->id }}')"
-                                    />
-                                </form>
-                                <x-ui-modal
-                                    :id="'delete-post-modal-'.$post->id"
-                                    :title="__('dixlase-blog::admin.post_index.delete_confirm_title')"
-                                    :message="__('dixlase-blog::admin.post_index.delete_confirm_message')"
-                                    :confirm_label="__('dixlase-blog::admin.post_index.delete')"
-                                    :cancel_label="__('common.cancel')"
-                                    icon_type="danger"
-                                    confirm_color="red"
-                                    :form="'delete-post-'.$post->id"
-                                />
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+        {{-- Same table as the DixlasePages page list. --}}
+        <section class="admin-section !p-0 !border-0 !bg-transparent !dark:bg-transparent">
+            <div class="admin-card">
+                <div class="responsive-table">
+                    <table class="admin-table" role="table" aria-label="{{ __('dixlase-blog::admin.post_index.heading') }}">
+                        <thead class="admin-table__head">
+                            <tr class="admin-table__row">
+                                <th class="admin-table__header" scope="col">ID</th>
+                                <th class="admin-table__header" scope="col">{{ __('dixlase-blog::admin.post_index.col_title') }}</th>
+                                <th class="admin-table__header" scope="col">{{ __('dixlase-blog::admin.post_index.col_status') }}</th>
+                                <th class="admin-table__header" scope="col">{{ __('dixlase-blog::admin.post_index.col_categories') }}</th>
+                                <th class="admin-table__header" scope="col">{{ __('dixlase-blog::admin.post_index.col_published_at') }}</th>
+                                <th class="admin-table__header admin-table__header--actions" scope="col">{{ __('common.actions') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="admin-table__body">
+                            @foreach ($posts as $post)
+                                <tr class="admin-table__row" role="row">
+                                    <td class="admin-table__cell" data-label="ID" role="gridcell">
+                                        <span class="font-mono text-sm">{{ $post->id }}</span>
+                                    </td>
+                                    <td class="admin-table__cell admin-table__cell--primary" data-label="{{ __('dixlase-blog::admin.post_index.col_title') }}" role="gridcell">
+                                        <div class="flex flex-col gap-1">
+                                            <div class="admin-table__primary-content">
+                                                <a href="{{ route('dixlase-blog::admin.blog.edit', ['post' => $post->id]) }}" class="hover:underline font-medium">
+                                                    {{ $post->title }}
+                                                </a>
+                                                @if ($post->is_pinned)
+                                                    <i class="fas fa-thumbtack ml-1 text-xs text-gray-500 dark:text-gray-400"
+                                                       title="{{ __('dixlase-blog::admin.post.pinned_label') }}"
+                                                       aria-label="{{ __('dixlase-blog::admin.post.pinned_label') }}"></i>
+                                                @endif
+                                            </div>
+                                            {{-- The permalink ends with the slug, so the slug is not shown
+                                                 apart. It is a link only while the post is public. --}}
+                                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                                @if ($post->isCurrentlyVisible())
+                                                    <a href="{{ $permalinks[$post->id] }}" target="_blank" rel="noopener"
+                                                       class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline break-all">
+                                                        {{ $permalinks[$post->id] }}
+                                                    </a>
+                                                @else
+                                                    <span class="break-all" title="{{ __('dixlase-blog::admin.post_index.permalink_not_public') }}">{{ $permalinks[$post->id] }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="admin-table__cell" data-label="{{ __('dixlase-blog::admin.post_index.col_status') }}" role="gridcell">
+                                        @include('components::ui-status-badge', [
+                                            'status' => $post->status->slug(),
+                                            'label' => $post->status->label(),
+                                            'variant' => $post->status->cssClass(),
+                                        ])
+                                    </td>
+                                    <td class="admin-table__cell" data-label="{{ __('dixlase-blog::admin.post_index.col_categories') }}" role="gridcell">
+                                        @forelse ($post->categories as $category)
+                                            <span class="inline-flex items-center rounded px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 mr-1">
+                                                {{ $category->label }}
+                                            </span>
+                                        @empty
+                                            <span class="text-xs text-gray-400">—</span>
+                                        @endforelse
+                                    </td>
+                                    <td class="admin-table__cell" data-label="{{ __('dixlase-blog::admin.post_index.col_published_at') }}" role="gridcell">
+                                        <time datetime="{{ $post->published_at?->toISOString() }}" class="admin-datetime">
+                                            {{ $post->published_at?->format(__('dixlase-blog::admin.post_index.datetime_format')) ?? '—' }}
+                                        </time>
+                                    </td>
+                                    <td class="admin-table__cell admin-table__cell--actions" data-label="{{ __('common.actions') }}" role="gridcell">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <x-form-button
+                                                type="link"
+                                                variant="ghost"
+                                                size="sm"
+                                                icon="fas fa-edit"
+                                                :href="route('dixlase-blog::admin.blog.edit', ['post' => $post->id])"
+                                                :title="__('dixlase-blog::admin.post_index.edit')"
+                                            />
+
+                                            <form id="delete-post-{{ $post->id }}"
+                                                  method="POST"
+                                                  action="{{ route('dixlase-blog::admin.blog.destroy', ['post' => $post->id]) }}">
+                                                @csrf
+                                                @method('DELETE')
+                                            </form>
+                                            <x-form-button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                icon="fas fa-trash"
+                                                class="!text-red-600 hover:!text-red-900 dark:!text-red-400 dark:hover:!text-red-300"
+                                                :xClick="'openModal(\'delete-post-modal-' . $post->id . '\')'"
+                                                :title="__('dixlase-blog::admin.post_index.delete')"
+                                            />
+                                            <x-ui-modal
+                                                :id="'delete-post-modal-'.$post->id"
+                                                :title="__('dixlase-blog::admin.post_index.delete_confirm_title')"
+                                                :message="__('dixlase-blog::admin.post_index.delete_confirm_message')"
+                                                :confirm_label="__('dixlase-blog::admin.post_index.delete')"
+                                                :cancel_label="__('common.cancel')"
+                                                icon_type="warning"
+                                                confirm_color="amber"
+                                                :form="'delete-post-'.$post->id"
+                                            />
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
         <div class="mt-4">
             {{ $posts->links() }}
