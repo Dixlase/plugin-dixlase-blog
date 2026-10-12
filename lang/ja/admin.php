@@ -74,6 +74,7 @@ return [
         'lang_label' => '言語',
         'lang_help' => 'この記事を書く言語です。ほかの言語は、保存後に翻訳として追加します。',
         'editor_type_not_allowed' => 'このエディタの種類は使えません。',
+        'scheduled_needs_published_at' => '予約する記事には公開日時を設定してください。',
         'categories_label' => 'カテゴリ',
         'categories_help' => '1記事に複数カテゴリを設定できます。',
         'no_categories' => 'カテゴリが未作成です — 先にカテゴリを作成してください。',

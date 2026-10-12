@@ -210,6 +210,30 @@ class BlogPostLifecycleTest extends TestCase
         $this->assertSame('hello', BlogPost::query()->sole()->slug);
     }
 
+    public function test_a_scheduled_post_needs_a_publish_date(): void
+    {
+        $this->post(route('dixlase-blog::admin.blog.store'), $this->postForm(['title' => 'Later', 'status' => 'scheduled', 'published_at' => '']))
+            ->assertSessionHasErrors(['published_at' => __('dixlase-blog::admin.post.scheduled_needs_published_at')]);
+        $this->assertSame(0, BlogPost::query()->count());
+
+        $this->assertRedirectsWithoutErrors($this->post(route('dixlase-blog::admin.blog.store'), $this->postForm([
+            'title' => 'Later',
+            'status' => 'scheduled',
+            'published_at' => now()->addDay()->format('Y-m-d\\TH:i'),
+        ])));
+        $post = BlogPost::query()->sole();
+        $this->assertSame(ContentStatus::SCHEDULED, $post->status);
+        $this->assertTrue($post->published_at->isFuture());
+
+        $this->put(route('dixlase-blog::admin.blog.update', ['post' => $post->id]), $this->postForm([
+            'title' => 'Later',
+            'slug' => 'later',
+            'status' => 'scheduled',
+            'published_at' => '',
+        ]))->assertSessionHasErrors('published_at');
+        $this->assertNotNull($post->fresh()->published_at);
+    }
+
     public function test_tags_are_shared_by_slug(): void
     {
         $this->post(route('dixlase-blog::admin.blog.store'), $this->postForm(['title' => 'One', 'tags' => ['Release']]));

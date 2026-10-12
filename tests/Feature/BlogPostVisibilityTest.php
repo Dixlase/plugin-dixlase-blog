@@ -64,6 +64,7 @@ class BlogPostVisibilityTest extends TestCase
     private const VISIBLE = [
         'live' => 'Live post',
         'closing-later' => 'Closing later post',
+        'scheduled-due' => 'Scheduled due post',
     ];
 
     /** Titles the public side must hide. */
@@ -73,6 +74,8 @@ class BlogPostVisibilityTest extends TestCase
         'closed' => 'Closed post',
         'unstamped' => 'Unstamped post',
         'trashed' => 'Trashed post',
+        'scheduled-later' => 'Scheduled later post',
+        'scheduled-closed' => 'Scheduled closed post',
     ];
 
     private string $layoutDirectory;
@@ -126,6 +129,9 @@ class BlogPostVisibilityTest extends TestCase
             'closed' => ['status' => ContentStatus::PUBLISHED, 'published_at' => now()->subDays(2), 'closed_at' => now()->subHour()],
             'unstamped' => ['status' => ContentStatus::PUBLISHED, 'published_at' => null],
             'trashed' => ['status' => ContentStatus::PUBLISHED, 'published_at' => now()->subDay()],
+            'scheduled-due' => ['status' => ContentStatus::SCHEDULED, 'published_at' => now()->subHour()],
+            'scheduled-later' => ['status' => ContentStatus::SCHEDULED, 'published_at' => now()->addDay()],
+            'scheduled-closed' => ['status' => ContentStatus::SCHEDULED, 'published_at' => now()->subDays(2), 'closed_at' => now()->subHour()],
         ];
         $titles = self::VISIBLE + self::HIDDEN;
 
@@ -202,6 +208,19 @@ class BlogPostVisibilityTest extends TestCase
         $this->travel(2)->days();
 
         $this->get('/blog/future')->assertOk()->assertSee(self::HIDDEN['future']);
+    }
+
+    public function test_a_scheduled_post_appears_once_its_publishing_time_passes(): void
+    {
+        $post = BlogPost::query()->where('slug', 'scheduled-later')->firstOrFail();
+        $this->assertFalse($post->isPublished());
+        $this->get('/blog/scheduled-later')->assertNotFound();
+
+        $this->travel(2)->days();
+
+        $this->assertTrue($post->fresh()->isPublished());
+        $this->get('/blog/scheduled-later')->assertOk()->assertSee(self::HIDDEN['scheduled-later']);
+        $this->get('/blog/feed.xml')->assertOk()->assertSee(self::HIDDEN['scheduled-later']);
     }
 
     public function test_unknown_category_and_tag_are_not_found(): void

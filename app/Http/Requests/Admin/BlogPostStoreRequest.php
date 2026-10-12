@@ -75,7 +75,8 @@ class BlogPostStoreRequest extends FormRequest
             )],
             'status' => ['required', 'string', Rule::in($statuses)],
             'lang' => ['nullable', 'string', Rule::in(LocaleHelper::supportedLocales())],
-            'published_at' => ['nullable', 'date'],
+            // A scheduled post appears at published_at, so it needs one.
+            'published_at' => ['nullable', 'required_if:status,scheduled', 'date'],
             'closed_at' => ['nullable', 'date', 'after:published_at'],
             'categories' => ['nullable', 'array'],
             'categories.*' => ['integer', 'exists:plg_dixlase_blog_categories,id'],
@@ -109,6 +110,7 @@ class BlogPostStoreRequest extends FormRequest
     {
         return [
             'editor_type.in' => __('dixlase-blog::admin.post.editor_type_not_allowed'),
+            'published_at.required_if' => __('dixlase-blog::admin.post.scheduled_needs_published_at'),
         ];
     }
 }

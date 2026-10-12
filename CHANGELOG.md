@@ -34,6 +34,8 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Fixed
 
+- A post saved as scheduled appears once its publish date passes; it used to stay hidden for
+  good (#42). A scheduled post now needs a publish date.
 - Editing a category no longer fails with "The slug has already been taken" when its slug is
   unchanged, and a category can no longer be chosen as its own parent (#45).
 - The language badge on the post edit screen names the language in the admin's language

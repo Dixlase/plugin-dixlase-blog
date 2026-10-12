@@ -100,7 +100,8 @@ class BlogPostUpdateRequest extends FormRequest
                 ? [$post->editor_type->slug()]
                 : array_map(fn ($case) => $case->slug(), ContentEditorType::cases()))],
             'status' => ['required', 'string', Rule::in($statuses)],
-            'published_at' => ['nullable', 'date'],
+            // A scheduled post appears at published_at, so it needs one.
+            'published_at' => ['nullable', 'required_if:status,scheduled', 'date'],
             'closed_at' => ['nullable', 'date', 'after:published_at'],
             'categories' => ['nullable', 'array'],
             'categories.*' => ['integer', 'exists:plg_dixlase_blog_categories,id'],
@@ -134,6 +135,7 @@ class BlogPostUpdateRequest extends FormRequest
     {
         return [
             'editor_type.in' => __('dixlase-blog::admin.post.editor_type_not_allowed'),
+            'published_at.required_if' => __('dixlase-blog::admin.post.scheduled_needs_published_at'),
         ];
     }
 }
