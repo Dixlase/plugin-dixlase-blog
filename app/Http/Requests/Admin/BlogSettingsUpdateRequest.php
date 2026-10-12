@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace Plugins\DixlaseBlog\App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
 class BlogSettingsUpdateRequest extends FormRequest
@@ -57,7 +58,44 @@ class BlogSettingsUpdateRequest extends FormRequest
                 'min:'.BlogSettings::POSTS_PER_PAGE_MIN,
                 'max:'.BlogSettings::POSTS_PER_PAGE_MAX,
             ],
+            // Each section is checked when it is sent; the screen sends all.
+            'sidebar_enabled' => ['sometimes', 'required', 'boolean'],
+            'sidebar_position' => ['sometimes', 'required', Rule::in(BlogSettings::SIDEBAR_POSITIONS)],
+            // The widget rows in their order on the form, and which are on.
+            'sidebar_widgets' => ['sometimes', 'required', 'array'],
+            'sidebar_widgets.*' => ['distinct', Rule::in(BlogSettings::SIDEBAR_WIDGETS)],
+            'sidebar_widget_enabled' => ['array'],
+            'sidebar_widget_enabled.*' => ['boolean'],
+            'sidebar_recent_count' => [
+                'sometimes',
+                'required',
+                'integer',
+                'min:'.BlogSettings::RECENT_POSTS_MIN,
+                'max:'.BlogSettings::RECENT_POSTS_MAX,
+            ],
         ];
+    }
+
+    /**
+     * The validated input as BlogSettings stores it: the widget order and
+     * switches become one list.
+     *
+     * @return array<string, mixed>
+     */
+    public function settingsValues(): array
+    {
+        $data = $this->validated();
+        $enabled = $data['sidebar_widget_enabled'] ?? [];
+
+        if (isset($data['sidebar_widgets'])) {
+            $data['sidebar_widgets'] = array_map(
+                fn (string $key) => ['key' => $key, 'enabled' => (bool) ($enabled[$key] ?? false)],
+                $data['sidebar_widgets'],
+            );
+        }
+        unset($data['sidebar_widget_enabled']);
+
+        return $data;
     }
 
     /**
@@ -67,6 +105,8 @@ class BlogSettingsUpdateRequest extends FormRequest
     {
         return [
             'posts_per_page' => __('dixlase-blog::admin.settings.posts_per_page_label'),
+            'sidebar_position' => __('dixlase-blog::admin.settings.sidebar_position_label'),
+            'sidebar_recent_count' => __('dixlase-blog::admin.settings.sidebar_recent_count_label'),
         ];
     }
 }

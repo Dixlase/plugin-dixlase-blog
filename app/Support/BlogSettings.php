@@ -47,6 +47,15 @@ class BlogSettings
 
     public const POSTS_PER_PAGE_MAX = 100;
 
+    public const SIDEBAR_POSITIONS = ['right', 'left'];
+
+    /** Sidebar widgets, in their default order. */
+    public const SIDEBAR_WIDGETS = ['search', 'categories', 'recent', 'archives', 'calendar', 'tags'];
+
+    public const RECENT_POSTS_MIN = 1;
+
+    public const RECENT_POSTS_MAX = 20;
+
     /**
      * Every setting and its default, as stored (strings). Core inserts the
      * missing rows on install and update; see DixlaseBlogServiceProvider.
@@ -55,6 +64,11 @@ class BlogSettings
      */
     public const DEFAULTS = [
         'posts_per_page' => '12',
+        'sidebar_enabled' => '1',
+        'sidebar_position' => 'right',
+        // JSON list of {"key": ..., "enabled": ...} in display order.
+        'sidebar_widgets' => '[{"key":"search","enabled":true},{"key":"categories","enabled":true},{"key":"recent","enabled":true},{"key":"archives","enabled":true},{"key":"calendar","enabled":true},{"key":"tags","enabled":true}]',
+        'sidebar_recent_count' => '5',
     ];
 
     /** @var array<string, string|null>|null */
@@ -70,16 +84,65 @@ class BlogSettings
         return max(self::POSTS_PER_PAGE_MIN, min(self::POSTS_PER_PAGE_MAX, $value));
     }
 
+    public function sidebarEnabled(): bool
+    {
+        return $this->value('sidebar_enabled') === '1';
+    }
+
+    public function sidebarPosition(): string
+    {
+        $position = (string) $this->value('sidebar_position');
+
+        return in_array($position, self::SIDEBAR_POSITIONS, true) ? $position : self::SIDEBAR_POSITIONS[0];
+    }
+
+    /**
+     * Every known widget once, in the stored order. Unknown keys are
+     * dropped; a widget missing from the stored list (one added by a later
+     * release) is appended, enabled.
+     *
+     * @return list<array{key: string, enabled: bool}>
+     */
+    public function sidebarWidgets(): array
+    {
+        $stored = json_decode((string) $this->value('sidebar_widgets'), true);
+        $widgets = [];
+
+        foreach (is_array($stored) ? $stored : [] as $item) {
+            $key = is_array($item) ? ($item['key'] ?? null) : null;
+            if (in_array($key, self::SIDEBAR_WIDGETS, true) && ! isset($widgets[$key])) {
+                $widgets[$key] = ['key' => $key, 'enabled' => (bool) ($item['enabled'] ?? false)];
+            }
+        }
+        foreach (self::SIDEBAR_WIDGETS as $key) {
+            $widgets[$key] ??= ['key' => $key, 'enabled' => true];
+        }
+
+        return array_values($widgets);
+    }
+
+    public function sidebarRecentCount(): int
+    {
+        $value = (int) $this->value('sidebar_recent_count');
+
+        return max(self::RECENT_POSTS_MIN, min(self::RECENT_POSTS_MAX, $value));
+    }
+
     /**
      * Store settings and forget the values read so far.
      *
-     * @param  array<string, string|int|bool|null>  $values
+     * @param  array<string, string|int|bool|array<mixed>|null>  $values
      */
     public function save(array $values): void
     {
         $known = array_intersect_key($values, self::DEFAULTS);
         BlogSetting::store(array_map(
-            fn ($value) => is_bool($value) ? ($value ? '1' : '0') : ($value === null ? null : (string) $value),
+            fn ($value) => match (true) {
+                is_bool($value) => $value ? '1' : '0',
+                is_array($value) => json_encode($value, JSON_UNESCAPED_SLASHES),
+                $value === null => null,
+                default => (string) $value,
+            },
             $known,
         ));
         $this->values = null;

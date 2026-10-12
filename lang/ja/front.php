@@ -47,6 +47,16 @@ return [
         'no_results' => '検索に一致する記事はありません。',
     ],
 
+    'sidebar' => [
+        'label' => 'ブログのサイドバー',
+        'search' => '検索',
+        'categories' => 'カテゴリ',
+        'recent' => '最近の記事',
+        'archives' => 'アーカイブ',
+        'calendar' => 'カレンダー',
+        'tags' => 'タグ',
+    ],
+
     'taxonomy' => [
         'categories' => 'カテゴリ',
         'tags' => 'タグ',
