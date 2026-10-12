@@ -119,6 +119,21 @@ class BlogPostService
     }
 
     /**
+     * Bring a post back from the trash. A trashed post does not hold its
+     * slug, so another post may have taken it meanwhile; the restored post
+     * then moves to the next free one rather than sharing a live URL.
+     */
+    public function restoreFromTrash(BlogPost $post): BlogPost
+    {
+        return DB::transaction(function () use ($post): BlogPost {
+            $post->slug = $this->resolveSlug($post->slug, (string) $post->title, $post->id);
+            $post->restore();
+
+            return $post;
+        });
+    }
+
+    /**
      * Restore a post from a revision snapshot. Mirrors RevisionService::restore()
      * but extends it to re-sync the category_ids / tag_ids stored alongside the
      * column snapshot.
@@ -134,6 +149,10 @@ class BlogPostService
             $this->recordRevisionWithPivots($post, BlogPostRevision::TYPE_RESTORE_BACKUP, $userId, null);
 
             $columnData = array_intersect_key($snapshot, array_flip($post->revisionableFields()));
+            // The snapshot's slug may belong to another post by now.
+            if (array_key_exists('slug', $columnData)) {
+                $columnData['slug'] = $this->resolveSlug((string) $columnData['slug'], (string) $post->title, $post->id);
+            }
             $post->update($columnData);
 
             if (array_key_exists('category_ids', $snapshot) && is_array($snapshot['category_ids'])) {
