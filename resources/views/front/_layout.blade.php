@@ -8,8 +8,9 @@ Dixlase Blog is dual-licensed. Same terms as edit.blade.php.
 
 The frame of every public blog page: the page's own content ($slot) and,
 when the settings turn it on, the sidebar on the left or the right. Used
-with @component('dixlase-blog::front._layout'). The provider's view
-composer passes $sidebar (see BlogSidebar). Overridable like the pages.
+with @component('dixlase-blog::front._layout', ['breadcrumbs' => ...]).
+The provider's view composer passes $sidebar (see BlogSidebar).
+Overridable like the pages.
 --}}
 
 @php
@@ -22,6 +23,9 @@ composer passes $sidebar (see BlogSidebar). Overridable like the pages.
     'dixlase-blog--sidebar-left' => $sidebar['enabled'] && $sidebar['position'] === 'left',
 ])>
     <div class="dixlase-blog__main">
+        @if (($breadcrumbs ?? []) !== [])
+            @include('dixlase-blog::front._breadcrumbs', ['items' => $breadcrumbs])
+        @endif
         {{ $slot }}
     </div>
 

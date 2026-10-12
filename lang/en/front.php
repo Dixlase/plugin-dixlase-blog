@@ -66,6 +66,11 @@ return [
         'copied' => 'Copied',
     ],
 
+    'breadcrumbs' => [
+        'label' => 'Breadcrumb',
+        'home' => 'Home',
+    ],
+
     'taxonomy' => [
         'categories' => 'Categories',
         'tags' => 'Tags',
