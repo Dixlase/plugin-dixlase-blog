@@ -217,6 +217,8 @@ return [
         'diff_field_published_at' => '公開日時',
         'diff_field_closed_at' => '非公開日時',
         'diff_field_user_id' => '執筆者',
+        'diff_field_category_ids' => 'カテゴリ',
+        'diff_field_tag_ids' => 'タグ',
         'pivot_heading' => 'カテゴリとタグ',
         'pivot_added' => '追加',
         'pivot_removed' => '削除',

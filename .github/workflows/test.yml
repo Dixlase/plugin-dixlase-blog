@@ -122,6 +122,88 @@ jobs:
           DLS_TESTS_ALLOW_NON_SQLITE: '1'
         run: ../../vendor/bin/phpunit
 
+  lint:
+    # Core's plugin health check: permissions and declares against the
+    # code, CSP findings, dangerous APIs. The lint itself only fails below
+    # 70 points, so this job fails on any finding instead -- except the
+    # missing signature, since the plugin is signed at release time.
+    runs-on: ubuntu-latest
+    name: Plugin Lint
+
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@v5
+        with:
+          path: plugin
+
+      - name: Checkout core
+        uses: actions/checkout@v5
+        with:
+          repository: Dixlase/dixlase-core
+          ref: main
+          path: core
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: sodium, mbstring, json, sqlite3, pdo_sqlite
+          coverage: none
+
+      - name: Place plugin into core directory
+        run: |
+          mkdir -p core/plugins
+          rm -rf core/plugins/DixlaseBlog
+          mv plugin core/plugins/DixlaseBlog
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v5
+        with:
+          path: core/vendor
+          key: ${{ runner.os }}-php83-composer-${{ hashFiles('core/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php83-composer-
+
+      - name: Install core composer dependencies
+        working-directory: core
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Sync plugin autoload mappings
+        working-directory: core
+        run: |
+          php scripts/sync-local-autoload.php
+          composer dump-autoload --no-scripts --optimize
+
+      - name: Prepare a throwaway database
+        working-directory: core
+        env:
+          APP_KEY: base64:dGVzdGtleWZvcmRpeGxhc2VibG9nY2l0ZXN0czEyMzQ=
+        run: |
+          if [ -f .env.example ]; then
+            cp .env.example .env
+          else
+            touch .env
+          fi
+          echo "APP_KEY=${APP_KEY}" >> .env
+          echo "DB_CONNECTION=sqlite" >> .env
+          echo "DB_DATABASE=${PWD}/database/lint.sqlite" >> .env
+          touch database/lint.sqlite
+          php artisan migrate --force --no-interaction
+
+      - name: Audit and lint the plugin
+        working-directory: core
+        run: |
+          # The health score reads the stored audit, so audit first.
+          php artisan dls:plugin:audit DixlaseBlog --no-ansi
+          php artisan dls:plugin:lint DixlaseBlog --no-ansi | tee lint.txt
+          findings=$(grep -E '^ +(❌|⚠️|ℹ️)' lint.txt | grep -v 'signature_unsigned' || true)
+          if [ -n "$findings" ]; then
+            echo "Lint findings:"
+            echo "$findings"
+            exit 1
+          fi
+          grep -q 'Health Score' lint.txt || { echo "lint printed no score"; exit 1; }
+
   build:
     # Verify the front-end build still compiles on every push / PR.
     # release.yml runs the exact same steps on tag push to package the
