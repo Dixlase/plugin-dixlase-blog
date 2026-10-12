@@ -26,6 +26,7 @@ return [
             'create' => '新規作成',
             'categories' => 'カテゴリ',
             'trash' => 'ゴミ箱',
+            'settings' => '設定',
         ],
     ],
 
@@ -44,6 +45,9 @@ return [
         'revisions' => [
             'index' => ['heading' => 'リビジョン履歴'],
             'show' => ['heading' => 'リビジョン差分'],
+        ],
+        'settings' => [
+            'edit' => ['heading' => 'ブログの設定'],
         ],
     ],
 
@@ -224,7 +228,16 @@ return [
         'pivot_removed' => '削除',
     ],
 
+    'settings' => [
+        'listing_heading' => '一覧',
+        'posts_per_page_label' => '1 ページの表示件数',
+        'posts_per_page_help' => 'ブログの一覧と、カテゴリー・タグ・日付のアーカイブで 1 ページに出す記事の数です（:min〜:max）。',
+        'confirm_title' => '設定を保存しますか？',
+        'confirm_message' => '変更はすぐにブログの公開ページに反映されます。',
+    ],
+
     'flash' => [
+        'settings_saved' => '設定を保存しました。',
         'post_created' => '記事を作成しました。',
         'post_updated' => '記事を更新しました。',
         'post_trashed' => '記事をゴミ箱へ移動しました。',
