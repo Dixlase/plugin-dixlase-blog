@@ -33,7 +33,7 @@ Blog settings. Later sections (sidebar, comments, sharing) add their own
                         type="number"
                         :min="$postsPerPageMin"
                         :max="$postsPerPageMax"
-                        :value="old('posts_per_page', $settings['posts_per_page'])"
+                        :value="old('posts_per_page', $blogSettings['posts_per_page'])"
                         :required="true"
                     />
                     <x-form-help-text :text="__('dixlase-blog::admin.settings.posts_per_page_help', ['min' => $postsPerPageMin, 'max' => $postsPerPageMax])" />

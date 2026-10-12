@@ -48,7 +48,9 @@ class DixlaseBlogAdminSettingsController extends Controller
     use AdminInterfaceTrait;
     use AdminLoggedInTrait;
 
-    public function __construct(private readonly BlogSettings $settings)
+    // Not $settings: AdminInterfaceTrait owns that property (the site's
+    // settings) and the view variable of the same name.
+    public function __construct(private readonly BlogSettings $blogSettings)
     {
         $this->initialize();
         $this->initializeAfterLogin();
@@ -57,7 +59,7 @@ class DixlaseBlogAdminSettingsController extends Controller
     public function edit(): View
     {
         return view('dixlase-blog::admin.settings.edit', array_merge($this->viewParams, [
-            'settings' => $this->settings->all(),
+            'blogSettings' => $this->blogSettings->all(),
             'postsPerPageMin' => BlogSettings::POSTS_PER_PAGE_MIN,
             'postsPerPageMax' => BlogSettings::POSTS_PER_PAGE_MAX,
         ]));
@@ -65,7 +67,7 @@ class DixlaseBlogAdminSettingsController extends Controller
 
     public function update(BlogSettingsUpdateRequest $request): RedirectResponse
     {
-        $this->settings->save($request->validated());
+        $this->blogSettings->save($request->validated());
 
         return redirect()
             ->route('dixlase-blog::admin.blog.settings.edit')
