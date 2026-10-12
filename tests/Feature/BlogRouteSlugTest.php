@@ -86,6 +86,8 @@ class BlogRouteSlugTest extends TestCase
         $this->app['view']->replaceNamespace('themes', [$this->layoutDirectory]);
 
         Route::middleware('plugin')->prefix('admin-custom')->group(base_path('plugins/DixlaseBlog/routes/admin.php'));
+        Route::getRoutes()->refreshNameLookups();
+        Route::getRoutes()->refreshActionLookups();
 
         $this->withoutMiddleware([
             CheckInstallationReady::class,
