@@ -7,7 +7,8 @@ https://exc-d.com
 Dixlase Blog is dual-licensed. Same terms as edit.blade.php.
 
 Single-post card reused by the index and archive listings. Overridable
-like index.blade.php.
+like index.blade.php. The index passes showPinned, as only it lists
+pinned posts first.
 --}}
 
 @php
@@ -31,6 +32,9 @@ like index.blade.php.
         <div class="dixlase-blog-meta">
             @if ($post->published_at)
                 <time datetime="{{ $post->published_at->toIso8601String() }}">{{ $post->published_at->format('Y-m-d') }}</time>
+            @endif
+            @if (($showPinned ?? false) && $post->is_pinned)
+                <span class="dixlase-blog-card__pinned">{{ __('dixlase-blog::front.post.pinned') }}</span>
             @endif
             @if ($post->author)
                 <span class="dixlase-blog-meta__author">{{ $post->author->display_name ?? $post->author->account_name }}</span>

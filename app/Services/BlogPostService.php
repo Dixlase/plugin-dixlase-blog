@@ -182,6 +182,7 @@ class BlogPostService
                 'featured_media_id',
                 'editor_type',
                 'status',
+                'is_pinned',
                 'lang',
                 'published_at',
                 'closed_at',

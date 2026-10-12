@@ -59,6 +59,7 @@ use Plugins\DixlaseBlog\App\Support\BlogExcerpt;
  * @property int|null $featured_media_id
  * @property ContentEditorType $editor_type
  * @property ContentStatus $status
+ * @property bool $is_pinned
  * @property string|null $lang Source language; other languages are DixlaseMultilingual overlays
  * @property int|null $user_id
  * @property \Illuminate\Support\Carbon|null $published_at
@@ -87,6 +88,7 @@ class BlogPost extends Model implements Revisionable
         'featured_media_id',
         'editor_type',
         'status',
+        'is_pinned',
         'lang',
         'user_id',
         'published_at',
@@ -110,6 +112,7 @@ class BlogPost extends Model implements Revisionable
         return [
             'editor_type' => ContentEditorType::class,
             'status' => ContentStatus::class,
+            'is_pinned' => 'boolean',
             'published_at' => 'datetime',
             'closed_at' => 'datetime',
         ];
@@ -299,6 +302,7 @@ class BlogPost extends Model implements Revisionable
             'featured_media_id',
             'editor_type',
             'status',
+            'is_pinned',
             'lang',
             'user_id',
             'published_at',

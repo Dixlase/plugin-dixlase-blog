@@ -51,5 +51,6 @@ return [
 
     'post' => [
         'back_to_index' => '← 記事一覧へ戻る',
+        'pinned' => '固定',
     ],
 ];

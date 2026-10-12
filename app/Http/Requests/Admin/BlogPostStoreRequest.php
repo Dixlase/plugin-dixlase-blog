@@ -74,6 +74,7 @@ class BlogPostStoreRequest extends FormRequest
                 BlogScriptAuthoringPolicy::creatableEditorSlugs(Auth::guard('member')->user())
             )],
             'status' => ['required', 'string', Rule::in($statuses)],
+            'is_pinned' => ['sometimes', 'boolean'],
             'lang' => ['nullable', 'string', Rule::in(LocaleHelper::supportedLocales())],
             // A scheduled post appears at published_at, so it needs one.
             'published_at' => ['nullable', 'required_if:status,scheduled', 'date'],

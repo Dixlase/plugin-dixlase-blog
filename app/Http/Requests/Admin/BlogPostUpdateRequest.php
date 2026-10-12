@@ -100,6 +100,7 @@ class BlogPostUpdateRequest extends FormRequest
                 ? [$post->editor_type->slug()]
                 : array_map(fn ($case) => $case->slug(), ContentEditorType::cases()))],
             'status' => ['required', 'string', Rule::in($statuses)],
+            'is_pinned' => ['sometimes', 'boolean'],
             // A scheduled post appears at published_at, so it needs one.
             'published_at' => ['nullable', 'required_if:status,scheduled', 'date'],
             'closed_at' => ['nullable', 'date', 'after:published_at'],

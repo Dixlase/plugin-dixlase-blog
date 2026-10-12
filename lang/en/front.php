@@ -51,5 +51,6 @@ return [
 
     'post' => [
         'back_to_index' => '← Back to all posts',
+        'pinned' => 'Pinned',
     ],
 ];

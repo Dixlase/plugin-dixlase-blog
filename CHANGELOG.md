@@ -11,6 +11,9 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Added
 
+- Posts can be pinned to the top of the blog index (#55), with a toggle on the edit screen; the
+  card shows a "Pinned" badge. Archives and the feed keep date order. Run the plugin's migrations
+  to add the column.
 - A blog settings screen (#54), under the Blog menu and behind the plugin card's Settings button,
   for ADMIN and above. Its first setting is the number of posts per page on the index and the
   archives (default 12). Run the plugin's migrations to add the settings table.
