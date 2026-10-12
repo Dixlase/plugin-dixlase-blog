@@ -49,12 +49,25 @@ class BlogCategoryUpdateRequest extends FormRequest
     }
 
     /**
+     * The category being updated. The {category} route parameter is an id:
+     * the admin routes resolve models by name, not by implicit binding.
+     */
+    public function categoryBeingUpdated(): ?BlogCategory
+    {
+        $category = $this->route('category');
+        if ($category instanceof BlogCategory) {
+            return $category;
+        }
+
+        return is_numeric($category) ? BlogCategory::query()->find((int) $category) : null;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function rules(): array
     {
-        $category = $this->route('category');
-        $categoryId = $category instanceof BlogCategory ? $category->id : null;
+        $categoryId = $this->categoryBeingUpdated()?->id;
 
         $slugRule = Rule::unique('plg_dixlase_blog_categories', 'slug');
         if ($categoryId !== null) {
