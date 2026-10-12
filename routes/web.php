@@ -39,9 +39,10 @@ use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFrontController;
 // /{locale}. The front.ip middleware is required to enforce the IP
 // filter — omitting it materially weakens security.
 //
-// Route ordering matters: literal paths /blog/feed.xml, /blog/category/...
-// and /blog/tag/... are declared before the catch-all /blog/{slug} so the
-// catch-all does not bind "feed.xml" or "category" as a post slug.
+// Route ordering matters: literal paths /blog/feed.xml, /blog/category/...,
+// /blog/tag/... and /blog/search are declared before the catch-all
+// /blog/{slug} so the catch-all does not bind "feed.xml" or "search" as a
+// post slug. Date archives use two-digit months and days (/blog/2026/04).
 Route::middleware(['front.ip'])
     ->name('dixlase-blog::front.')
     ->group(function () {
@@ -49,5 +50,12 @@ Route::middleware(['front.ip'])
         Route::get('/blog/feed.xml', [DixlaseBlogFeedController::class, 'feed'])->name('feed');
         Route::get('/blog/category/{slug}', [DixlaseBlogFrontController::class, 'category'])->name('category');
         Route::get('/blog/tag/{slug}', [DixlaseBlogFrontController::class, 'tag'])->name('tag');
+        Route::get('/blog/search', [DixlaseBlogFrontController::class, 'search'])->name('search');
+        Route::get('/blog/{year}/{month}', [DixlaseBlogFrontController::class, 'date'])
+            ->where(['year' => '[0-9]{4}', 'month' => '0[1-9]|1[0-2]'])
+            ->name('month');
+        Route::get('/blog/{year}/{month}/{day}', [DixlaseBlogFrontController::class, 'date'])
+            ->where(['year' => '[0-9]{4}', 'month' => '0[1-9]|1[0-2]', 'day' => '0[1-9]|[12][0-9]|3[01]'])
+            ->name('day');
         Route::get('/blog/{slug}', [DixlaseBlogFrontController::class, 'show'])->name('show');
     });

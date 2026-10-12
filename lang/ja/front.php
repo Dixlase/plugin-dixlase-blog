@@ -31,6 +31,20 @@ return [
         'tag_kicker' => 'タグ',
         'no_posts' => 'このアーカイブにはまだ記事がありません。',
         'back_to_index' => '← 記事一覧へ戻る',
+        'date_title' => 'アーカイブ: :date',
+        'date_kicker' => 'アーカイブ',
+        'search_title' => '検索: :query',
+        'search_kicker' => '検索',
+        // Carbon isoFormat patterns for the date archive headings.
+        'month_format' => 'YYYY年M月',
+        'day_format' => 'YYYY年M月D日',
+    ],
+
+    'search' => [
+        'label' => 'ブログ内を検索',
+        'placeholder' => 'キーワード',
+        'button' => '検索',
+        'no_results' => '検索に一致する記事はありません。',
     ],
 
     'taxonomy' => [

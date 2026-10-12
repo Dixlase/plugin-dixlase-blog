@@ -31,6 +31,20 @@ return [
         'tag_kicker' => 'Tag',
         'no_posts' => 'No posts in this archive yet.',
         'back_to_index' => '← Back to all posts',
+        'date_title' => 'Archive: :date',
+        'date_kicker' => 'Archive',
+        'search_title' => 'Search: :query',
+        'search_kicker' => 'Search',
+        // Carbon isoFormat patterns for the date archive headings.
+        'month_format' => 'MMMM YYYY',
+        'day_format' => 'MMMM D, YYYY',
+    ],
+
+    'search' => [
+        'label' => 'Search the blog',
+        'placeholder' => 'Keywords',
+        'button' => 'Search',
+        'no_results' => 'No posts match your search.',
     ],
 
     'taxonomy' => [

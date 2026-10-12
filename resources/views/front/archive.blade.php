@@ -17,6 +17,10 @@ $archiveLang for the heading. Overridable like index.blade.php.
     $title = match ($archiveType) {
         'category' => __('dixlase-blog::front.archive.category_title', ['name' => $archiveLabel]),
         'tag' => __('dixlase-blog::front.archive.tag_title', ['name' => $archiveLabel]),
+        'date' => __('dixlase-blog::front.archive.date_title', ['date' => $archiveLabel]),
+        'search' => $archiveLabel !== ''
+            ? __('dixlase-blog::front.archive.search_title', ['query' => $archiveLabel])
+            : __('dixlase-blog::front.archive.search_kicker'),
         default => $archiveLabel,
     };
 @endphp
@@ -30,17 +34,43 @@ $archiveLang for the heading. Overridable like index.blade.php.
     <section class="dixlase-blog-archive">
         <header class="dixlase-blog-archive__header">
             <p class="dixlase-blog-archive__kicker">
-                @if ($archiveType === 'category')
-                    {{ __('dixlase-blog::front.archive.category_kicker') }}
-                @else
-                    {{ __('dixlase-blog::front.archive.tag_kicker') }}
-                @endif
+                @switch ($archiveType)
+                    @case ('category')
+                        {{ __('dixlase-blog::front.archive.category_kicker') }}
+                        @break
+                    @case ('tag')
+                        {{ __('dixlase-blog::front.archive.tag_kicker') }}
+                        @break
+                    @case ('date')
+                        {{ __('dixlase-blog::front.archive.date_kicker') }}
+                        @break
+                    @default
+                        {{ __('dixlase-blog::front.archive.search_kicker') }}
+                @endswitch
             </p>
-            <h1 class="dixlase-blog-archive__heading" lang="{{ $archiveLang }}">{{ $archiveLabel }}</h1>
+            @if ($archiveLabel !== '')
+                <h1 class="dixlase-blog-archive__heading" lang="{{ $archiveLang }}">{{ $archiveLabel }}</h1>
+            @endif
+
+            @if ($archiveType === 'search')
+                <form class="dixlase-blog-search" role="search" method="GET" action="{{ route('dixlase-blog::front.search') }}">
+                    <label class="dixlase-blog-search__label" for="dixlase-blog-search-q">{{ __('dixlase-blog::front.search.label') }}</label>
+                    <input class="dixlase-blog-search__input" id="dixlase-blog-search-q" type="search" name="q"
+                           value="{{ $archiveLabel }}" maxlength="100"
+                           placeholder="{{ __('dixlase-blog::front.search.placeholder') }}">
+                    <button class="dixlase-blog-search__button" type="submit">{{ __('dixlase-blog::front.search.button') }}</button>
+                </form>
+            @endif
         </header>
 
         @if ($posts->isEmpty())
-            <p class="dixlase-blog-archive__empty">{{ __('dixlase-blog::front.archive.no_posts') }}</p>
+            <p class="dixlase-blog-archive__empty">
+                @if ($archiveType !== 'search')
+                    {{ __('dixlase-blog::front.archive.no_posts') }}
+                @elseif ($archiveLabel !== '')
+                    {{ __('dixlase-blog::front.search.no_results') }}
+                @endif
+            </p>
         @else
             <div class="dixlase-blog-list">
                 @foreach ($posts as $post)
