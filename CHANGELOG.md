@@ -11,6 +11,9 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Added
 
+- The post page links the previous and next visible posts and lists up to three related posts
+  (sharing a category or tag, most shared first) (#58). Overridable as `front/_post-nav.blade.php`
+  and `front/_related.blade.php`.
 - A sidebar on the blog index, archives and post pages (#57), set up on the settings screen: on
   or off, left or right, and which items show in which order (search, categories with post counts,
   recent posts, monthly archive, calendar, tags). It moves below the content on narrow screens.

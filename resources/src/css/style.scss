@@ -88,6 +88,106 @@
     --dlsb-code-bg: var(--color-gray-800, #1f2937);
 }
 
+// --- Previous / next and related posts ----------------------------------
+
+.dixlase-blog-post-nav {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    margin-top: 3rem;
+
+    @media (min-width: 640px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.dixlase-blog-post-nav__link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem 1.25rem;
+    text-decoration: none;
+    background: var(--dlsb-surface);
+    border: 1px solid var(--dlsb-border);
+    border-radius: var(--dlsb-radius);
+    transition: background-color 150ms ease;
+
+    &:hover {
+        background: var(--dlsb-surface-hover);
+    }
+}
+
+// Next stays on the right even when there is no previous post.
+.dixlase-blog-post-nav__link--next {
+    text-align: right;
+
+    @media (min-width: 640px) {
+        grid-column: 2;
+    }
+}
+
+.dixlase-blog-post-nav__label {
+    font-size: 0.8125rem;
+    color: var(--dlsb-muted);
+}
+
+.dixlase-blog-post-nav__title {
+    font-weight: 600;
+}
+
+.dixlase-blog-related {
+    margin-top: 3rem;
+}
+
+.dixlase-blog-related__heading {
+    margin: 0 0 1rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.dixlase-blog-related__list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    @media (min-width: 640px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.dixlase-blog-related__item a {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-decoration: none;
+
+    &:hover .dixlase-blog-related__title {
+        color: var(--dlsb-accent);
+    }
+}
+
+.dixlase-blog-related__image {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: calc(var(--dlsb-radius) / 2);
+}
+
+.dixlase-blog-related__title {
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.dixlase-blog-related__date {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.8125rem;
+    color: var(--dlsb-muted);
+}
+
 // --- Sidebar -------------------------------------------------------------
 
 // Below the content on narrow screens; beside it from 1024px.
