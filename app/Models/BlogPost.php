@@ -59,6 +59,7 @@ use Plugins\DixlaseBlog\App\Support\BlogExcerpt;
  * @property int|null $featured_media_id
  * @property ContentEditorType $editor_type
  * @property ContentStatus $status
+ * @property bool $is_pinned
  * @property string|null $lang Source language; other languages are DixlaseMultilingual overlays
  * @property int|null $user_id
  * @property \Illuminate\Support\Carbon|null $published_at
@@ -87,10 +88,22 @@ class BlogPost extends Model implements Revisionable
         'featured_media_id',
         'editor_type',
         'status',
+        'is_pinned',
         'lang',
         'user_id',
         'published_at',
         'closed_at',
+    ];
+
+    /**
+     * Matches the column default, so a new post carries it before it is
+     * read back: the first revision snapshot is taken from this instance,
+     * and a null there would differ from every later snapshot.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'is_pinned' => false,
     ];
 
     protected static function booted(): void
@@ -110,6 +123,7 @@ class BlogPost extends Model implements Revisionable
         return [
             'editor_type' => ContentEditorType::class,
             'status' => ContentStatus::class,
+            'is_pinned' => 'boolean',
             'published_at' => 'datetime',
             'closed_at' => 'datetime',
         ];
@@ -299,6 +313,7 @@ class BlogPost extends Model implements Revisionable
             'featured_media_id',
             'editor_type',
             'status',
+            'is_pinned',
             'lang',
             'user_id',
             'published_at',

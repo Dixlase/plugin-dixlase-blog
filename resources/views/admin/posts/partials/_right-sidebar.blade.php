@@ -359,6 +359,18 @@ side validation continues to enforce it.
             <x-form-error name="status" />
         </div>
 
+        {{-- Pinned: listed first on the blog index --}}
+        <div class="mt-4">
+            <x-form-toggle
+                id="is_pinned"
+                name="is_pinned"
+                :label="__('dixlase-blog::admin.post.pinned_label')"
+                :checked="(bool) old('is_pinned', $post->is_pinned ?? false)"
+            />
+            <x-form-help-text :text="__('dixlase-blog::admin.post.pinned_help')" />
+            <x-form-error name="is_pinned" />
+        </div>
+
         {{-- Publish at --}}
         <div class="mt-4">
             <x-form-label :for="'published_at'" :text="__('dixlase-blog::admin.post.published_at_label')" />

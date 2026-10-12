@@ -37,9 +37,11 @@ class DixlaseBlogFrontController extends Controller
 
     public function index(): View
     {
+        // Pinned posts first; the archives and the feed keep date order.
         $posts = BlogPost::query()
             ->currentlyVisible()
             ->with(['categories', 'tags', 'featuredMedia', 'author'])
+            ->orderByDesc('is_pinned')
             ->orderByDesc('published_at')
             ->paginate($this->settings->postsPerPage());
 

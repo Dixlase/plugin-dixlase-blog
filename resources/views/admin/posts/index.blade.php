@@ -71,6 +71,11 @@ Dixlase Blog is dual-licensed. You may use this file under either:
                                    class="font-medium text-blue-600 hover:underline dark:text-blue-400">
                                     {{ $post->title }}
                                 </a>
+                                @if ($post->is_pinned)
+                                    <i class="fas fa-thumbtack ml-1 text-xs text-gray-500 dark:text-gray-400"
+                                       title="{{ __('dixlase-blog::admin.post.pinned_label') }}"
+                                       aria-label="{{ __('dixlase-blog::admin.post.pinned_label') }}"></i>
+                                @endif
                                 <div class="text-xs text-gray-500 dark:text-gray-400 font-mono">{{ $post->slug }}</div>
                             </td>
                             <td class="px-4 py-2 text-sm whitespace-nowrap">

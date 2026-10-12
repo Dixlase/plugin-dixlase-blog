@@ -33,7 +33,7 @@ themes/<theme>/plugins/DixlaseBlog/resources/views/ (one theme).
         @else
             <div class="dixlase-blog-list">
                 @foreach ($posts as $post)
-                    @include('dixlase-blog::front._card', ['post' => $post])
+                    @include('dixlase-blog::front._card', ['post' => $post, 'showPinned' => true])
                 @endforeach
             </div>
 
