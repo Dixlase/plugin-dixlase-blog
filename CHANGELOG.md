@@ -11,6 +11,9 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Added
 
+- Breadcrumbs on every public blog page — Home > Blog > the category path, the date or the search
+  > the page — with matching BreadcrumbList structured data (#60). Overridable as
+  `front/_breadcrumbs.blade.php`.
 - Share buttons under each post for X, Facebook and LINE, and a copy-link button (#59). They are
   plain links, so nothing from these services loads until a reader clicks; the settings screen
   chooses which show. A small front script (`js/front.js`) handles the copy button.

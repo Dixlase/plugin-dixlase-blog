@@ -30,7 +30,7 @@ $archiveLang for the heading. Overridable like index.blade.php.
 @include('dixlase-blog::front._assets')
 
 @section('content')
-@component('dixlase-blog::front._layout')
+@component('dixlase-blog::front._layout', ['breadcrumbs' => $breadcrumbs ?? []])
     <section class="dixlase-blog-archive">
         <header class="dixlase-blog-archive__header">
             <p class="dixlase-blog-archive__kicker">

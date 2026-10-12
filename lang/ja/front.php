@@ -66,6 +66,11 @@ return [
         'copied' => 'コピーしました',
     ],
 
+    'breadcrumbs' => [
+        'label' => 'パンくずリスト',
+        'home' => 'ホーム',
+    ],
+
     'taxonomy' => [
         'categories' => 'カテゴリ',
         'tags' => 'タグ',

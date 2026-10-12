@@ -19,7 +19,7 @@ themes/<theme>/plugins/DixlaseBlog/resources/views/ (one theme).
 @include('dixlase-blog::front._assets')
 
 @section('content')
-@component('dixlase-blog::front._layout')
+@component('dixlase-blog::front._layout', ['breadcrumbs' => $breadcrumbs ?? []])
     <section class="dixlase-blog-index">
         <header class="dixlase-blog-index__header">
             <h1 class="dixlase-blog-index__heading">{{ __('dixlase-blog::front.index.heading') }}</h1>

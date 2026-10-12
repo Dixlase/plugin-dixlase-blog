@@ -27,6 +27,7 @@ use Illuminate\View\View;
 use Plugins\DixlaseBlog\App\Models\BlogCategory;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Models\BlogTag;
+use Plugins\DixlaseBlog\App\Services\BlogBreadcrumbs;
 use Plugins\DixlaseBlog\App\Services\BlogContentRenderer;
 use Plugins\DixlaseBlog\App\Services\BlogPostNeighbours;
 use Plugins\DixlaseBlog\App\Services\BlogShareLinks;
@@ -42,6 +43,7 @@ class DixlaseBlogFrontController extends Controller
         private readonly BlogSettings $settings,
         private readonly BlogPostNeighbours $neighbours,
         private readonly BlogShareLinks $shareLinks,
+        private readonly BlogBreadcrumbs $breadcrumbs,
     ) {
     }
 
@@ -57,6 +59,7 @@ class DixlaseBlogFrontController extends Controller
 
         return view('dixlase-blog::front.index', [
             'posts' => $posts,
+            'breadcrumbs' => $this->breadcrumbs->forIndex(),
         ]);
     }
 
@@ -84,6 +87,7 @@ class DixlaseBlogFrontController extends Controller
             'relatedPosts' => $this->neighbours->related($post),
             'postUrl' => $postUrl,
             'shareLinks' => $this->shareLinks->for($postUrl, (string) $post->localized('title')),
+            'breadcrumbs' => $this->breadcrumbs->forPost($post, $postUrl),
         ]);
     }
 
@@ -102,6 +106,7 @@ class DixlaseBlogFrontController extends Controller
         return view('dixlase-blog::front.archive', [
             'archiveType' => 'category',
             'archiveTerm' => $category,
+            'breadcrumbs' => $this->breadcrumbs->forCategory($category),
             'archiveLabel' => $category->localized('label'),
             'archiveLang' => $category->localizedLang('label'),
             'posts' => $posts,
@@ -123,6 +128,7 @@ class DixlaseBlogFrontController extends Controller
         return view('dixlase-blog::front.archive', [
             'archiveType' => 'tag',
             'archiveTerm' => $tag,
+            'breadcrumbs' => $this->breadcrumbs->forTag($tag),
             'archiveLabel' => $tag->localized('name'),
             'archiveLang' => $tag->localizedLang('name'),
             'posts' => $posts,
@@ -157,6 +163,7 @@ class DixlaseBlogFrontController extends Controller
         return view('dixlase-blog::front.archive', [
             'archiveType' => 'date',
             'archiveTerm' => $start,
+            'breadcrumbs' => $this->breadcrumbs->forDate($start, $day !== null),
             'archiveLabel' => $start->copy()->locale($locale)->isoFormat($format),
             'archiveLang' => $locale,
             'posts' => $posts,
@@ -202,6 +209,7 @@ class DixlaseBlogFrontController extends Controller
             ->view('dixlase-blog::front.archive', [
                 'archiveType' => 'search',
                 'archiveTerm' => $query,
+                'breadcrumbs' => $this->breadcrumbs->forSearch($request->fullUrl()),
                 'archiveLabel' => $query,
                 'archiveLang' => app()->getLocale(),
                 'posts' => $posts,

@@ -57,7 +57,7 @@ BlogContentRenderer).
 @endunless
 
 @section('content')
-@component('dixlase-blog::front._layout')
+@component('dixlase-blog::front._layout', ['breadcrumbs' => $breadcrumbs ?? []])
     <article class="dixlase-blog-post">
         <header class="dixlase-blog-post__header">
             <div class="dixlase-blog-meta">
