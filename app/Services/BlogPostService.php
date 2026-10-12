@@ -323,6 +323,9 @@ class BlogPostService
     private function buildSnapshotWithPivots(BlogPost $post): array
     {
         $snapshot = $this->revisionService->buildSnapshot($post);
+        // buildSnapshot() copies raw attributes: false on a new post, 0 or
+        // "0" once read back or submitted. Compare as a boolean.
+        $snapshot['is_pinned'] = (bool) ($snapshot['is_pinned'] ?? false);
         $snapshot['category_ids'] = $post->categories()
             ->pluck('plg_dixlase_blog_categories.id')
             ->map(fn ($id) => (int) $id)
