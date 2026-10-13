@@ -18,6 +18,7 @@
 import blogTagInput from './blog-tag-input.js';
 import blogCategoryReorder from './blog-category-reorder.js';
 import blogPostEditor from './blog-post-editor.js';
+import blogPostForm from './blog-post-form.js';
 import blogSidebarWidgets from './blog-sidebar-widgets.js';
 import blogCommentBulk from './blog-comment-bulk.js';
 
@@ -26,6 +27,7 @@ document.addEventListener('alpine:init', () => {
         window.Alpine.data('blogTagInput', blogTagInput);
         window.Alpine.data('blogCategoryReorder', blogCategoryReorder);
         window.Alpine.data('blogPostEditor', blogPostEditor);
+        window.Alpine.data('blogPostForm', blogPostForm);
         window.Alpine.data('blogSidebarWidgets', blogSidebarWidgets);
         window.Alpine.data('blogCommentBulk', blogCommentBulk);
     }

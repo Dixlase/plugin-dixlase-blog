@@ -37,7 +37,8 @@
  * Outgoing iframe protocol (matches DixlaseOnePage's preview-frame):
  *   { type: 'dixlase-preview-update', action: 'updateContent', html, title }
  */
-export default function blogPostEditor(config) {
+export default function blogPostEditor() {
+    const config = readConfig();
     const dx = window.Dixlase && window.Dixlase.mixins;
 
     // Graceful degradation: if core mixins are not on the page (e.g. a
@@ -187,4 +188,24 @@ export default function blogPostEditor(config) {
             );
         },
     });
+}
+
+/**
+ * The form passes its settings as JSON in data-blog-editor-config, so the
+ * x-data expression stays a bare name (the CSP build of Alpine evaluates
+ * nothing else). The mixins need the values when the object is built,
+ * before init() and $el are available, so the element is looked up here.
+ * A page holds one post editor.
+ */
+function readConfig() {
+    const node = document.querySelector('[data-blog-editor-config]');
+    if (!node) {
+        return {};
+    }
+    try {
+        return JSON.parse(node.dataset.blogEditorConfig) || {};
+    } catch (e) {
+        console.warn('Dixlase Blog: unreadable editor settings; preview disabled.', e);
+        return {};
+    }
 }

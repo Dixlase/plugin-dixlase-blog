@@ -34,7 +34,7 @@ Dixlase Blog is dual-licensed. You may use this file under either:
     <form id="blog-post-form"
           action="{{ route('dixlase-blog::admin.blog.store') }}"
           method="POST"
-          x-data="{ init() { this.$dispatch('right-sidebar-active'); } }">
+          x-data="blogPostForm">
         @include('dixlase-blog::admin.posts._form', [
             'post' => $post,
             'categoryTree' => $categoryTree,
