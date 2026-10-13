@@ -136,7 +136,7 @@
             "delete": false
         },
         "mail": {
-            "send": false,
+            "send": true,
             "bulk_send": false
         },
         "content": {
@@ -176,7 +176,8 @@
         },
         "contracts": [
             "RouteSlugProvider",
-            "CaptchaFormProviderInterface"
+            "CaptchaFormProviderInterface",
+            "DashboardNotificationProviderInterface"
         ],
         "migrations": true,
         "commands": false,

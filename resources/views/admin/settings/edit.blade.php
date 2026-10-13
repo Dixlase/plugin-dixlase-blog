@@ -216,6 +216,30 @@ its own <section> in this one form.
                     <x-form-help-text :text="__('dixlase-blog::admin.settings.comment_link_limit_help')" />
                     <x-form-error name="comment_link_limit" />
                 </div>
+
+                <div>
+                    <x-form-toggle
+                        id="comment_notify"
+                        name="comment_notify"
+                        :label="__('dixlase-blog::admin.settings.comment_notify_label')"
+                        :checked="(bool) old('comment_notify', $blogSettings['comment_notify'])"
+                    />
+                    <x-form-error name="comment_notify" />
+                </div>
+
+                <div class="max-w-xl">
+                    <x-form-label for="comment_notify_email" :text="__('dixlase-blog::admin.settings.comment_notify_email_label')" />
+                    <x-form-text
+                        id="comment_notify_email"
+                        name="comment_notify_email"
+                        type="email"
+                        :maxlength="255"
+                        :placeholder="$siteAdminEmail"
+                        :value="old('comment_notify_email', $blogSettings['comment_notify_email'])"
+                    />
+                    <x-form-help-text :text="__('dixlase-blog::admin.settings.comment_notify_email_help')" />
+                    <x-form-error name="comment_notify_email" />
+                </div>
             </div>
         </section>
     </form>

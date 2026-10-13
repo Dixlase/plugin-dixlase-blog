@@ -101,6 +101,21 @@ return [
                     ],
                 ],
 
+                // Comments. Editors moderate; deleting one for good is ADMIN.
+                'comments' => [
+                    'access_roles' => MemberRole::EDITOR->value,
+                    'view_roles' => MemberRole::EDITOR->value,
+                    'children' => [
+                        'index' => $editor,
+                        'status' => $editor,
+                        'bulk' => $editor,
+                        'reply' => $editor,
+                        'destroy' => $editor,
+                        'restore' => $editor,
+                        'forceDelete' => $admin,
+                    ],
+                ],
+
                 // Settings change how the whole blog behaves.
                 'settings' => [
                     'access_roles' => MemberRole::ADMIN->value,

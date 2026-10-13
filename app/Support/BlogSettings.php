@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\App\Support;
 
+use App\Helpers\ConfigHelper;
 use Plugins\DixlaseBlog\App\Models\BlogSetting;
 
 /**
@@ -97,6 +98,10 @@ class BlogSettings
         'comment_moderation' => 'approval',
         'comments_close_after_days' => '0',
         'comment_link_limit' => '2',
+        // E-mail an admin about each new visitor comment.
+        'comment_notify' => '1',
+        // Empty: the site's system admin address (core setting).
+        'comment_notify_email' => '',
     ];
 
     /** @var array<string, string|null>|null */
@@ -213,6 +218,22 @@ class BlogSettings
     public function commentLinkLimit(): int
     {
         return max(0, min(self::COMMENT_LINK_LIMIT_MAX, (int) $this->value('comment_link_limit')));
+    }
+
+    public function commentNotify(): bool
+    {
+        return $this->value('comment_notify') === '1';
+    }
+
+    /**
+     * Where new comments are reported: the address set here, else the
+     * site's system admin address. Empty when neither is set.
+     */
+    public function commentNotifyEmail(): string
+    {
+        $address = trim((string) $this->value('comment_notify_email'));
+
+        return $address !== '' ? $address : trim(ConfigHelper::getNotificationEmail());
     }
 
     /**

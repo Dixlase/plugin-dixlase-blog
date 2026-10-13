@@ -61,6 +61,7 @@ class BlogAdminRolesTest extends TestCase
         'dixlase-blog::admin.blog.revisions.protect',
         'dixlase-blog::admin.blog.settings.edit',
         'dixlase-blog::admin.blog.settings.update',
+        'dixlase-blog::admin.blog.comments.forceDelete',
     ];
 
     protected function setUp(): void
@@ -104,6 +105,12 @@ class BlogAdminRolesTest extends TestCase
             'dixlase-blog::admin.blog.restore',
             'dixlase-blog::admin.blog.categories.store',
             'dixlase-blog::admin.blog.revisions.restore',
+            'dixlase-blog::admin.blog.comments.index',
+            'dixlase-blog::admin.blog.comments.status',
+            'dixlase-blog::admin.blog.comments.bulk',
+            'dixlase-blog::admin.blog.comments.reply',
+            'dixlase-blog::admin.blog.comments.destroy',
+            'dixlase-blog::admin.blog.comments.restore',
         ] as $name) {
             $this->assertTrue($this->passes($name), "EDITOR was refused {$name}");
         }
