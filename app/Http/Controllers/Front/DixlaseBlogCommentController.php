@@ -80,6 +80,10 @@ class DixlaseBlogCommentController extends Controller
             'ip_address' => $member !== null ? null : $request->ip(),
         ]);
 
+        if ($member === null) {
+            $this->comments->notifyAdmin($comment, $post);
+        }
+
         $anchor = $comment->isPublished() ? '#comment-'.$comment->id : '#comment-form';
 
         return redirect()->to($postUrl.$anchor)->with(self::FLASH_KEY, $comment->status);

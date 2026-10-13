@@ -44,6 +44,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Plugins\DixlaseBlog\App\Services\BlogCommentCaptchaFormProvider;
+use Plugins\DixlaseBlog\App\Services\BlogCommentDashboardProvider;
 use Plugins\DixlaseBlog\App\Services\BlogLocalizedUrlProvider;
 use Plugins\DixlaseBlog\App\Services\BlogPostLinkableProvider;
 use Plugins\DixlaseBlog\App\Services\BlogSeoMeta;
@@ -83,6 +84,10 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
         // Lists the comment form in core's CAPTCHA settings.
         $this->app->singleton(BlogCommentCaptchaFormProvider::class);
         $this->app->tag([BlogCommentCaptchaFormProvider::class], 'plugin.capabilities');
+
+        // The count of comments waiting for approval, on the dashboard.
+        $this->app->singleton(BlogCommentDashboardProvider::class);
+        $this->app->tag([BlogCommentDashboardProvider::class], 'plugin.capabilities');
     }
 
     public function boot(): void

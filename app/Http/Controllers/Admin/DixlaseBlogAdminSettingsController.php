@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\App\Http\Controllers\Admin;
 
+use App\Helpers\ConfigHelper;
 use App\Traits\AdminInterfaceTrait;
 use App\Traits\AdminLoggedInTrait;
 use Illuminate\Http\RedirectResponse;
@@ -87,6 +88,8 @@ class DixlaseBlogAdminSettingsController extends Controller
             ],
             'commentsCloseAfterDaysMax' => BlogSettings::COMMENTS_CLOSE_AFTER_DAYS_MAX,
             'commentLinkLimitMax' => BlogSettings::COMMENT_LINK_LIMIT_MAX,
+            // Shown as the placeholder: where mail goes when the field is empty.
+            'siteAdminEmail' => ConfigHelper::getNotificationEmail(),
         ]));
     }
 

@@ -11,6 +11,11 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Added
 
+- A comments screen (#62): every post's comments in tabs (pending, published, spam, trash), with
+  approve, unpublish, mark as spam, trash and restore, singly or in bulk, and a reply as the site
+  (which approves the comment it answers). Editors moderate; deleting a comment for good stays with
+  ADMIN. A new visitor comment is e-mailed to the address on the settings screen, or to the site's
+  system admin address, and the dashboard shows how many comments wait for approval.
 - Comments on posts (#61). The settings screen turns them on (off by default), chooses whether a
   new comment is published at once or held for approval, can close comments a number of days after
   publishing, and holds a comment with too many links. Each post follows the blog setting or is

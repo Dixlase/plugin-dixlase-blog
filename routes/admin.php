@@ -32,6 +32,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminCategoriesController;
+use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminCommentsController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostRevisionsController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostsController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminSettingsController;
@@ -48,7 +49,7 @@ use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminSettingsContr
 | without one, ADMIN and above).
 |
 | Route ordering matters: the literal segments /blog/trash,
-| /blog/categories and /blog/settings are declared before the /blog/{post}/... patterns so
+| /blog/categories, /blog/comments and /blog/settings are declared before the /blog/{post}/... patterns so
 | that "trash" or "categories" is not bound as a post id.
 |
 */
@@ -90,6 +91,32 @@ Route::name('dixlase-blog::admin.')
                 Route::post('/reorder', [DixlaseBlogAdminCategoriesController::class, 'reorder'])->name('reorder');
                 Route::put('/{category}', [DixlaseBlogAdminCategoriesController::class, 'update'])->name('update');
                 Route::delete('/{category}', [DixlaseBlogAdminCategoriesController::class, 'destroy'])->name('destroy');
+            });
+
+        // ===== Comments =====
+        // Before /blog/{post} so "comments" is not bound as a post id. All
+        // actions are POST so one row's buttons can share the bulk form's
+        // layout (see admin/comments/index.blade.php).
+        Route::prefix('/blog/comments')
+            ->name('blog.comments.')
+            ->group(function () {
+                Route::get('/', [DixlaseBlogAdminCommentsController::class, 'index'])->name('index');
+                Route::post('/bulk', [DixlaseBlogAdminCommentsController::class, 'bulk'])->name('bulk');
+                Route::post('/{comment}/status', [DixlaseBlogAdminCommentsController::class, 'status'])
+                    ->whereNumber('comment')
+                    ->name('status');
+                Route::post('/{comment}/reply', [DixlaseBlogAdminCommentsController::class, 'reply'])
+                    ->whereNumber('comment')
+                    ->name('reply');
+                Route::post('/{comment}/trash', [DixlaseBlogAdminCommentsController::class, 'destroy'])
+                    ->whereNumber('comment')
+                    ->name('destroy');
+                Route::post('/{comment}/restore', [DixlaseBlogAdminCommentsController::class, 'restore'])
+                    ->whereNumber('comment')
+                    ->name('restore');
+                Route::post('/{comment}/delete', [DixlaseBlogAdminCommentsController::class, 'forceDelete'])
+                    ->whereNumber('comment')
+                    ->name('forceDelete');
             });
 
         // ===== Settings =====
