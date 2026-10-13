@@ -110,6 +110,8 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Changed
 
+- The post trash uses the same table as the post list: ID column, deletion date, Actions header
+  and icon buttons, and cards at phone width (#85).
 - The admin screens name their Alpine components and pass values through `data-*` attributes
   (post form, post editor, tag input, category reorder), ready for the CSP build of Alpine (#84).
 - The admin post list shows each post's permalink instead of its slug (a link while the post is
