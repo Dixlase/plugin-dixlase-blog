@@ -134,10 +134,7 @@ its own small form, listed after the table.
                                             @endif
                                         </td>
                                         <td class="admin-table__cell" data-label="{{ __('dixlase-blog::admin.comments.col_status') }}" role="gridcell">
-                                            @include('components::ui-status-badge', [
-                                                'label' => $row['status_label'],
-                                                'variant' => $row['status_variant'],
-                                            ])
+                                            <x-ui-status-badge :label="$row['status_label']" :variant="$row['status_variant']" />
                                         </td>
                                         <td class="admin-table__cell" data-label="{{ __('dixlase-blog::admin.comments.col_date') }}" role="gridcell">
                                             <time datetime="{{ $row['date']?->toISOString() }}" class="admin-datetime">

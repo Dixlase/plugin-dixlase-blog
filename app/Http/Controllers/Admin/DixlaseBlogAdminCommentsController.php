@@ -140,6 +140,10 @@ class DixlaseBlogAdminCommentsController extends Controller
      */
     public function forceDelete(Request $request): RedirectResponse
     {
+        // Also checked here, as the bulk action is: roles.php is the
+        // first gate, not the only one.
+        abort_unless($this->canDeletePermanently(), 403);
+
         BlogComment::onlyTrashed()->findOrFail((int) $request->route('comment'))->forceDelete();
 
         return back()->with('success', __('dixlase-blog::admin.flash.comment_deleted'));
