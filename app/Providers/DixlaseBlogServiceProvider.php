@@ -38,8 +38,12 @@ use App\Contracts\RouteSlugProvider;
 use App\DTO\RouteSlug\RegisteredSlug;
 use App\Services\RouteSlugRegistry;
 use App\Traits\PluginLoaderTrait;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Plugins\DixlaseBlog\App\Services\BlogCommentCaptchaFormProvider;
 use Plugins\DixlaseBlog\App\Services\BlogLocalizedUrlProvider;
 use Plugins\DixlaseBlog\App\Services\BlogPostLinkableProvider;
 use Plugins\DixlaseBlog\App\Services\BlogSeoMeta;
@@ -53,6 +57,13 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
 
     /** The owner of the blog's prefix in core's RouteSlugRegistry. */
     public const ROUTE_SLUG_OWNER = 'dixlase-blog:route_slug';
+
+    /** The throttle on the comment form (routes/web.php). */
+    public const COMMENT_RATE_LIMITER = 'dixlase-blog-comment';
+
+    public const COMMENT_RATE_MAX_ATTEMPTS = 5;
+
+    public const COMMENT_RATE_DECAY_MINUTES = 10;
 
     public function register(): void
     {
@@ -68,6 +79,10 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
 
         $this->app->singleton(BlogSeoMeta::class);
         $this->app->singleton(BlogSettings::class);
+
+        // Lists the comment form in core's CAPTCHA settings.
+        $this->app->singleton(BlogCommentCaptchaFormProvider::class);
+        $this->app->tag([BlogCommentCaptchaFormProvider::class], 'plugin.capabilities');
     }
 
     public function boot(): void
@@ -82,6 +97,8 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
             $this->app->make(RouteSlugRegistry::class)->registerProvider('dixlase-blog', $this);
         }
 
+        self::defineCommentRateLimiter();
+
         // The sidebar is built where the layout is rendered, so a theme or a
         // site that overrides the page templates keeps it.
         View::composer('dixlase-blog::front._layout', function ($view): void {
@@ -92,6 +109,17 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
         // Core's plugin migrator applies them (dls:plugin:migrate, install,
         // enable) and records them in the plugin migration ledger; a bare
         // `php artisan migrate` would otherwise try to re-create the tables.
+    }
+
+    /**
+     * Comment posts per visitor address, for the throttle on the comment
+     * route.
+     */
+    public static function defineCommentRateLimiter(): void
+    {
+        RateLimiter::for(self::COMMENT_RATE_LIMITER, function (Request $request) {
+            return Limit::perMinutes(self::COMMENT_RATE_DECAY_MINUTES, self::COMMENT_RATE_MAX_ATTEMPTS)->by((string) $request->ip());
+        });
     }
 
     /**

@@ -39,7 +39,8 @@
     "capabilities": [
         "seo-meta",
         "linkable",
-        "multilingual-content"
+        "multilingual-content",
+        "captcha"
     ],
     "multilingual_content": {
         "types": [
@@ -174,7 +175,8 @@
             ]
         },
         "contracts": [
-            "RouteSlugProvider"
+            "RouteSlugProvider",
+            "CaptchaFormProviderInterface"
         ],
         "migrations": true,
         "commands": false,

@@ -53,6 +53,7 @@ use Plugins\DixlaseBlog\App\Services\BlogContentRenderer;
 use Plugins\DixlaseBlog\App\Services\BlogPostService;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 use Plugins\DixlaseBlog\App\Services\BlogSeoMeta;
+use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
 class DixlaseBlogAdminPostsController extends Controller
 {
@@ -92,6 +93,7 @@ class DixlaseBlogAdminPostsController extends Controller
             'categoryTree' => $this->loadCategoryTree(),
             'selectedCategoryIds' => [],
             'tagNames' => [],
+            'commentStatusOptions' => $this->commentStatusOptions(),
         ]));
     }
 
@@ -135,6 +137,7 @@ class DixlaseBlogAdminPostsController extends Controller
             'categoryTree' => $this->loadCategoryTree(),
             'selectedCategoryIds' => $post->categories->pluck('id')->all(),
             'tagNames' => $post->tags->pluck('name')->all(),
+            'commentStatusOptions' => $this->commentStatusOptions(),
         ]));
     }
 
@@ -264,6 +267,25 @@ class DixlaseBlogAdminPostsController extends Controller
             'initialTitle' => $initialTitle,
             'initialContent' => $initialContent,
         ]);
+    }
+
+    /**
+     * Choices for a post's comments. "Inherit" names what the blog setting
+     * currently gives.
+     *
+     * @return array<string, string>
+     */
+    private function commentStatusOptions(): array
+    {
+        $blogDefault = app(BlogSettings::class)->commentsEnabled()
+            ? __('dixlase-blog::admin.post.comment_status_open')
+            : __('dixlase-blog::admin.post.comment_status_closed');
+
+        return [
+            'inherit' => __('dixlase-blog::admin.post.comment_status_inherit', ['state' => $blogDefault]),
+            'open' => __('dixlase-blog::admin.post.comment_status_open'),
+            'closed' => __('dixlase-blog::admin.post.comment_status_closed'),
+        ];
     }
 
     /**

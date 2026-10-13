@@ -66,6 +66,15 @@ class BlogSettings
     /** Share buttons on the post page, in display order. */
     public const SHARE_SERVICES = ['x', 'facebook', 'line', 'copy'];
 
+    /** A new comment is published at once, or held until an admin approves it. */
+    public const COMMENT_MODERATION = ['approval', 'immediate'];
+
+    /** Comments close this many days after publishing; 0 never closes them. */
+    public const COMMENTS_CLOSE_AFTER_DAYS_MAX = 3650;
+
+    /** A comment with more links than this is held for approval. */
+    public const COMMENT_LINK_LIMIT_MAX = 50;
+
     /**
      * Every setting and its default, as stored (strings). Core inserts the
      * missing rows on install and update; see DixlaseBlogServiceProvider.
@@ -83,6 +92,11 @@ class BlogSettings
         'sidebar_recent_count' => '5',
         // JSON list of the share buttons shown; none hides the row.
         'share_services' => '["x","facebook","line","copy"]',
+        // Off until the site turns them on: comments collect personal data.
+        'comments_enabled' => '0',
+        'comment_moderation' => 'approval',
+        'comments_close_after_days' => '0',
+        'comment_link_limit' => '2',
     ];
 
     /** @var array<string, string|null>|null */
@@ -167,6 +181,38 @@ class BlogSettings
         $stored = is_array($stored) ? $stored : [];
 
         return array_values(array_filter(self::SHARE_SERVICES, fn (string $key) => in_array($key, $stored, true)));
+    }
+
+    /**
+     * Whether posts take comments unless a post says otherwise.
+     */
+    public function commentsEnabled(): bool
+    {
+        return $this->value('comments_enabled') === '1';
+    }
+
+    /**
+     * Whether a new visitor comment waits for an admin's approval.
+     */
+    public function commentsNeedApproval(): bool
+    {
+        return $this->value('comment_moderation') !== 'immediate';
+    }
+
+    /**
+     * Days after publishing that a post stops taking comments; 0 never.
+     */
+    public function commentsCloseAfterDays(): int
+    {
+        return max(0, min(self::COMMENTS_CLOSE_AFTER_DAYS_MAX, (int) $this->value('comments_close_after_days')));
+    }
+
+    /**
+     * Links a comment may hold before it is held for approval.
+     */
+    public function commentLinkLimit(): int
+    {
+        return max(0, min(self::COMMENT_LINK_LIMIT_MAX, (int) $this->value('comment_link_limit')));
     }
 
     /**

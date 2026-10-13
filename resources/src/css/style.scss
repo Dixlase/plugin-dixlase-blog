@@ -46,6 +46,8 @@
     --dlsb-chip-bg: var(--color-primary-50, #eff6ff);
     --dlsb-chip-text: var(--color-primary-700, #1d4ed8);
     --dlsb-code-bg: var(--color-gray-100, #f3f4f6);
+    --dlsb-error-text: var(--color-red-700, #b91c1c);
+    --dlsb-error-bg: var(--color-red-50, #fef2f2);
     --dlsb-radius: 0.75rem;
 
     // The theme's header is fixed (3.5rem) and sits below any front banners.
@@ -86,6 +88,8 @@
     --dlsb-chip-bg: rgb(30 64 175 / 0.25);
     --dlsb-chip-text: var(--color-primary-300, #93c5fd);
     --dlsb-code-bg: var(--color-gray-800, #1f2937);
+    --dlsb-error-text: var(--color-red-300, #fca5a5);
+    --dlsb-error-bg: rgb(127 29 29 / 0.3);
 }
 
 // --- Breadcrumbs ---------------------------------------------------------
@@ -913,5 +917,184 @@
     th {
         font-weight: 600;
         background: var(--dlsb-code-bg);
+    }
+}
+
+// Comments under a post. Replies indent per level; the indent stops
+// growing after a few levels (two on phones, five on wider screens) so a
+// deep thread keeps a readable width.
+.dixlase-blog-comments {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--dlsb-border);
+}
+
+.dixlase-blog-comments__heading {
+    margin: 0 0 1.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.dixlase-blog-comments__count {
+    font-weight: 400;
+    color: var(--dlsb-muted);
+}
+
+.dixlase-blog-comments__empty {
+    color: var(--dlsb-muted);
+}
+
+.dixlase-blog-comments__list,
+.dixlase-blog-comments__replies {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.dixlase-blog-comments__replies {
+    margin-top: 1rem;
+    margin-left: 1rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--dlsb-border);
+
+    @media (max-width: 639px) {
+        &.dixlase-blog-comments__replies--deep {
+            margin-left: 0;
+        }
+    }
+
+    &.dixlase-blog-comments__replies--deeper {
+        margin-left: 0;
+    }
+}
+
+.dixlase-blog-comment {
+    padding: 1rem 0;
+
+    & + & {
+        border-top: 1px solid var(--dlsb-border);
+    }
+}
+
+.dixlase-blog-comment__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.75rem;
+}
+
+.dixlase-blog-comment__author {
+    font-weight: 600;
+}
+
+.dixlase-blog-comment__badge {
+    padding: 0.05rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--dlsb-chip-text);
+    background: var(--dlsb-chip-bg);
+    border-radius: 999px;
+}
+
+.dixlase-blog-comment__date {
+    font-size: 0.875rem;
+    color: var(--dlsb-muted);
+}
+
+.dixlase-blog-comment__body {
+    margin-top: 0.5rem;
+    overflow-wrap: anywhere;
+}
+
+.dixlase-blog-comment__reply {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--dlsb-accent);
+
+    &:hover {
+        color: var(--dlsb-accent-strong);
+    }
+}
+
+.dixlase-blog-comment-form {
+    margin-top: 2rem;
+    scroll-margin-top: 5rem;
+}
+
+.dixlase-blog-comment-form__heading {
+    margin: 0 0 1rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.dixlase-blog-comment-form__notice {
+    padding: 0.75rem 1rem;
+    color: var(--dlsb-chip-text);
+    background: var(--dlsb-chip-bg);
+    border-radius: calc(var(--dlsb-radius) / 2);
+}
+
+.dixlase-blog-comment-form__errors {
+    padding: 0.75rem 1rem 0.75rem 2rem;
+    color: var(--dlsb-error-text);
+    background: var(--dlsb-error-bg);
+    border-radius: calc(var(--dlsb-radius) / 2);
+}
+
+.dixlase-blog-comment-form__row {
+    margin-bottom: 1rem;
+}
+
+.dixlase-blog-comment-form__label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+}
+
+.dixlase-blog-comment-form__input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font: inherit;
+    color: var(--dlsb-text);
+    background: var(--dlsb-surface);
+    border: 1px solid var(--dlsb-border);
+    border-radius: calc(var(--dlsb-radius) / 2);
+}
+
+.dixlase-blog-comment-form__help,
+.dixlase-blog-comment-form__as-site,
+.dixlase-blog-comment-form__replying {
+    margin: 0.25rem 0 0;
+    font-size: 0.875rem;
+    color: var(--dlsb-muted);
+}
+
+.dixlase-blog-comment-form__replying {
+    margin-bottom: 1rem;
+}
+
+// Off-screen rather than display: none, which some bots skip.
+.dixlase-blog-comment-form__trap {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.dixlase-blog-comment-form__submit {
+    padding: 0.5rem 1.25rem;
+    font: inherit;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    background: var(--dlsb-accent);
+    border: 0;
+    border-radius: calc(var(--dlsb-radius) / 2);
+
+    &:hover {
+        background: var(--dlsb-accent-strong);
     }
 }

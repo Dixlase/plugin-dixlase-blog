@@ -81,6 +81,12 @@ class DixlaseBlogAdminSettingsController extends Controller
             ),
             'recentPostsMin' => BlogSettings::RECENT_POSTS_MIN,
             'recentPostsMax' => BlogSettings::RECENT_POSTS_MAX,
+            'commentModerationOptions' => [
+                ['value' => 'approval', 'label' => __('dixlase-blog::admin.settings.comment_moderation_approval'), 'icon' => 'fas fa-user-check'],
+                ['value' => 'immediate', 'label' => __('dixlase-blog::admin.settings.comment_moderation_immediate'), 'icon' => 'fas fa-bolt'],
+            ],
+            'commentsCloseAfterDaysMax' => BlogSettings::COMMENTS_CLOSE_AFTER_DAYS_MAX,
+            'commentLinkLimitMax' => BlogSettings::COMMENT_LINK_LIMIT_MAX,
         ]));
     }
 

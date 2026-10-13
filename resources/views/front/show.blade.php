@@ -112,6 +112,7 @@ BlogContentRenderer).
         @include('dixlase-blog::front._share')
         @include('dixlase-blog::front._post-nav')
         @include('dixlase-blog::front._related')
+        @include('dixlase-blog::front._comments')
 
         <p class="dixlase-blog-back">
             <a href="{{ route('dixlase-blog::front.index') }}">{{ __('dixlase-blog::front.post.back_to_index') }}</a>

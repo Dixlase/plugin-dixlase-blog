@@ -18,16 +18,20 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\App\Http\Controllers\Front;
 
+use App\Helpers\CaptchaHelper;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
+use Plugins\DixlaseBlog\App\Http\Requests\Front\BlogCommentStoreRequest;
 use Plugins\DixlaseBlog\App\Models\BlogCategory;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Models\BlogTag;
 use Plugins\DixlaseBlog\App\Services\BlogBreadcrumbs;
+use Plugins\DixlaseBlog\App\Services\BlogCommentCaptchaFormProvider;
+use Plugins\DixlaseBlog\App\Services\BlogComments;
 use Plugins\DixlaseBlog\App\Services\BlogContentRenderer;
 use Plugins\DixlaseBlog\App\Services\BlogPostNeighbours;
 use Plugins\DixlaseBlog\App\Services\BlogShareLinks;
@@ -44,6 +48,7 @@ class DixlaseBlogFrontController extends Controller
         private readonly BlogPostNeighbours $neighbours,
         private readonly BlogShareLinks $shareLinks,
         private readonly BlogBreadcrumbs $breadcrumbs,
+        private readonly BlogComments $comments,
     ) {
     }
 
@@ -53,6 +58,7 @@ class DixlaseBlogFrontController extends Controller
         $posts = BlogPost::query()
             ->currentlyVisible()
             ->with(['categories', 'tags', 'featuredMedia', 'author'])
+            ->withPublishedCommentCount()
             ->orderByDesc('is_pinned')
             ->orderByDesc('published_at')
             ->paginate($this->settings->postsPerPage());
@@ -79,7 +85,7 @@ class DixlaseBlogFrontController extends Controller
 
         $postUrl = route('dixlase-blog::front.show', ['slug' => $post->slug]);
 
-        return view('dixlase-blog::front.show', [
+        return view('dixlase-blog::front.show', array_merge($this->commentParams($request, $post), [
             'post' => $post,
             'contentHtml' => $this->renderer->renderPost($post),
             'previousPost' => $this->neighbours->previous($post),
@@ -88,7 +94,7 @@ class DixlaseBlogFrontController extends Controller
             'postUrl' => $postUrl,
             'shareLinks' => $this->shareLinks->for($postUrl, (string) $post->localized('title')),
             'breadcrumbs' => $this->breadcrumbs->forPost($post, $postUrl),
-        ]);
+        ]));
     }
 
     public function category(Request $request): View
@@ -100,6 +106,7 @@ class DixlaseBlogFrontController extends Controller
         $posts = $category->posts()
             ->currentlyVisible()
             ->with(['categories', 'tags', 'featuredMedia', 'author'])
+            ->withPublishedCommentCount()
             ->orderByDesc('published_at')
             ->paginate($this->settings->postsPerPage());
 
@@ -122,6 +129,7 @@ class DixlaseBlogFrontController extends Controller
         $posts = $tag->posts()
             ->currentlyVisible()
             ->with(['categories', 'tags', 'featuredMedia', 'author'])
+            ->withPublishedCommentCount()
             ->orderByDesc('published_at')
             ->paginate($this->settings->postsPerPage());
 
@@ -154,6 +162,7 @@ class DixlaseBlogFrontController extends Controller
             ->currentlyVisible()
             ->whereBetween('published_at', [$start, $end])
             ->with(['categories', 'tags', 'featuredMedia', 'author'])
+            ->withPublishedCommentCount()
             ->orderByDesc('published_at')
             ->paginate($this->settings->postsPerPage());
 
@@ -201,6 +210,7 @@ class DixlaseBlogFrontController extends Controller
                 }
             })
             ->with(['categories', 'tags', 'featuredMedia', 'author'])
+            ->withPublishedCommentCount()
             ->orderByDesc('published_at')
             ->paginate($this->settings->postsPerPage())
             ->withQueryString();
@@ -215,6 +225,42 @@ class DixlaseBlogFrontController extends Controller
                 'posts' => $posts,
             ])
             ->header('X-Robots-Tag', 'noindex, follow');
+    }
+
+    /**
+     * The comments section of a post page. ?replyto= names the published
+     * comment being answered; without JavaScript, the reply links use it.
+     *
+     * @return array<string, mixed>
+     */
+    private function commentParams(Request $request, BlogPost $post): array
+    {
+        $open = $this->comments->isOpen($post);
+        $tree = $this->comments->tree($post);
+        $siteCommenter = $open ? $this->comments->siteCommenter() : null;
+
+        $replyTo = null;
+        if ($open && is_numeric($request->query('replyto'))) {
+            $replyTo = $post->comments()->published()->find((int) $request->query('replyto'));
+        }
+
+        $captchaEnabled = $open && $siteCommenter === null
+            && CaptchaHelper::shouldShowCaptcha(BlogCommentCaptchaFormProvider::FORM_KEY);
+
+        return [
+            'commentsShown' => $open || $tree !== [],
+            'commentsOpen' => $open,
+            'commentTree' => $tree,
+            'commentCount' => $this->comments->publishedCount($post),
+            'commentReplyTo' => $replyTo,
+            'commentSiteCommenter' => $siteCommenter,
+            'commentPrivacyUrl' => $open ? $this->comments->privacyPolicyUrl() : null,
+            'commentFlash' => session(DixlaseBlogCommentController::FLASH_KEY),
+            'commentBodyMax' => BlogCommentStoreRequest::BODY_MAX,
+            'commentNameMax' => BlogCommentStoreRequest::NAME_MAX,
+            'captchaEnabled' => $captchaEnabled,
+            'captchaWidget' => $captchaEnabled ? CaptchaHelper::renderWidget(BlogCommentCaptchaFormProvider::FORM_KEY) : null,
+        ];
     }
 
     private function slug(Request $request): string

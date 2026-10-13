@@ -91,6 +91,22 @@ class BlogSettingsUpdateRequest extends FormRequest
                 'min:'.BlogSettings::RECENT_POSTS_MIN,
                 'max:'.BlogSettings::RECENT_POSTS_MAX,
             ],
+            'comments_enabled' => ['sometimes', 'required', 'boolean'],
+            'comment_moderation' => ['sometimes', 'required', Rule::in(BlogSettings::COMMENT_MODERATION)],
+            'comments_close_after_days' => [
+                'sometimes',
+                'required',
+                'integer',
+                'min:0',
+                'max:'.BlogSettings::COMMENTS_CLOSE_AFTER_DAYS_MAX,
+            ],
+            'comment_link_limit' => [
+                'sometimes',
+                'required',
+                'integer',
+                'min:0',
+                'max:'.BlogSettings::COMMENT_LINK_LIMIT_MAX,
+            ],
         ];
     }
 
@@ -145,6 +161,9 @@ class BlogSettingsUpdateRequest extends FormRequest
             'route_slug' => __('dixlase-blog::admin.settings.route_slug_label'),
             'sidebar_position' => __('dixlase-blog::admin.settings.sidebar_position_label'),
             'sidebar_recent_count' => __('dixlase-blog::admin.settings.sidebar_recent_count_label'),
+            'comment_moderation' => __('dixlase-blog::admin.settings.comment_moderation_label'),
+            'comments_close_after_days' => __('dixlase-blog::admin.settings.comments_close_after_days_label'),
+            'comment_link_limit' => __('dixlase-blog::admin.settings.comment_link_limit_label'),
         ];
     }
 }

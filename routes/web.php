@@ -31,8 +31,10 @@
  */
 
 use Illuminate\Support\Facades\Route;
+use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogCommentController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFeedController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFrontController;
+use Plugins\DixlaseBlog\App\Providers\DixlaseBlogServiceProvider;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
 // Front-end routes only; the admin routes are in routes/admin.php. With
@@ -64,5 +66,8 @@ Route::middleware(['front.ip'])
         Route::get($blog.'/{year}/{month}/{day}', [DixlaseBlogFrontController::class, 'date'])
             ->where(['year' => '[0-9]{4}', 'month' => '0[1-9]|1[0-2]', 'day' => '0[1-9]|[12][0-9]|3[01]'])
             ->name('day');
+        Route::post($blog.'/{slug}/comments', [DixlaseBlogCommentController::class, 'store'])
+            ->middleware('throttle:'.DixlaseBlogServiceProvider::COMMENT_RATE_LIMITER)
+            ->name('comment');
         Route::get($blog.'/{slug}', [DixlaseBlogFrontController::class, 'show'])->name('show');
     });
