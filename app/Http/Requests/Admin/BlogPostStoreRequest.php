@@ -41,6 +41,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\NullsBlankInput;
+use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 
 class BlogPostStoreRequest extends FormRequest
@@ -75,6 +76,7 @@ class BlogPostStoreRequest extends FormRequest
             )],
             'status' => ['required', 'string', Rule::in($statuses)],
             'is_pinned' => ['sometimes', 'boolean'],
+            'comment_status' => ['sometimes', 'string', Rule::in(BlogPost::COMMENT_STATUSES)],
             'lang' => ['nullable', 'string', Rule::in(LocaleHelper::supportedLocales())],
             // A scheduled post appears at published_at, so it needs one.
             'published_at' => ['nullable', 'required_if:status,scheduled', 'date'],

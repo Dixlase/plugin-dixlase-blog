@@ -183,6 +183,7 @@ class BlogPostService
                 'editor_type',
                 'status',
                 'is_pinned',
+                'comment_status',
                 'lang',
                 'published_at',
                 'closed_at',

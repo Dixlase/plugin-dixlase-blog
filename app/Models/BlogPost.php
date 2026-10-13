@@ -45,6 +45,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Plugins\DixlaseBlog\App\Models\Concerns\HasLocalizedFields;
 use Plugins\DixlaseBlog\App\Services\BlogSeoMeta;
@@ -60,6 +61,7 @@ use Plugins\DixlaseBlog\App\Support\BlogExcerpt;
  * @property ContentEditorType $editor_type
  * @property ContentStatus $status
  * @property bool $is_pinned
+ * @property string $comment_status inherit, open or closed (COMMENT_STATUSES)
  * @property string|null $lang Source language; other languages are DixlaseMultilingual overlays
  * @property int|null $user_id
  * @property \Illuminate\Support\Carbon|null $published_at
@@ -77,6 +79,9 @@ class BlogPost extends Model implements Revisionable
 
     public const PLUGIN_SLUG = 'dixlase-blog';
 
+    /** Whether a post takes comments: the blog setting, or its own choice. */
+    public const COMMENT_STATUSES = ['inherit', 'open', 'closed'];
+
     protected $table = 'plg_dixlase_blog_posts';
 
     /** @var list<string> */
@@ -89,6 +94,7 @@ class BlogPost extends Model implements Revisionable
         'editor_type',
         'status',
         'is_pinned',
+        'comment_status',
         'lang',
         'user_id',
         'published_at',
@@ -104,6 +110,7 @@ class BlogPost extends Model implements Revisionable
      */
     protected $attributes = [
         'is_pinned' => false,
+        'comment_status' => 'inherit',
     ];
 
     protected static function booted(): void
@@ -176,6 +183,16 @@ class BlogPost extends Model implements Revisionable
     }
 
     /**
+     * Every comment, in any state; see BlogComment.
+     *
+     * @return HasMany<BlogComment>
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(BlogComment::class, 'post_id');
+    }
+
+    /**
      * @param  Builder<self>  $query
      * @return Builder<self>
      */
@@ -206,6 +223,19 @@ class BlogPost extends Model implements Revisionable
             ->where(function (Builder $q) use ($now) {
                 $q->whereNull('closed_at')->orWhere('closed_at', '>', $now);
             });
+    }
+
+    /**
+     * Adds published_comments_count, shown on the post cards.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
+    public function scopeWithPublishedCommentCount(Builder $query): Builder
+    {
+        return $query->withCount([
+            'comments as published_comments_count' => fn (Builder $q) => $q->where('status', BlogComment::STATUS_PUBLISHED),
+        ]);
     }
 
     /**
@@ -326,6 +356,7 @@ class BlogPost extends Model implements Revisionable
             'editor_type',
             'status',
             'is_pinned',
+            'comment_status',
             'lang',
             'user_id',
             'published_at',

@@ -371,6 +371,18 @@ side validation continues to enforce it.
             <x-form-error name="is_pinned" />
         </div>
 
+        {{-- Comments: the blog setting, or open / closed for this post --}}
+        <div class="mt-4">
+            <x-form-label :for="'comment_status'" :text="__('dixlase-blog::admin.post.comment_status_label')" />
+            <x-form-select
+                id="comment_status"
+                name="comment_status"
+                :options="$commentStatusOptions"
+                :value="old('comment_status', $post->comment_status ?? 'inherit')"
+            />
+            <x-form-error name="comment_status" />
+        </div>
+
         {{-- Publish at --}}
         <div class="mt-4">
             <x-form-label :for="'published_at'" :text="__('dixlase-blog::admin.post.published_at_label')" />

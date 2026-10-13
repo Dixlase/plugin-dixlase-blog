@@ -6,8 +6,8 @@ https://exc-d.com
 
 Dixlase Blog is dual-licensed. Same terms as edit.blade.php.
 
-Blog settings. Each feature (listings, sidebar, and later comments and
-sharing) has its own <section> in this one form.
+Blog settings. Each feature (listings, sidebar, sharing, comments) has
+its own <section> in this one form.
 --}}
 
 @extends('layouts.admin')
@@ -151,6 +151,72 @@ sharing) has its own <section> in this one form.
                 @endforeach
             </div>
             <x-form-error name="share_services" />
+        </section>
+
+        <section class="mb-8">
+            <h2 class="mb-4 text-xl font-semibold">{{ __('dixlase-blog::admin.settings.comments_heading') }}</h2>
+
+            <div class="grid grid-cols-1 gap-6">
+                <div>
+                    <x-form-toggle
+                        id="comments_enabled"
+                        name="comments_enabled"
+                        :label="__('dixlase-blog::admin.settings.comments_enabled_label')"
+                        :checked="(bool) old('comments_enabled', $blogSettings['comments_enabled'])"
+                    />
+                    <x-form-help-text :text="__('dixlase-blog::admin.settings.comments_enabled_help')" />
+                    <x-form-error name="comments_enabled" />
+                </div>
+
+                <div>
+                    <x-form-label :text="__('dixlase-blog::admin.settings.comment_moderation_label')" :required="true" class="mb-2" />
+                    <x-form-radio-card-group
+                        name="comment_moderation"
+                        :options="$commentModerationOptions"
+                        :value="old('comment_moderation', $blogSettings['comment_moderation'])"
+                        :columns="2"
+                    />
+                    <x-form-error name="comment_moderation" />
+                </div>
+
+                <div class="max-w-xs">
+                    <x-form-label
+                        for="comments_close_after_days"
+                        :text="__('dixlase-blog::admin.settings.comments_close_after_days_label')"
+                        :required="true"
+                    />
+                    <x-form-text
+                        id="comments_close_after_days"
+                        name="comments_close_after_days"
+                        type="number"
+                        :min="0"
+                        :max="$commentsCloseAfterDaysMax"
+                        :value="old('comments_close_after_days', $blogSettings['comments_close_after_days'])"
+                        :required="true"
+                    />
+                    <x-form-help-text :text="__('dixlase-blog::admin.settings.comments_close_after_days_help')" />
+                    <x-form-error name="comments_close_after_days" />
+                </div>
+
+                <div class="max-w-xs">
+                    <x-form-label
+                        for="comment_link_limit"
+                        :text="__('dixlase-blog::admin.settings.comment_link_limit_label')"
+                        :required="true"
+                    />
+                    <x-form-text
+                        id="comment_link_limit"
+                        name="comment_link_limit"
+                        type="number"
+                        :min="0"
+                        :max="$commentLinkLimitMax"
+                        :value="old('comment_link_limit', $blogSettings['comment_link_limit'])"
+                        :required="true"
+                    />
+                    <x-form-help-text :text="__('dixlase-blog::admin.settings.comment_link_limit_help')" />
+                    <x-form-error name="comment_link_limit" />
+                </div>
+            </div>
         </section>
     </form>
 @endsection

@@ -11,6 +11,15 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Added
 
+- Comments on posts (#61). The settings screen turns them on (off by default), chooses whether a
+  new comment is published at once or held for approval, can close comments a number of days after
+  publishing, and holds a comment with too many links. Each post follows the blog setting or is
+  opened or closed on its own. Visitors give a name, an e-mail address (never shown) and consent to
+  the privacy notice (linked when DixlaseLegal provides one); an editor or above signed in comments
+  as the site. Replies nest to any depth, comments are shared by every language of a post, and the
+  cards show the comment count. Spam is kept down by core's CAPTCHA (the form is listed in its
+  settings), a rate limit and a honeypot field. Overridable as `front/_comments.blade.php` and
+  `front/_comment.blade.php`.
 - The blog's URL prefix can be changed on the settings screen (`/blog` by default, e.g. `/news`)
   (#79). Through core's route slug registry, a prefix another plugin, the admin URL or a reserved
   word already uses is refused, as are the site's language codes; other plugins' checks see the

@@ -39,6 +39,9 @@ pinned posts first.
             @if ($post->author)
                 <span class="dixlase-blog-meta__author">{{ $post->author->display_name ?? $post->author->account_name }}</span>
             @endif
+            @if (($post->published_comments_count ?? 0) > 0)
+                <span class="dixlase-blog-meta__comments">{{ trans_choice('dixlase-blog::front.comments.count', $post->published_comments_count, ['count' => $post->published_comments_count]) }}</span>
+            @endif
         </div>
 
         <h2 class="dixlase-blog-card__title" lang="{{ $post->localizedLang('title') }}">
