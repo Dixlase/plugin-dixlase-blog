@@ -227,6 +227,39 @@ class BlogComments
         return $comments->count();
     }
 
+    /**
+     * E-mail the admin about a new visitor comment, when the blog says so.
+     * A failed send is logged; the comment is kept.
+     */
+    public function notifyAdmin(BlogComment $comment, BlogPost $post): void
+    {
+        $to = $this->settings->commentNotifyEmail();
+        if (! $this->settings->commentNotify() || $to === '') {
+            return;
+        }
+
+        try {
+            Mail::to($to)->send(new BlogCommentNotification(
+                $comment,
+                $post,
+                route('dixlase-blog::admin.blog.comments.index', ['status' => $comment->status]),
+            ));
+        } catch (Throwable $e) {
+            Log::warning('DixlaseBlog: the new comment notification was not sent.', [
+                'comment_id' => $comment->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Comments waiting for approval, on every post.
+     */
+    public function pendingCount(): int
+    {
+        return BlogComment::query()->where('status', BlogComment::STATUS_PENDING)->count();
+    }
+
     public function linkCount(string $body): int
     {
         return preg_match_all('~https?://|\bwww\.~i', $body);
