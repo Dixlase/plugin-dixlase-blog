@@ -81,14 +81,16 @@ runtime API.
 </style>
 @endpush
 
-<div x-data="blogPostEditor({
-        csrfToken: '{{ csrf_token() }}',
-        serverPreviewUrl: '{{ route('dixlase-blog::admin.blog.preview') }}',
-        previewFrameUrl: '{{ $previewFrameUrl }}',
-        editorType: @js($editorTypeSlug),
-        initialContent: @js(old('content', $post->content ?? '')),
-        initialTitle: @js(old('title', $post->title ?? '')),
-     })"
+{{-- blogPostEditor reads data-blog-editor-config, so x-data stays a bare name (CSP-ready Alpine). --}}
+<div x-data="blogPostEditor"
+     data-blog-editor-config="{{ json_encode([
+         'csrfToken' => csrf_token(),
+         'serverPreviewUrl' => route('dixlase-blog::admin.blog.preview'),
+         'previewFrameUrl' => $previewFrameUrl,
+         'editorType' => $editorTypeSlug,
+         'initialContent' => old('content', $post->content ?? ''),
+         'initialTitle' => old('title', $post->title ?? ''),
+     ]) }}"
      class="dixlase-blog-editor min-w-0">
 
     {{-- Preview toggle (centre column, top) --}}

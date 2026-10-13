@@ -268,7 +268,8 @@ side validation continues to enforce it.
         {{-- Tags (#tag space-confirmed) --}}
         <div class="mt-4">
             <x-form-label :text="__('dixlase-blog::admin.post.tags_label')" />
-            <div x-data="blogTagInput({{ Js::from(old('tags', $tagNames)) }})"
+            <div x-data="blogTagInput"
+                 data-tags="{{ json_encode(array_values((array) old('tags', $tagNames))) }}"
                  class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2 flex flex-wrap gap-1 items-center min-h-10">
                 <template x-for="(tag, index) in tags" :key="index">
                     <span class="inline-flex items-center gap-1 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-0.5 text-xs">
