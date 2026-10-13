@@ -73,6 +73,9 @@ class BlogSettings
     /** Comments close this many days after publishing; 0 never closes them. */
     public const COMMENTS_CLOSE_AFTER_DAYS_MAX = 3650;
 
+    /** Days a commenter's IP address is kept; 0 does not store it. */
+    public const COMMENT_IP_RETENTION_DAYS_MAX = 3650;
+
     /** A comment with more links than this is held for approval. */
     public const COMMENT_LINK_LIMIT_MAX = 50;
 
@@ -102,6 +105,11 @@ class BlogSettings
         'comment_notify' => '1',
         // Empty: the site's system admin address (core setting).
         'comment_notify_email' => '',
+        // Then cleared by dls:blog:prune-comment-ips (scheduled daily).
+        'comment_ip_retention_days' => '30',
+        // Linked from the comment form when no plugin provides a privacy
+        // policy (DixlaseLegal does).
+        'privacy_policy_url' => '',
     ];
 
     /** @var array<string, string|null>|null */
@@ -234,6 +242,18 @@ class BlogSettings
         $address = trim((string) $this->value('comment_notify_email'));
 
         return $address !== '' ? $address : trim(ConfigHelper::getNotificationEmail());
+    }
+
+    public function commentIpRetentionDays(): int
+    {
+        return max(0, min(self::COMMENT_IP_RETENTION_DAYS_MAX, (int) $this->value('comment_ip_retention_days')));
+    }
+
+    public function privacyPolicyUrl(): ?string
+    {
+        $url = trim((string) $this->value('privacy_policy_url'));
+
+        return $url !== '' ? $url : null;
     }
 
     /**

@@ -37,6 +37,7 @@ namespace Plugins\DixlaseBlog\App\Services;
 use App\Contracts\PluginIntegration\PrivacyPolicyProviderInterface;
 use App\Enums\MemberRole;
 use App\Models\Member;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -139,10 +140,18 @@ class BlogComments
     }
 
     /**
-     * The site's privacy notice, when a plugin such as DixlaseLegal
-     * provides one.
+     * The site's privacy notice: a plugin's (DixlaseLegal's), else the URL
+     * on the blog settings screen.
      */
     public function privacyPolicyUrl(): ?string
+    {
+        return $this->providedPrivacyPolicyUrl() ?? $this->settings->privacyPolicyUrl();
+    }
+
+    /**
+     * The privacy policy a plugin such as DixlaseLegal provides.
+     */
+    public function providedPrivacyPolicyUrl(): ?string
     {
         if (! app()->bound(PrivacyPolicyProviderInterface::class)) {
             return null;
@@ -158,36 +167,64 @@ class BlogComments
     }
 
     /**
-     * E-mail the admin about a new visitor comment, when the blog says so.
-     * A failed send is logged; the comment is kept.
+     * The address to store for a new visitor comment: none when the blog
+     * keeps no IP addresses.
      */
-    public function notifyAdmin(BlogComment $comment, BlogPost $post): void
+    public function ipToStore(?string $ip): ?string
     {
-        $to = $this->settings->commentNotifyEmail();
-        if (! $this->settings->commentNotify() || $to === '') {
-            return;
-        }
-
-        try {
-            Mail::to($to)->send(new BlogCommentNotification(
-                $comment,
-                $post,
-                route('dixlase-blog::admin.blog.comments.index', ['status' => $comment->status]),
-            ));
-        } catch (Throwable $e) {
-            Log::warning('DixlaseBlog: the new comment notification was not sent.', [
-                'comment_id' => $comment->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        return $this->settings->commentIpRetentionDays() > 0 ? $ip : null;
     }
 
     /**
-     * Comments waiting for approval, on every post.
+     * Clear the IP addresses older than the retention period. Returns how
+     * many comments were changed.
      */
-    public function pendingCount(): int
+    public function pruneIpAddresses(): int
     {
-        return BlogComment::query()->where('status', BlogComment::STATUS_PENDING)->count();
+        $days = $this->settings->commentIpRetentionDays();
+        $query = BlogComment::withTrashed()->whereNotNull('ip_address');
+        if ($days > 0) {
+            $query->where('created_at', '<', now()->subDays($days));
+        }
+
+        return $query->update(['ip_address' => null]);
+    }
+
+    /**
+     * Every comment, trashed ones included, written with this e-mail
+     * address (compared without regard to case).
+     *
+     * @return Builder<BlogComment>
+     */
+    public function byEmail(string $email): Builder
+    {
+        return BlogComment::withTrashed()->whereRaw('LOWER(author_email) = ?', [mb_strtolower(trim($email))]);
+    }
+
+    /**
+     * Remove the personal data from one address's comments: the name
+     * becomes "Anonymous", the e-mail and IP addresses are cleared. The
+     * comments themselves stay.
+     */
+    public function anonymiseByEmail(string $email): int
+    {
+        return $this->byEmail($email)->update([
+            'author_name' => __('dixlase-blog::front.comments.anonymous', [], (string) config('app.locale')),
+            'author_email' => null,
+            'ip_address' => null,
+        ]);
+    }
+
+    /**
+     * Delete one address's comments for good; the database removes the
+     * replies to them as well.
+     */
+    public function deleteByEmail(string $email): int
+    {
+        $comments = $this->byEmail($email)->get();
+        $comments->each->forceDelete();
+
+        return $comments->count();
     }
 
     public function linkCount(string $body): int

@@ -240,6 +240,42 @@ its own <section> in this one form.
                     <x-form-help-text :text="__('dixlase-blog::admin.settings.comment_notify_email_help')" />
                     <x-form-error name="comment_notify_email" />
                 </div>
+
+                <div class="max-w-xs">
+                    <x-form-label
+                        for="comment_ip_retention_days"
+                        :text="__('dixlase-blog::admin.settings.comment_ip_retention_days_label')"
+                        :required="true"
+                    />
+                    <x-form-text
+                        id="comment_ip_retention_days"
+                        name="comment_ip_retention_days"
+                        type="number"
+                        :min="0"
+                        :max="$commentIpRetentionDaysMax"
+                        :value="old('comment_ip_retention_days', $blogSettings['comment_ip_retention_days'])"
+                        :required="true"
+                    />
+                    <x-form-help-text :text="__('dixlase-blog::admin.settings.comment_ip_retention_days_help')" />
+                    <x-form-error name="comment_ip_retention_days" />
+                </div>
+
+                <div class="max-w-xl">
+                    <x-form-label for="privacy_policy_url" :text="__('dixlase-blog::admin.settings.privacy_policy_url_label')" />
+                    <x-form-text
+                        id="privacy_policy_url"
+                        name="privacy_policy_url"
+                        type="url"
+                        :maxlength="2048"
+                        :value="old('privacy_policy_url', $blogSettings['privacy_policy_url'])"
+                    />
+                    @if ($providedPrivacyUrl)
+                        <x-form-help-text :text="__('dixlase-blog::admin.settings.privacy_policy_url_provided', ['url' => $providedPrivacyUrl])" />
+                    @else
+                        <x-form-help-text :text="__('dixlase-blog::admin.settings.privacy_policy_url_help')" />
+                    @endif
+                    <x-form-error name="privacy_policy_url" />
+                </div>
             </div>
         </section>
     </form>

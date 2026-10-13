@@ -89,6 +89,7 @@ class DixlaseBlogAdminCommentsController extends Controller
 
         return view('dixlase-blog::admin.comments.index', array_merge($this->viewParams, [
             'tab' => $tab,
+            'personalDataUrl' => $canDelete ? route('dixlase-blog::admin.blog.comments.personalData.index') : null,
             'tabs' => array_map(fn (string $key) => [
                 'key' => $key,
                 'label' => __('dixlase-blog::admin.comments.tab_'.$key),

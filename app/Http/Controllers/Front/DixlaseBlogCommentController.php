@@ -77,7 +77,7 @@ class DixlaseBlogCommentController extends Controller
             'body' => $body,
             'status' => $this->comments->initialStatus($body, $member !== null),
             'lang' => app()->getLocale(),
-            'ip_address' => $member !== null ? null : $request->ip(),
+            'ip_address' => $member !== null ? null : $this->comments->ipToStore($request->ip()),
         ]);
 
         if ($member === null) {

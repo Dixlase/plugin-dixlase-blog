@@ -148,7 +148,7 @@
         "system": {
             "register_shortcodes": false,
             "register_middleware": false,
-            "register_commands": false,
+            "register_commands": true,
             "register_blade_directives": false,
             "modify_routes": false
         },
@@ -161,7 +161,7 @@
     "declares": {
         "configs": {
             "roles": true,
-            "database_cleanup": false,
+            "database_cleanup": true,
             "navigation": true
         },
         "assets": {
@@ -180,7 +180,7 @@
             "DashboardNotificationProviderInterface"
         ],
         "migrations": true,
-        "commands": false,
+        "commands": true,
         "middleware": false
     }
 }

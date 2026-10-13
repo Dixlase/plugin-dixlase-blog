@@ -119,5 +119,6 @@ return [
         'published_notice' => 'Thank you. Your comment has been published.',
         'pending_notice' => 'Thank you. Your comment will appear once it has been approved.',
         'parent_missing' => 'The comment you replied to is no longer shown.',
+        'anonymous' => 'Anonymous',
     ],
 ];
