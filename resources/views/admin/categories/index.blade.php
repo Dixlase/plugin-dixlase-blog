@@ -10,8 +10,9 @@ Categories index with drag-and-drop reordering (SortableJS via the
 blog-category-reorder Alpine component) plus inline-expansion forms
 for create / edit.
 
-The outer x-data merges three concerns into a single Alpine scope:
-  - blogCategoryReorder(...)  Sortable instances + persist endpoint
+The outer x-data (blogCategoryReorder) holds three concerns in a single
+Alpine scope:
+  - Sortable instances + persist endpoint (data-save-url / data-csrf-token)
   - openId                    which row's inline edit form is open
   - creating                  whether the top-of-page create form is open
 The single scope keeps the toolbar (saving / saved indicators next to
@@ -21,14 +22,9 @@ the New Category button) coherent without prop-drilling.
 @extends('layouts.admin')
 
 @section('content')
-    <div x-data="{
-            ...blogCategoryReorder({
-                saveUrl: '{{ route('dixlase-blog::admin.blog.categories.reorder') }}',
-                csrfToken: '{{ csrf_token() }}',
-            }),
-            openId: null,
-            creating: false,
-         }">
+    <div x-data="blogCategoryReorder"
+         data-save-url="{{ route('dixlase-blog::admin.blog.categories.reorder') }}"
+         data-csrf-token="{{ csrf_token() }}">
 
         <div class="mb-4 flex items-center justify-between gap-4">
             <h1 class="text-xl font-semibold text-gray-900 dark:text-white">

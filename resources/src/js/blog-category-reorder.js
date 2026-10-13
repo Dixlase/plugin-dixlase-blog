@@ -29,7 +29,7 @@ import Sortable from 'sortablejs';
  * cycle-check.
  *
  * Usage:
- *   <div x-data="blogCategoryReorder({ saveUrl, csrfToken })">
+ *   <div x-data="blogCategoryReorder" data-save-url="..." data-csrf-token="...">
  *       <ul class="category-tree" data-parent-id="">
  *           <li data-category-id="1">
  *               <div>... row content with .drag-handle ...</div>
@@ -38,16 +38,22 @@ import Sortable from 'sortablejs';
  *       </ul>
  *   </div>
  */
-export default function blogCategoryReorder(config) {
+export default function blogCategoryReorder() {
     return {
-        saveUrl: config?.saveUrl ?? '',
-        csrfToken: config?.csrfToken ?? '',
+        saveUrl: '',
+        csrfToken: '',
+        // Which row's inline edit form is open, and whether the create
+        // form at the top of the page is open.
+        openId: null,
+        creating: false,
         saving: false,
         savedAt: null,
         error: null,
         sortables: [],
 
         init() {
+            this.saveUrl = this.$el.dataset.saveUrl || '';
+            this.csrfToken = this.$el.dataset.csrfToken || '';
             this.attachSortables();
         },
 

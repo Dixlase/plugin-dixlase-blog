@@ -30,12 +30,21 @@
  *     a normal array; BlogPostService upserts unknown tags by slug.
  *
  * Usage:
- *   <div x-data="blogTagInput({{ Js::from($tagNames) }})">...</div>
+ *   <div x-data="blogTagInput" data-tags="{{ json_encode($tagNames) }}">...</div>
  */
-export default function blogTagInput(initialTags = []) {
+export default function blogTagInput() {
     return {
-        tags: Array.isArray(initialTags) ? [...initialTags] : [],
+        tags: [],
         currentInput: '',
+
+        init() {
+            try {
+                const initial = JSON.parse(this.$el.dataset.tags || '[]');
+                this.tags = Array.isArray(initial) ? initial : [];
+            } catch (e) {
+                this.tags = [];
+            }
+        },
 
         addTag() {
             const raw = this.currentInput.trim();
