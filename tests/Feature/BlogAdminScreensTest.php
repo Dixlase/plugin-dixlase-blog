@@ -163,6 +163,18 @@ class BlogAdminScreensTest extends TestCase
             ->assertDontSee('href="'.$draft.'"', false);
     }
 
+    public function test_the_trash_lists_posts_in_the_post_list_table(): void
+    {
+        $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
+        $this->post->delete();
+
+        $this->get(route('dixlase-blog::admin.blog.trash'))->assertOk()
+            ->assertSee('class="admin-table"', false)
+            ->assertSee($this->post->title)
+            ->assertSee('action="'.route('dixlase-blog::admin.blog.restore', ['id' => $this->post->id]).'"', false)
+            ->assertSee('action="'.route('dixlase-blog::admin.blog.forceDelete', ['id' => $this->post->id]).'"', false);
+    }
+
     public function test_every_admin_screen_opens_for_an_admin(): void
     {
         $this->assertScreensOpenFor(MemberRole::ADMIN);
