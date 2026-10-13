@@ -43,6 +43,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogSettingsUpdateRequest;
+use Plugins\DixlaseBlog\App\Services\BlogComments;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
 class DixlaseBlogAdminSettingsController extends Controller
@@ -52,8 +53,10 @@ class DixlaseBlogAdminSettingsController extends Controller
 
     // Not $settings: AdminInterfaceTrait owns that property (the site's
     // settings) and the view variable of the same name.
-    public function __construct(private readonly BlogSettings $blogSettings)
-    {
+    public function __construct(
+        private readonly BlogSettings $blogSettings,
+        private readonly BlogComments $comments,
+    ) {
         $this->initialize();
         $this->initializeAfterLogin();
     }
@@ -90,6 +93,9 @@ class DixlaseBlogAdminSettingsController extends Controller
             'commentLinkLimitMax' => BlogSettings::COMMENT_LINK_LIMIT_MAX,
             // Shown as the placeholder: where mail goes when the field is empty.
             'siteAdminEmail' => ConfigHelper::getNotificationEmail(),
+            'commentIpRetentionDaysMax' => BlogSettings::COMMENT_IP_RETENTION_DAYS_MAX,
+            // A plugin's privacy policy wins over the URL set here.
+            'providedPrivacyUrl' => $this->comments->providedPrivacyPolicyUrl(),
         ]));
     }
 

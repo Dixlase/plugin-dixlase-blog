@@ -32,6 +32,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminCategoriesController;
+use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminCommentPersonalDataController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminCommentsController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostRevisionsController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostsController;
@@ -102,6 +103,8 @@ Route::name('dixlase-blog::admin.')
             ->group(function () {
                 Route::get('/', [DixlaseBlogAdminCommentsController::class, 'index'])->name('index');
                 Route::post('/bulk', [DixlaseBlogAdminCommentsController::class, 'bulk'])->name('bulk');
+                Route::get('/personal-data', [DixlaseBlogAdminCommentPersonalDataController::class, 'index'])->name('personalData.index');
+                Route::post('/personal-data', [DixlaseBlogAdminCommentPersonalDataController::class, 'erase'])->name('personalData.erase');
                 Route::post('/{comment}/status', [DixlaseBlogAdminCommentsController::class, 'status'])
                     ->whereNumber('comment')
                     ->name('status');

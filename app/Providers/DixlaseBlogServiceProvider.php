@@ -39,6 +39,7 @@ use App\DTO\RouteSlug\RegisteredSlug;
 use App\Services\RouteSlugRegistry;
 use App\Traits\PluginLoaderTrait;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
@@ -103,6 +104,11 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
         }
 
         self::defineCommentRateLimiter();
+
+        // Commenters' IP addresses are kept only for the set period.
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {
+            $schedule->command('dls:blog:prune-comment-ips')->daily();
+        });
 
         // The sidebar is built where the layout is rendered, so a theme or a
         // site that overrides the page templates keeps it.

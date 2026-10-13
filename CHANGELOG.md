@@ -11,6 +11,12 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Added
 
+- Commenters' personal data (#63). An ADMIN finds every comment written with one e-mail address
+  (the trash included) and removes the name, e-mail and IP address from them or deletes them.
+  IP addresses are kept for a set number of days (30 by default; 0 keeps none) and then cleared by
+  the daily `dls:blog:prune-comment-ips` task. Trashed comments are offered to core's database
+  cleanup. The comment form links the privacy policy DixlaseLegal provides, else a URL set on the
+  settings screen.
 - A comments screen (#62): every post's comments in tabs (pending, published, spam, trash), with
   approve, unpublish, mark as spam, trash and restore, singly or in bulk, and a reply as the site
   (which approves the comment it answers). Editors moderate; deleting a comment for good stays with

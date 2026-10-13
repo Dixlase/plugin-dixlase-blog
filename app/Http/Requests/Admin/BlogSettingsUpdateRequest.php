@@ -109,6 +109,14 @@ class BlogSettingsUpdateRequest extends FormRequest
             ],
             'comment_notify' => ['sometimes', 'required', 'boolean'],
             'comment_notify_email' => ['sometimes', 'nullable', 'string', 'email', 'max:255'],
+            'comment_ip_retention_days' => [
+                'sometimes',
+                'required',
+                'integer',
+                'min:0',
+                'max:'.BlogSettings::COMMENT_IP_RETENTION_DAYS_MAX,
+            ],
+            'privacy_policy_url' => ['sometimes', 'nullable', 'string', 'url:http,https', 'max:2048'],
         ];
     }
 
@@ -167,6 +175,8 @@ class BlogSettingsUpdateRequest extends FormRequest
             'comments_close_after_days' => __('dixlase-blog::admin.settings.comments_close_after_days_label'),
             'comment_link_limit' => __('dixlase-blog::admin.settings.comment_link_limit_label'),
             'comment_notify_email' => __('dixlase-blog::admin.settings.comment_notify_email_label'),
+            'comment_ip_retention_days' => __('dixlase-blog::admin.settings.comment_ip_retention_days_label'),
+            'privacy_policy_url' => __('dixlase-blog::admin.settings.privacy_policy_url_label'),
         ];
     }
 }

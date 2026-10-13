@@ -62,6 +62,8 @@ class BlogAdminRolesTest extends TestCase
         'dixlase-blog::admin.blog.settings.edit',
         'dixlase-blog::admin.blog.settings.update',
         'dixlase-blog::admin.blog.comments.forceDelete',
+        'dixlase-blog::admin.blog.comments.personalData.index',
+        'dixlase-blog::admin.blog.comments.personalData.erase',
     ];
 
     protected function setUp(): void

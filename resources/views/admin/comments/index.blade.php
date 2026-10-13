@@ -15,9 +15,16 @@ its own small form, listed after the table.
 
 @section('content')
     <div class="mb-4">
-        <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
-            {{ __('dixlase-blog::admin.comments.heading') }}
-        </h1>
+        <div class="flex items-center justify-between gap-4">
+            <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
+                {{ __('dixlase-blog::admin.comments.heading') }}
+            </h1>
+            @if ($personalDataUrl)
+                <x-form-button type="link" :href="$personalDataUrl" icon="fas fa-user-shield" size="sm" variant="secondary">
+                    {{ __('dixlase-blog::admin.personal_data.heading') }}
+                </x-form-button>
+            @endif
+        </div>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
             {{ __('dixlase-blog::admin.comments.description') }}
         </p>

@@ -113,6 +113,15 @@ return [
                         'destroy' => $editor,
                         'restore' => $editor,
                         'forceDelete' => $admin,
+                        // Erasing a commenter's data cannot be undone.
+                        'personalData' => [
+                            'access_roles' => MemberRole::ADMIN->value,
+                            'view_roles' => MemberRole::ADMIN->value,
+                            'children' => [
+                                'index' => $admin,
+                                'erase' => $admin,
+                            ],
+                        ],
                     ],
                 ],
 
