@@ -20,7 +20,7 @@
 // declared type key, falling back to the raw "dixlase-blog:post" key
 // when no entry exists here.
 return [
-    'post' => '記事',
-    'category' => 'カテゴリー',
-    'tag' => 'タグ',
+    'post' => 'ブログ記事',
+    'category' => 'ブログカテゴリ',
+    'tag' => 'ブログタグ',
 ];

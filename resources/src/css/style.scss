@@ -34,6 +34,13 @@
 // restyles the blog by overriding the --dlsb-* variables, or by
 // overriding the views (see the README).
 
+// Tailwind's breakpoints, so the blog changes layout where the theme does.
+$bp-sm: 40rem;
+$bp-md: 48rem;
+$bp-lg: 64rem;
+$bp-xl: 80rem;
+$bp-2xl: 96rem;
+
 .dixlase-blog {
     --dlsb-text: var(--color-gray-900, #111827);
     --dlsb-muted: var(--color-gray-500, #6b7280);
@@ -57,12 +64,21 @@
     padding: calc(3.5rem + var(--front-banner-stack-height, 0px) + 2.5rem) 1.5rem 4rem;
     color: var(--dlsb-text);
 
-    @media (min-width: 640px) {
+    @media (min-width: $bp-sm) {
         padding-inline: 2rem;
     }
 
-    @media (min-width: 1024px) {
+    @media (min-width: $bp-lg) {
         padding-inline: 3rem;
+    }
+
+    // Wider screens get a wider blog.
+    @media (min-width: $bp-xl) {
+        max-width: $bp-xl;
+    }
+
+    @media (min-width: $bp-2xl) {
+        max-width: $bp-2xl;
     }
 
     *,
@@ -194,7 +210,7 @@
     gap: 1rem;
     margin-top: 3rem;
 
-    @media (min-width: 640px) {
+    @media (min-width: $bp-sm) {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
@@ -219,7 +235,7 @@
 .dixlase-blog-post-nav__link--next {
     text-align: right;
 
-    @media (min-width: 640px) {
+    @media (min-width: $bp-sm) {
         grid-column: 2;
     }
 }
@@ -251,7 +267,7 @@
     padding: 0;
     list-style: none;
 
-    @media (min-width: 640px) {
+    @media (min-width: $bp-sm) {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
@@ -288,22 +304,32 @@
 
 // --- Sidebar -------------------------------------------------------------
 
-// Below the content on narrow screens; beside it from 1024px.
+// Below the content on narrow screens; beside it from lg.
 .dixlase-blog--with-sidebar {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 3rem;
 
-    @media (min-width: 1024px) {
+    @media (min-width: $bp-lg) {
         grid-template-columns: minmax(0, 1fr) 17rem;
         align-items: start;
+    }
+
+    @media (min-width: $bp-2xl) {
+        grid-template-columns: minmax(0, 1fr) 20rem;
     }
 }
 
 .dixlase-blog--sidebar-left {
-    @media (min-width: 1024px) {
+    @media (min-width: $bp-lg) {
         grid-template-columns: 17rem minmax(0, 1fr);
+    }
 
+    @media (min-width: $bp-2xl) {
+        grid-template-columns: 20rem minmax(0, 1fr);
+    }
+
+    @media (min-width: $bp-lg) {
         .dixlase-blog-sidebar {
             order: -1;
         }
@@ -526,18 +552,23 @@
     grid-template-columns: 1fr;
     gap: 1.5rem;
 
-    @media (min-width: 640px) {
+    @media (min-width: $bp-sm) {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    @media (min-width: 1024px) {
+    @media (min-width: $bp-lg) {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    // Beside a sidebar the main column is narrower: two cards per row.
+    // Beside a sidebar the main column is narrower: two cards per row,
+    // three again on the widest screens.
     .dixlase-blog--with-sidebar & {
-        @media (min-width: 1024px) {
+        @media (min-width: $bp-lg) {
             grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        @media (min-width: $bp-2xl) {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
         }
     }
 }
@@ -737,6 +768,15 @@
 .dixlase-blog-post {
     max-width: 46rem;
     margin-inline: auto;
+
+    @media (min-width: $bp-xl) {
+        max-width: 52rem;
+    }
+
+    // Beside a sidebar the column already sets the width.
+    .dixlase-blog--with-sidebar & {
+        max-width: none;
+    }
 }
 
 .dixlase-blog-post__header {
@@ -750,7 +790,7 @@
     line-height: 1.25;
     letter-spacing: -0.01em;
 
-    @media (min-width: 768px) {
+    @media (min-width: $bp-md) {
         font-size: 2.75rem;
     }
 }
@@ -957,7 +997,7 @@
     padding-left: 1rem;
     border-left: 2px solid var(--dlsb-border);
 
-    @media (max-width: 639px) {
+    @media (width < #{$bp-sm}) {
         &.dixlase-blog-comments__replies--deep {
             margin-left: 0;
         }

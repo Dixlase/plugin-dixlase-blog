@@ -153,7 +153,7 @@ drops that would go deeper than BlogCategory::MAX_DEPTH.
     </div>
 
     {{-- Children (always rendered as a drop target, even when empty) --}}
-    <ul class="category-tree list-none pl-6 pr-2 py-1 min-h-2 space-y-0"
+    <ul class="category-tree list-none pl-6 py-1 min-h-2 space-y-0"
         data-parent-id="{{ $category->id }}">
         @foreach ($allCategories->where('parent_id', $category->id) as $child)
             @include('dixlase-blog::admin.categories._tree-node', [

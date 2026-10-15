@@ -113,6 +113,11 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Changed
 
+- Wider blog on large screens (#98): from Tailwind's `xl` the blog grows to 80rem and from `2xl`
+  to 96rem, a post beside the sidebar fills its column, and listings show three cards beside the
+  sidebar at `2xl`. Every media query uses Tailwind's breakpoints. The translation screen names
+  the types "Blog post", "Blog category" and "Blog tag", and the category tree's action buttons
+  line up at every depth.
 - The category screen builds the tree in place (#88). A row's + creates a child under it, and
   "Move up a level" moves a child or grandchild next to its parent, so the parent select box is
   gone from both forms. Categories nest three levels deep at most; the forms, the reorder endpoint
