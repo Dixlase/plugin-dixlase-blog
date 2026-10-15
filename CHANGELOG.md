@@ -85,6 +85,9 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Fixed
 
+- The post editor's "Preview" button opens the post again (#105). The preview moved under the
+  admin URL: core keeps the admin session apart from the front one, so the front route never saw
+  the admin login and answered 404 for every post.
 - The live preview beside the post editor shows the featured image, and follows when it is
   chosen, changed or removed in the sidebar (#97).
 - The post editor's "Preview" button opens drafts, scheduled and closed posts too (#96). It opens

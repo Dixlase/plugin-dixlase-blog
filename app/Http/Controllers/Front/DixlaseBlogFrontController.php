@@ -88,10 +88,12 @@ class DixlaseBlogFrontController extends Controller
 
     /**
      * A post in any status (draft, scheduled, closed) as the site will show
-     * it, for the "Preview" button of the post editor. Only members who may
-     * edit posts see it; anyone else gets the same 404 as for a missing
-     * post, so a draft's existence does not leak. The page is kept out of
-     * search engines and caches.
+     * it, for the "Preview" button of the post editor. Routed under the
+     * admin URL (routes/admin.php): core keeps the admin session apart
+     * from the front one, so only there is the admin login known. Only
+     * members who may edit posts see it; anyone else gets the same 404 as
+     * for a missing post, so a draft's existence does not leak. The page
+     * is kept out of search engines and caches.
      */
     public function preview(Request $request): Response
     {

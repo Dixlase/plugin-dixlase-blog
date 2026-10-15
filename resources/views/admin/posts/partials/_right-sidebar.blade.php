@@ -42,11 +42,11 @@ side validation continues to enforce it.
     ];
 
     // The sidebar Preview button opens the saved post in the theme's full
-    // layout in a new tab, whatever its status (the preview route shows
-    // drafts to editors), vs. the editor's split-pane preview which shows
+    // layout in a new tab, whatever its status (an admin route, so the
+    // admin login applies), vs. the editor's split-pane preview which shows
     // unsaved changes in a stripped-down iframe shell.
     $publicPreviewUrl = $isEditMode
-        ? route('dixlase-blog::front.preview', ['post' => $post->id])
+        ? route('dixlase-blog::admin.blog.previewPage', ['post' => $post->id])
         : null;
 
     // Resolve editor type once for the meta-info badge so the badge
