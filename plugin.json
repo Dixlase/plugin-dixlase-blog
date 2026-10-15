@@ -98,7 +98,7 @@
         ]
     },
     "requires": {
-        "dixlase": "^0.1.0",
+        "dixlase": "^0.1.13",
         "dixlase_api": "^0.1",
         "php": ">=8.2"
     },

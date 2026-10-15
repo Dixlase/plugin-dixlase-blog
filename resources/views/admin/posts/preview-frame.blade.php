@@ -8,10 +8,11 @@ Dixlase Blog is dual-licensed. Same terms as edit.blade.php.
 
 Iframe shell view for the post editor's live preview pane. The page is
 loaded by the iframe inside the editor's split-pane container; the
-parent window (blogPostEditor Alpine component) posts
-{ type: 'dixlase-preview-update', action: 'updateContent', html, title }
-messages on every debounced edit, and this script swaps the title /
-content nodes. Mirrors the protocol used by themes::admin.preview-frame
+parent window posts { type: 'dixlase-preview-update', action, ... }
+messages: core's content editor sends 'updateContent' (html) on every
+debounced edit, and the sidebar sends 'updateTitle' (blogPreviewTitle)
+and 'updateFeatured' (blogFeaturedPreview). This script swaps the
+matching nodes. Mirrors the protocol used by themes::admin.preview-frame
 in DixlaseOnePage so preview infrastructure stays uniform across
 plugins.
 --}}
@@ -59,6 +60,12 @@ plugins.
                 featuredImg.src = url;
                 featuredImg.alt = typeof event.data.alt === 'string' ? event.data.alt : '';
                 featuredEl.hidden = url === '';
+            }
+            return;
+        }
+        if (event.data.action === 'updateTitle') {
+            if (titleEl && typeof event.data.title === 'string') {
+                titleEl.textContent = event.data.title;
             }
             return;
         }
