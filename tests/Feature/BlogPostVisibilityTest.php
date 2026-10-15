@@ -38,8 +38,10 @@ namespace Plugins\DixlaseBlog\Tests\Feature;
 use App\Contracts\TranslationResolver;
 use App\Enums\ContentEditorType;
 use App\Enums\ContentStatus;
+use App\Enums\MemberRole;
 use App\Http\Middleware\CheckInstallationReady;
 use App\Http\Middleware\CheckMaintenanceMode;
+use App\Models\Member;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
@@ -111,6 +113,9 @@ class BlogPostVisibilityTest extends TestCase
             Route::get('/blog/feed.xml', [DixlaseBlogFeedController::class, 'feed'])->name('feed');
             Route::get('/blog/category/{slug}', [DixlaseBlogFrontController::class, 'category'])->name('category');
             Route::get('/blog/tag/{slug}', [DixlaseBlogFrontController::class, 'tag'])->name('tag');
+            Route::get('/blog/preview/{post}', [DixlaseBlogFrontController::class, 'preview'])
+                ->where('post', '[0-9]+')
+                ->name('preview');
             Route::get('/blog/{slug}', [DixlaseBlogFrontController::class, 'show'])->name('show');
         });
         Route::getRoutes()->refreshNameLookups();
@@ -166,6 +171,36 @@ class BlogPostVisibilityTest extends TestCase
         foreach (array_keys(self::HIDDEN) as $slug) {
             $this->get('/blog/'.$slug)->assertNotFound();
         }
+    }
+
+    public function test_an_editor_previews_a_post_in_any_status(): void
+    {
+        $this->actingAs(Member::factory()->create(['role' => MemberRole::EDITOR, 'status' => 1]), 'member');
+
+        foreach (['draft', 'scheduled-later', 'closed', 'live'] as $slug) {
+            $post = BlogPost::query()->where('slug', $slug)->firstOrFail();
+
+            $this->get('/blog/preview/'.$post->id)
+                ->assertOk()
+                ->assertSee((self::VISIBLE + self::HIDDEN)[$slug])
+                ->assertSee('dixlase-blog-preview-banner', false)
+                ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+        }
+    }
+
+    public function test_the_preview_is_hidden_from_visitors_and_contributors(): void
+    {
+        $draft = BlogPost::query()->where('slug', 'draft')->firstOrFail();
+
+        $this->get('/blog/preview/'.$draft->id)->assertNotFound();
+
+        $this->actingAs(Member::factory()->create(['role' => MemberRole::CONTRIBUTOR, 'status' => 1]), 'member');
+        $this->get('/blog/preview/'.$draft->id)->assertNotFound();
+    }
+
+    public function test_the_public_page_shows_no_preview_banner(): void
+    {
+        $this->get('/blog/live')->assertOk()->assertDontSee('dixlase-blog-preview-banner', false);
     }
 
     public function test_index_lists_only_visible_posts(): void

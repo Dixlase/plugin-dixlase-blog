@@ -85,6 +85,9 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Fixed
 
+- The post editor's "Preview" button opens drafts, scheduled and closed posts too (#96). It opens
+  `/{blog}/preview/{id}`, which shows a post in any status in the site's layout to members who may
+  edit posts, with a banner, `noindex` and no caching; anyone else gets 404.
 - Post and category slugs may contain underscores (#95).
 - The post editor with core's shared content editor (#93): a Markdown post no longer shows a
   second preview inside the editor, the editor fits beside the right sidebar again after the
