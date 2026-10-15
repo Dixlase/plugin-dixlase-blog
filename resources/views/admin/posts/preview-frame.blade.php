@@ -23,6 +23,14 @@ plugins.
 @section('content')
 <article class="dixlase-blog-preview prose prose-lg dark:prose-invert mx-auto py-8 px-4 max-w-3xl">
     <h1 id="preview-title" class="dixlase-blog-preview__title">{{ $initialTitle ?? '' }}</h1>
+    {{-- The featured image, as the post page shows it above the body;
+         blogFeaturedPreview in the editor swaps it ("updateFeatured"). --}}
+    <figure id="preview-featured" class="dixlase-blog-preview__featured not-prose" @if (empty($initialFeatured)) hidden @endif>
+        <img id="preview-featured-image"
+             src="{{ $initialFeatured['url'] ?? '' }}"
+             alt="{{ $initialFeatured['alt'] ?? '' }}"
+             class="w-full h-auto rounded-xl">
+    </figure>
     <div id="preview-content" class="dixlase-blog-preview__content">
         {!! $initialContent ?? '' !!}
     </div>
@@ -39,10 +47,21 @@ plugins.
 (function () {
     var titleEl = document.getElementById('preview-title');
     var contentEl = document.getElementById('preview-content');
+    var featuredEl = document.getElementById('preview-featured');
+    var featuredImg = document.getElementById('preview-featured-image');
 
     window.addEventListener('message', function (event) {
         if (event.origin !== window.location.origin) return;
         if (!event.data || event.data.type !== 'dixlase-preview-update') return;
+        if (event.data.action === 'updateFeatured') {
+            if (featuredEl && featuredImg) {
+                var url = typeof event.data.url === 'string' ? event.data.url : '';
+                featuredImg.src = url;
+                featuredImg.alt = typeof event.data.alt === 'string' ? event.data.alt : '';
+                featuredEl.hidden = url === '';
+            }
+            return;
+        }
         if (event.data.action !== 'updateContent') return;
 
         if (titleEl && typeof event.data.title === 'string') {

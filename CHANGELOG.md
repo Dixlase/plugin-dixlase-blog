@@ -85,6 +85,8 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Fixed
 
+- The live preview beside the post editor shows the featured image, and follows when it is
+  chosen, changed or removed in the sidebar (#97).
 - The post editor's "Preview" button opens drafts, scheduled and closed posts too (#96). It opens
   `/{blog}/preview/{id}`, which shows a post in any status in the site's layout to members who may
   edit posts, with a banner, `noindex` and no caching; anyone else gets 404.
