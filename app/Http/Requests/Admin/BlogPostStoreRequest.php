@@ -63,7 +63,7 @@ class BlogPostStoreRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'slug' => [
-                'nullable', 'string', 'max:200', 'regex:/^[a-z0-9][a-z0-9\-]*$/',
+                'nullable', 'string', 'max:200', 'regex:'.BlogPost::SLUG_PATTERN,
                 UniqueContentSlug::for('plg_dixlase_blog_posts'),
             ],
             'content' => ['nullable', 'string', 'max:500000'],

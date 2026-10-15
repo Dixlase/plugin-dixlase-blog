@@ -38,6 +38,7 @@ use App\Helpers\LocaleHelper;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\NullsBlankInput;
+use Plugins\DixlaseBlog\App\Models\BlogPost;
 
 class BlogCategoryStoreRequest extends FormRequest
 {
@@ -56,7 +57,7 @@ class BlogCategoryStoreRequest extends FormRequest
         return [
             'label' => ['required', 'string', 'max:255'],
             'slug' => [
-                'nullable', 'string', 'max:200', 'regex:/^[a-z0-9][a-z0-9\-]*$/',
+                'nullable', 'string', 'max:200', 'regex:'.BlogPost::SLUG_PATTERN,
                 Rule::unique('plg_dixlase_blog_categories', 'slug'),
             ],
             'parent_id' => ['nullable', 'integer', 'exists:plg_dixlase_blog_categories,id'],

@@ -80,6 +80,12 @@ class BlogPost extends Model implements Revisionable
     public const PLUGIN_SLUG = 'dixlase-blog';
 
     /** Whether a post takes comments: the blog setting, or its own choice. */
+    /**
+     * Slugs of posts and categories: lowercase letters, digits, hyphens and
+     * underscores, starting with a letter or digit.
+     */
+    public const SLUG_PATTERN = '/^[a-z0-9][a-z0-9_\-]*$/';
+
     public const COMMENT_STATUSES = ['inherit', 'open', 'closed'];
 
     protected $table = 'plg_dixlase_blog_posts';

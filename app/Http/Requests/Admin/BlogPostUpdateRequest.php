@@ -91,7 +91,7 @@ class BlogPostUpdateRequest extends FormRequest
 
         return [
             'title' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:200', 'regex:/^[a-z0-9][a-z0-9\-]*$/', $slugRule],
+            'slug' => ['nullable', 'string', 'max:200', 'regex:'.BlogPost::SLUG_PATTERN, $slugRule],
             'content' => ['nullable', 'string', 'max:500000'],
             'excerpt' => ['nullable', 'string', 'max:500'],
             'featured_media_id' => ['nullable', 'integer', 'exists:media,id'],

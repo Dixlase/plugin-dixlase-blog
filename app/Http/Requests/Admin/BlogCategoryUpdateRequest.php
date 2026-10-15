@@ -38,6 +38,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\NullsBlankInput;
 use Plugins\DixlaseBlog\App\Models\BlogCategory;
+use Plugins\DixlaseBlog\App\Models\BlogPost;
 
 class BlogCategoryUpdateRequest extends FormRequest
 {
@@ -76,7 +77,7 @@ class BlogCategoryUpdateRequest extends FormRequest
 
         return [
             'label' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:200', 'regex:/^[a-z0-9][a-z0-9\-]*$/', $slugRule],
+            'slug' => ['nullable', 'string', 'max:200', 'regex:'.BlogPost::SLUG_PATTERN, $slugRule],
             'parent_id' => [
                 'nullable',
                 'integer',
