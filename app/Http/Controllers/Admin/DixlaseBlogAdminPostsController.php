@@ -250,11 +250,19 @@ class DixlaseBlogAdminPostsController extends Controller
         // route declares {post?} so the param may be absent in
         // create-mode previews.
         $postId = $request->route('post');
-        $resolvedPost = $postId !== null ? BlogPost::query()->find((int) $postId) : null;
+        $resolvedPost = $postId !== null ? BlogPost::query()->with('featuredMedia')->find((int) $postId) : null;
 
         $initialContent = '';
         $initialTitle = '';
+        $initialFeatured = null;
         if ($resolvedPost) {
+            $media = $resolvedPost->featuredMedia;
+            if ($media !== null) {
+                $initialFeatured = [
+                    'url' => asset('storage/media/'.$media->path),
+                    'alt' => (string) ($media->alt_text ?: $resolvedPost->title),
+                ];
+            }
             $initialTitle = (string) $resolvedPost->title;
             $initialContent = app(BlogContentRenderer::class)->render(
                 $resolvedPost->content,
@@ -266,6 +274,7 @@ class DixlaseBlogAdminPostsController extends Controller
             'post' => $resolvedPost,
             'initialTitle' => $initialTitle,
             'initialContent' => $initialContent,
+            'initialFeatured' => $initialFeatured,
         ]);
     }
 

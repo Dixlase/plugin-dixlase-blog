@@ -295,7 +295,10 @@ side validation continues to enforce it.
     </div>
 
     {{-- ===== 6. Featured image ===== --}}
-    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+    {{-- blogFeaturedPreview sends the chosen image to the live preview. --}}
+    <div class="border-t border-gray-200 dark:border-gray-700 pt-6"
+         x-data="blogFeaturedPreview"
+         data-input-id="featured_media_id">
         <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
             {{ __('dixlase-blog::admin.post_form.media_section') }}
         </h3>

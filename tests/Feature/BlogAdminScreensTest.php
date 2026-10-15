@@ -38,6 +38,8 @@ namespace Plugins\DixlaseBlog\Tests\Feature;
 use App\Enums\MemberRole;
 use App\Http\Middleware\CheckInstallationReady;
 use App\Http\Middleware\CheckMaintenanceMode;
+use App\Contracts\Site\SiteContextInterface;
+use App\Models\Media;
 use App\Models\Member;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
@@ -184,6 +186,35 @@ class BlogAdminScreensTest extends TestCase
             ->assertSee('action="'.route('dixlase-blog::admin.blog.categories.outdent', ['category' => $releases->id]).'"', false)
             ->assertSee('name="parent_id" value="'.$releases->id.'"', false)
             ->assertDontSee('<select id="create-parent_id"', false);
+    }
+
+    public function test_the_live_preview_shows_the_featured_image(): void
+    {
+        $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
+        // Media rows belong to the current site.
+        $siteId = rescue(fn () => app(SiteContextInterface::class)->currentSiteId(), 1, false);
+        $media = Media::query()->create([
+            'site_id' => $siteId,
+            'name' => 'cover.png',
+            'alt_text' => 'Cover',
+            'path' => '2026/10/cover.png',
+            'type' => 'image/png',
+        ]);
+        $this->post->update(['featured_media_id' => $media->id]);
+
+        $this->get(route('dixlase-blog::admin.blog.previewFrame', ['post' => $this->post->id]))->assertOk()
+            ->assertSee('src="'.asset('storage/media/2026/10/cover.png').'"', false)
+            ->assertSee('alt="Cover"', false)
+            ->assertSee('updateFeatured', false);
+    }
+
+    public function test_the_live_preview_hides_the_featured_image_without_one(): void
+    {
+        $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
+
+        $html = $this->get(route('dixlase-blog::admin.blog.previewFrame'))->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/<figure id="preview-featured"[^>]*\bhidden\b/', $html);
     }
 
     public function test_every_admin_screen_opens_for_an_admin(): void
