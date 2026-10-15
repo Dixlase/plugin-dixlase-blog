@@ -37,6 +37,7 @@ use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminCommentsContr
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostRevisionsController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostsController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminSettingsController;
+use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFrontController;
 
 /*
 |--------------------------------------------------------------------------
@@ -72,6 +73,12 @@ Route::name('dixlase-blog::admin.')
         Route::get('/blog/preview-frame/{post?}', [DixlaseBlogAdminPostsController::class, 'previewFrame'])
             ->whereNumber('post')
             ->name('blog.previewFrame');
+        // The saved post in any status, as the site shows it (the
+        // sidebar's "Preview" button). Under the admin URL: the front
+        // session does not carry the admin login (guard-aware sessions).
+        Route::get('/blog/{post}/preview', [DixlaseBlogFrontController::class, 'preview'])
+            ->whereNumber('post')
+            ->name('blog.previewPage');
 
         // ===== Trash =====
         Route::get('/blog/trash', [DixlaseBlogAdminPostsController::class, 'trash'])->name('blog.trash');

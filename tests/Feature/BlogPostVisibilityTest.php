@@ -113,11 +113,12 @@ class BlogPostVisibilityTest extends TestCase
             Route::get('/blog/feed.xml', [DixlaseBlogFeedController::class, 'feed'])->name('feed');
             Route::get('/blog/category/{slug}', [DixlaseBlogFrontController::class, 'category'])->name('category');
             Route::get('/blog/tag/{slug}', [DixlaseBlogFrontController::class, 'tag'])->name('tag');
-            Route::get('/blog/preview/{post}', [DixlaseBlogFrontController::class, 'preview'])
-                ->where('post', '[0-9]+')
-                ->name('preview');
             Route::get('/blog/{slug}', [DixlaseBlogFrontController::class, 'show'])->name('show');
         });
+        // The editors' preview lives under the admin URL (routes/admin.php).
+        Route::middleware('web')->prefix('admin-custom')->get('/blog/{post}/preview', [DixlaseBlogFrontController::class, 'preview'])
+            ->whereNumber('post')
+            ->name('dixlase-blog::admin.blog.previewPage');
         Route::getRoutes()->refreshNameLookups();
         Route::getRoutes()->refreshActionLookups();
 
@@ -180,7 +181,7 @@ class BlogPostVisibilityTest extends TestCase
         foreach (['draft', 'scheduled-later', 'closed', 'live'] as $slug) {
             $post = BlogPost::query()->where('slug', $slug)->firstOrFail();
 
-            $this->get('/blog/preview/'.$post->id)
+            $this->get('/admin-custom/blog/'.$post->id.'/preview')
                 ->assertOk()
                 ->assertSee((self::VISIBLE + self::HIDDEN)[$slug])
                 ->assertSee('dixlase-blog-preview-banner', false)
@@ -192,10 +193,10 @@ class BlogPostVisibilityTest extends TestCase
     {
         $draft = BlogPost::query()->where('slug', 'draft')->firstOrFail();
 
-        $this->get('/blog/preview/'.$draft->id)->assertNotFound();
+        $this->get('/admin-custom/blog/'.$draft->id.'/preview')->assertNotFound();
 
         $this->actingAs(Member::factory()->create(['role' => MemberRole::CONTRIBUTOR, 'status' => 1]), 'member');
-        $this->get('/blog/preview/'.$draft->id)->assertNotFound();
+        $this->get('/admin-custom/blog/'.$draft->id.'/preview')->assertNotFound();
     }
 
     public function test_the_public_page_shows_no_preview_banner(): void
