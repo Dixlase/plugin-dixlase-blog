@@ -113,6 +113,37 @@ class BlogAdminBlankInputTest extends TestCase
         $this->assertNull(DB::table('plg_dixlase_blog_posts')->value('featured_media_id'));
     }
 
+    public function test_slugs_may_contain_underscores(): void
+    {
+        $this->assertSaved($this->post(route('dixlase-blog::admin.blog.store'), [
+            'title' => 'Hello',
+            'slug' => 'release_notes-2026',
+            'content' => 'Body',
+            'editor_type' => 'markdown',
+            'status' => 'draft',
+        ]));
+        $this->assertSaved($this->post(route('dixlase-blog::admin.blog.categories.store'), [
+            'label' => 'Release notes',
+            'slug' => 'release_notes',
+        ]));
+
+        $this->assertSame('release_notes-2026', DB::table('plg_dixlase_blog_posts')->value('slug'));
+        $this->assertTrue(DB::table('plg_dixlase_blog_categories')->where('slug', 'release_notes')->exists());
+    }
+
+    public function test_a_slug_may_not_start_with_an_underscore_or_hold_capitals(): void
+    {
+        foreach (['_hidden', 'Release'] as $slug) {
+            $this->post(route('dixlase-blog::admin.blog.store'), [
+                'title' => 'Hello',
+                'slug' => $slug,
+                'content' => 'Body',
+                'editor_type' => 'markdown',
+                'status' => 'draft',
+            ])->assertSessionHasErrors('slug');
+        }
+    }
+
     public function test_a_top_level_category_is_created_from_an_empty_parent(): void
     {
         $response = $this->post(route('dixlase-blog::admin.blog.categories.store'), [

@@ -85,6 +85,7 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Fixed
 
+- Post and category slugs may contain underscores (#95).
 - The post editor with core's shared content editor (#93): a Markdown post no longer shows a
   second preview inside the editor, the editor fits beside the right sidebar again after the
   sidebar is closed and reopened, and the title and status carry the required badge.
