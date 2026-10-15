@@ -121,4 +121,7 @@ return [
         'parent_missing' => '返信先のコメントは、もう表示されていません。',
         'anonymous' => '匿名',
     ],
+
+    // Banner on the editors' preview of a post (any status).
+    'preview_banner' => 'プレビュー — この記事の状態は「:status」です。このページは編集者にしか見えません。',
 ];

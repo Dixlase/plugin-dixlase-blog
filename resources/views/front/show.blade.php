@@ -40,6 +40,14 @@ BlogContentRenderer).
 
 @include('dixlase-blog::front._assets')
 
+{{-- The editors' preview of a post in any status stays out of search
+     engines. --}}
+@if ($isPreview ?? false)
+    @push('head')
+        <meta name="robots" content="noindex, nofollow">
+    @endpush
+@endif
+
 {{-- Without DixlaseSEO, the post's own tags; they appear once the theme
      renders a head stack. --}}
 @unless ($seoHandlesHead)
@@ -59,6 +67,11 @@ BlogContentRenderer).
 @section('content')
 @component('dixlase-blog::front._layout', ['breadcrumbs' => $breadcrumbs ?? []])
     <article class="dixlase-blog-post">
+        @if ($isPreview ?? false)
+            <p class="dixlase-blog-preview-banner" role="status">
+                {{ __('dixlase-blog::front.preview_banner', ['status' => $post->status->label()]) }}
+            </p>
+        @endif
         <header class="dixlase-blog-post__header">
             <div class="dixlase-blog-meta">
                 @if ($post->published_at)

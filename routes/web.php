@@ -47,7 +47,7 @@ use Plugins\DixlaseBlog\App\Support\BlogSettings;
 // other plugins' prefixes (see DixlaseBlogServiceProvider).
 //
 // Route ordering matters: literal paths /blog/feed.xml, /blog/category/...,
-// /blog/tag/... and /blog/search are declared before the catch-all
+// /blog/tag/..., /blog/search and /blog/preview/{id} are declared before the catch-all
 // /blog/{slug} so the catch-all does not bind "feed.xml" or "search" as a
 // post slug. Date archives use two-digit months and days (/blog/2026/04).
 $blog = '/'.app(BlogSettings::class)->routeSlug();
@@ -66,6 +66,10 @@ Route::middleware(['front.ip'])
         Route::get($blog.'/{year}/{month}/{day}', [DixlaseBlogFrontController::class, 'date'])
             ->where(['year' => '[0-9]{4}', 'month' => '0[1-9]|1[0-2]', 'day' => '0[1-9]|[12][0-9]|3[01]'])
             ->name('day');
+        // Editors only; see DixlaseBlogFrontController::preview().
+        Route::get($blog.'/preview/{post}', [DixlaseBlogFrontController::class, 'preview'])
+            ->where('post', '[0-9]+')
+            ->name('preview');
         Route::post($blog.'/{slug}/comments', [DixlaseBlogCommentController::class, 'store'])
             ->middleware('throttle:'.DixlaseBlogServiceProvider::COMMENT_RATE_LIMITER)
             ->name('comment');
