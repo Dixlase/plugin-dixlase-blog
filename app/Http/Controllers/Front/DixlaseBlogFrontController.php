@@ -83,9 +83,40 @@ class DixlaseBlogFrontController extends Controller
             ->with(['categories', 'tags', 'featuredMedia', 'author'])
             ->firstOrFail();
 
+        return view('dixlase-blog::front.show', $this->postViewData($request, $post));
+    }
+
+    /**
+     * A post in any status (draft, scheduled, closed) as the site will show
+     * it, for the "Preview" button of the post editor. Only members who may
+     * edit posts see it; anyone else gets the same 404 as for a missing
+     * post, so a draft's existence does not leak. The page is kept out of
+     * search engines and caches.
+     */
+    public function preview(Request $request): Response
+    {
+        abort_if($this->comments->siteCommenter() === null, 404);
+
+        $post = BlogPost::query()
+            ->with(['categories', 'tags', 'featuredMedia', 'author'])
+            ->findOrFail((int) $request->route('post'));
+
+        return response()
+            ->view('dixlase-blog::front.show', array_merge($this->postViewData($request, $post), [
+                'isPreview' => true,
+            ]))
+            ->header('X-Robots-Tag', 'noindex, nofollow')
+            ->header('Cache-Control', 'no-store, private');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function postViewData(Request $request, BlogPost $post): array
+    {
         $postUrl = route('dixlase-blog::front.show', ['slug' => $post->slug]);
 
-        return view('dixlase-blog::front.show', array_merge($this->commentParams($request, $post), [
+        return array_merge($this->commentParams($request, $post), [
             'post' => $post,
             'contentHtml' => $this->renderer->renderPost($post),
             'previousPost' => $this->neighbours->previous($post),
@@ -94,7 +125,7 @@ class DixlaseBlogFrontController extends Controller
             'postUrl' => $postUrl,
             'shareLinks' => $this->shareLinks->for($postUrl, (string) $post->localized('title')),
             'breadcrumbs' => $this->breadcrumbs->forPost($post, $postUrl),
-        ]));
+        ]);
     }
 
     public function category(Request $request): View

@@ -41,12 +41,12 @@ side validation continues to enforce it.
         'scheduled' => \App\Enums\ContentStatus::SCHEDULED->label(),
     ];
 
-    // The sidebar Preview button opens the public-side (saved) URL in a
-    // new tab — useful for verifying how the post renders inside the
-    // theme's full layout, vs. the editor's split-pane preview which
-    // shows unsaved changes in a stripped-down iframe shell.
-    $publicPreviewUrl = $isEditMode && filled($post->slug)
-        ? route('dixlase-blog::front.show', ['slug' => $post->slug])
+    // The sidebar Preview button opens the saved post in the theme's full
+    // layout in a new tab, whatever its status (the preview route shows
+    // drafts to editors), vs. the editor's split-pane preview which shows
+    // unsaved changes in a stripped-down iframe shell.
+    $publicPreviewUrl = $isEditMode
+        ? route('dixlase-blog::front.preview', ['post' => $post->id])
         : null;
 
     // Resolve editor type once for the meta-info badge so the badge

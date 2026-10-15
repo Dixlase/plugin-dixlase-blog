@@ -121,4 +121,7 @@ return [
         'parent_missing' => 'The comment you replied to is no longer shown.',
         'anonymous' => 'Anonymous',
     ],
+
+    // Banner on the editors' preview of a post (any status).
+    'preview_banner' => 'Preview — this post is :status. Only editors can see this page.',
 ];
