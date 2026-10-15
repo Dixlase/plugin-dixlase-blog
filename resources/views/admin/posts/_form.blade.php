@@ -55,12 +55,16 @@ runtime API.
      so they do not affect <x-form-content-editor> usages elsewhere. --}}
 @push('styles')
 <style @cspNonce>
+/* Let the main column shrink below the preview iframe's width, so it
+   fits beside the right sidebar again after the sidebar is reopened
+   (flex items default to min-width: auto). The front page and pages
+   editors set the same. */
+#admin-main-content { min-width: 0; }
+
 /* The form-content-editor's Markdown panel ships its own client-side
-   side-by-side preview (left textarea + right marked.js render). Inside
-   our split-pane editor we already provide a richer iframe preview on
-   the right, so the inline preview column is redundant and visually
-   noisy — collapse the panel to a single column and hide the inline
-   preview side and its "Markdown Editor / Preview" mini-labels.
+   side-by-side preview. The site preview on the right makes it
+   redundant: newer cores leave it out (inlineMarkdownPreview below),
+   and these rules hide it on cores before the shared editor.
 
    NOTE: do NOT write component tags like the form-content-editor name
    in angle-bracket form inside this style block. Blade processes the
@@ -131,6 +135,7 @@ runtime API.
                 editorFieldName="editor_type"
                 :editorIcons="$editorIcons"
                 :editorTranslations="$editorTranslations"
+                :inlineMarkdownPreview="false"
             />
             <x-form-error name="content" />
         </div>
