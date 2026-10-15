@@ -119,6 +119,9 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Changed
 
+- The post editor uses the live preview of core's shared content editor (#90), with the blog's own
+  frame and renderer, instead of a split pane of its own; the title and the featured image are sent
+  to it from the sidebar. Requires Dixlase 0.1.13.
 - Wider blog on large screens (#98): from Tailwind's `xl` the blog grows to 80rem and from `2xl`
   to 96rem, a post beside the sidebar fills its column, and listings show three cards beside the
   sidebar at `2xl`. Every media query uses Tailwind's breakpoints. The translation screen names

@@ -235,7 +235,7 @@ class BlogAdminScreensTest extends TestCase
         $this->get(route('dixlase-blog::admin.blog.previewFrame'))->assertOk();
     }
 
-    public function test_the_post_form_fits_the_sidebar_and_marks_required_fields(): void
+    public function test_the_post_form_uses_the_shared_preview_and_marks_required_fields(): void
     {
         $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
 
@@ -243,8 +243,11 @@ class BlogAdminScreensTest extends TestCase
 
         // The main column may shrink beside the right sidebar.
         $response->assertSee('#admin-main-content { min-width: 0; }', false);
-        // The site preview is the only Markdown preview.
-        $response->assertSee('&quot;inlineMarkdownPreview&quot;:false', false);
+        // The shared editor runs the preview through the blog's frame and
+        // renderer; the side-by-side Markdown view stays off.
+        $response->assertSee('&quot;preview&quot;:true', false);
+        $response->assertSee('&quot;previewRender&quot;:&quot;server&quot;', false);
+        $response->assertSee('x-data="blogPreviewTitle"', false);
         // Title and status carry the required badge.
         foreach (['title', 'status'] as $field) {
             $this->assertSame(1, preg_match('~<label for="'.$field.'"[^>]*>(.*?)</label>~s', $response->getContent(), $label));

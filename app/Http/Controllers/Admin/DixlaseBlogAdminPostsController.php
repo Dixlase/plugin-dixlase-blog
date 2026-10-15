@@ -204,8 +204,8 @@ class DixlaseBlogAdminPostsController extends Controller
     }
 
     /**
-     * Server-side preview render endpoint. The post-form Alpine editor
-     * (blogPostEditor) POSTs the current { content, editor_type } here on
+     * Server-side preview render endpoint. Core's content editor
+     * (previewRender="server") POSTs the current { content, editor_type } here on
      * each debounced edit, receives the rendered HTML in JSON, and pushes
      * it into the iframe via postMessage. It renders through
      * BlogContentRenderer, as the public post page does, so the preview

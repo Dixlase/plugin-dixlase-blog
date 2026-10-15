@@ -177,7 +177,8 @@ side validation continues to enforce it.
         @endif
 
         {{-- Title --}}
-        <div>
+        {{-- blogPreviewTitle sends the title to the live preview. --}}
+        <div x-data="blogPreviewTitle" data-input-id="title">
             <x-form-label :for="'title'" :text="__('dixlase-blog::admin.post.title_label')" :required="true" />
             <x-form-text
                 id="title"
