@@ -91,6 +91,8 @@ class BlogAdminScreensTest extends TestCase
         $this->themeDirectory = storage_path('framework/testing/blog-admin-theme-'.uniqid());
         File::ensureDirectoryExists($this->themeDirectory.'/layouts');
         File::put($this->themeDirectory.'/layouts/preview.blade.php', '<html><body>@yield(\'content\')@stack(\'scripts\')</body></html>');
+        // The post preview (blog.previewPage) renders the front template.
+        File::put($this->themeDirectory.'/layouts/app.blade.php', '<html><title>@yield(\'title\')</title><body>@yield(\'content\')</body></html>');
         $this->app['view']->replaceNamespace('themes', [$this->themeDirectory]);
 
         // The admin screens link to the public pages, so the front routes too.
