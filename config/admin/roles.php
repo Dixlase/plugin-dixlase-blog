@@ -97,6 +97,7 @@ return [
                         'store' => $editor,
                         'update' => $editor,
                         'reorder' => $editor,
+                        'outdent' => $editor,
                         'destroy' => $admin,
                     ],
                 ],

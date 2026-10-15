@@ -26,7 +26,8 @@ import Sortable from 'sortablejs';
  * pre-order to produce a flat list of { id, parent_id, display_order }
  * and POSTs it to the reorder endpoint. The server saves each item via
  * Eloquent so the BlogCategory saving / saved hooks recompute depth and
- * cycle-check.
+ * cycle-check. Drops deeper than data-max-depth are refused while
+ * dragging; the server refuses them too.
  *
  * Usage:
  *   <div x-data="blogCategoryReorder" data-save-url="..." data-csrf-token="...">
@@ -42,10 +43,9 @@ export default function blogCategoryReorder() {
     return {
         saveUrl: '',
         csrfToken: '',
-        // Which row's inline edit form is open, and whether the create
-        // form at the top of the page is open.
-        openId: null,
-        creating: false,
+        maxDepth: 2,
+        // The open inline form: 'create', 'child-{id}', 'edit-{id}' or null.
+        openForm: null,
         saving: false,
         savedAt: null,
         error: null,
@@ -54,7 +54,35 @@ export default function blogCategoryReorder() {
         init() {
             this.saveUrl = this.$el.dataset.saveUrl || '';
             this.csrfToken = this.$el.dataset.csrfToken || '';
+            const max = parseInt(this.$el.dataset.maxDepth, 10);
+            this.maxDepth = Number.isNaN(max) ? 2 : max;
+            // A failed submit comes back with its form open.
+            this.openForm = this.$el.dataset.reopen || null;
             this.attachSortables();
+        },
+
+        isOpen(key) {
+            return this.openForm === key;
+        },
+
+        toggle(key) {
+            this.openForm = this.openForm === key ? null : key;
+        },
+
+        toggleCreate() {
+            this.toggle('create');
+        },
+
+        toggleChild(id) {
+            this.toggle('child-' + id);
+        },
+
+        toggleEdit(id) {
+            this.toggle('edit-' + id);
+        },
+
+        closeForms() {
+            this.openForm = null;
         },
 
         destroy() {
@@ -73,11 +101,85 @@ export default function blogCategoryReorder() {
                     fallbackOnBody: true,
                     swapThreshold: 0.65,
                     invertSwap: true,
-                    ghostClass: 'opacity-40',
+                    ghostClass: 'dixlase-blog-category-ghost',
                     chosenClass: 'ring-2',
-                    onEnd: () => this.persist(),
+                    onStart: (evt) => this.startDrag(evt.item),
+                    onMove: (evt) => this.allowDrop(evt.dragged, evt.to),
+                    onEnd: () => this.endDrag(),
                 });
                 this.sortables.push(instance);
+            });
+        },
+
+        /**
+         * Mark the lists the dragged row may land in, so empty child lists
+         * open up as drop zones only where the result stays within maxDepth.
+         */
+        startDrag(item) {
+            this.$el.classList.add('is-dragging');
+            const height = this.subtreeHeight(item);
+            this.$el.querySelectorAll('.category-tree').forEach((list) => {
+                const fits = !item.contains(list) && this.listDepth(list) + height <= this.maxDepth;
+                list.classList.toggle('can-accept', fits);
+            });
+        },
+
+        allowDrop(item, list) {
+            this.$el.querySelectorAll('.category-tree.is-drop-target').forEach((el) => {
+                el.classList.remove('is-drop-target');
+            });
+            if (this.listDepth(list) + this.subtreeHeight(item) > this.maxDepth) {
+                return false;
+            }
+            list.classList.add('is-drop-target');
+            return true;
+        },
+
+        endDrag() {
+            this.$el.classList.remove('is-dragging');
+            this.$el.querySelectorAll('.category-tree').forEach((list) => {
+                list.classList.remove('can-accept', 'is-drop-target');
+            });
+            this.refreshRows();
+            this.persist();
+        },
+
+        /** Depth a row placed in this list would have (0 = top level). */
+        listDepth(list) {
+            let depth = 0;
+            let node = list.parentElement;
+            while (node && node !== this.$el) {
+                if (node.matches('li[data-category-id]')) {
+                    depth++;
+                }
+                node = node.parentElement;
+            }
+            return depth;
+        },
+
+        /** Levels of rows nested below this row. */
+        subtreeHeight(item) {
+            let height = 0;
+            item.querySelectorAll('li[data-category-id]').forEach((li) => {
+                const levels = this.listDepth(li.parentElement) - this.listDepth(item.parentElement);
+                height = Math.max(height, levels);
+            });
+            return height;
+        },
+
+        /**
+         * After a drop, show "+" only where a child still fits and "Move up
+         * a level" only below the top level, as the server renders them.
+         */
+        refreshRows() {
+            this.$el.querySelectorAll('li[data-category-id]').forEach((li) => {
+                const depth = this.listDepth(li.parentElement);
+                li.querySelectorAll(':scope > div > div > [data-when="can-add-child"]').forEach((el) => {
+                    el.hidden = depth >= this.maxDepth;
+                });
+                li.querySelectorAll(':scope > div > div > [data-when="can-outdent"]').forEach((el) => {
+                    el.hidden = depth === 0;
+                });
             });
         },
 

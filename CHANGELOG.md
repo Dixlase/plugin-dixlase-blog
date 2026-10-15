@@ -110,6 +110,12 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Changed
 
+- The category screen builds the tree in place (#88). A row's + creates a child under it, and
+  "Move up a level" moves a child or grandchild next to its parent, so the parent select box is
+  gone from both forms. Categories nest three levels deep at most; the forms, the reorder endpoint
+  and drag and drop all refuse a fourth, and while dragging the drop target is highlighted. Edit
+  and delete are icon buttons, as on the post list. A form that fails validation opens again with
+  its errors.
 - The post trash uses the same table as the post list: ID column, deletion date, Actions header
   and icon buttons, and cards at phone width (#85).
 - The admin screens name their Alpine components and pass values through `data-*` attributes

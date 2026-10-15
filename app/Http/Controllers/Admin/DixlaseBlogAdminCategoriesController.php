@@ -131,6 +131,47 @@ class DixlaseBlogAdminCategoriesController extends Controller
             ->with('success', __('dixlase-blog::admin.flash.category_updated'));
     }
 
+    /**
+     * Move a category up a level, next to its former parent. The keyboard
+     * and phone counterpart of dragging it out of the parent.
+     */
+    public function outdent(Request $request): RedirectResponse
+    {
+        $category = BlogCategory::query()->with('parent')->findOrFail((int) $request->route('category'));
+        $parent = $category->parent;
+
+        if ($parent !== null) {
+            DB::transaction(function () use ($category, $parent): void {
+                $category->parent_id = $parent->parent_id;
+                $category->save();
+
+                // Renumber the new siblings with the category right after
+                // its former parent. Query updates skip the model hooks,
+                // which only matter when the parent changes.
+                $siblings = BlogCategory::query()
+                    ->where('parent_id', $parent->parent_id)
+                    ->whereKeyNot($category->id)
+                    ->orderBy('display_order')
+                    ->orderBy('label')
+                    ->pluck('id');
+
+                $order = 10;
+                foreach ($siblings as $id) {
+                    BlogCategory::query()->whereKey($id)->update(['display_order' => $order]);
+                    $order += 10;
+                    if ((int) $id === $parent->id) {
+                        BlogCategory::query()->whereKey($category->id)->update(['display_order' => $order]);
+                        $order += 10;
+                    }
+                }
+            });
+        }
+
+        return redirect()
+            ->route('dixlase-blog::admin.blog.categories.index')
+            ->with('success', __('dixlase-blog::admin.flash.category_moved_up'));
+    }
+
     public function destroy(Request $request): RedirectResponse
     {
         $category = BlogCategory::query()->findOrFail((int) $request->route('category'));
