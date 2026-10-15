@@ -178,7 +178,7 @@ side validation continues to enforce it.
 
         {{-- Title --}}
         <div>
-            <x-form-label :for="'title'" :text="__('dixlase-blog::admin.post.title_label')" />
+            <x-form-label :for="'title'" :text="__('dixlase-blog::admin.post.title_label')" :required="true" />
             <x-form-text
                 id="title"
                 name="title"
@@ -350,7 +350,7 @@ side validation continues to enforce it.
 
         {{-- Status --}}
         <div>
-            <x-form-label :for="'status'" :text="__('dixlase-blog::admin.post.status_label')" />
+            <x-form-label :for="'status'" :text="__('dixlase-blog::admin.post.status_label')" :required="true" />
             <x-form-select
                 id="status"
                 name="status"
