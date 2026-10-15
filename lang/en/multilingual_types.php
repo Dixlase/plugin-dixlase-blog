@@ -20,7 +20,7 @@
 // declared type key, falling back to the raw "dixlase-blog:post" key
 // when no entry exists here.
 return [
-    'post' => 'Post',
-    'category' => 'Category',
-    'tag' => 'Tag',
+    'post' => 'Blog post',
+    'category' => 'Blog category',
+    'tag' => 'Blog tag',
 ];
