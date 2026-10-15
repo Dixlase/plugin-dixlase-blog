@@ -91,6 +91,7 @@ Route::name('dixlase-blog::admin.')
                 // Reorder must come before /{category} so "reorder" is not bound as a category id.
                 Route::post('/reorder', [DixlaseBlogAdminCategoriesController::class, 'reorder'])->name('reorder');
                 Route::put('/{category}', [DixlaseBlogAdminCategoriesController::class, 'update'])->name('update');
+                Route::post('/{category}/outdent', [DixlaseBlogAdminCategoriesController::class, 'outdent'])->name('outdent');
                 Route::delete('/{category}', [DixlaseBlogAdminCategoriesController::class, 'destroy'])->name('destroy');
             });
 

@@ -10,7 +10,8 @@ Recursive tree-node partial used by categories/index.blade.php.
 Each <li> carries data-category-id so blog-category-reorder.js can read
 it back when serializing the dropped tree. The <ul.category-tree> child
 container is always rendered (even empty) so SortableJS has a drop
-target for "make this category a child of X".
+target for "make this category a child of X"; the component refuses
+drops that would go deeper than BlogCategory::MAX_DEPTH.
 --}}
 
 <li data-category-id="{{ $category->id }}"
@@ -33,30 +34,64 @@ target for "make this category a child of X".
             @endif
         </div>
 
-        <div class="flex items-center gap-1 shrink-0">
+        <div class="flex items-center justify-end gap-2 shrink-0">
+            {{-- "+" and "Move up a level" follow the row's depth; the JS
+                 component updates them after a drag, see refreshRows(). --}}
             <x-form-button
                 type="button"
-                icon="fas fa-pen"
-                size="xs"
-                variant="secondary"
-                @click="openId = openId === {{ $category->id }} ? null : {{ $category->id }}; creating = false"
-                :title="__('dixlase-blog::admin.category.edit')"
+                variant="ghost"
+                size="sm"
+                icon="fas fa-plus"
+                data-when="can-add-child"
+                :hidden="! $category->canHaveChildren()"
+                :xClick="'toggleChild('.$category->id.')'"
+                :title="__('dixlase-blog::admin.category.add_child')"
+                :aria-label="__('dixlase-blog::admin.category.add_child')"
             />
+
+            <form id="outdent-cat-{{ $category->id }}"
+                  method="POST"
+                  action="{{ route('dixlase-blog::admin.blog.categories.outdent', ['category' => $category->id]) }}">
+                @csrf
+            </form>
+            <x-form-button
+                type="submit"
+                variant="ghost"
+                size="sm"
+                icon="fas fa-outdent"
+                form="outdent-cat-{{ $category->id }}"
+                data-when="can-outdent"
+                :hidden="$category->parent_id === null"
+                :title="__('dixlase-blog::admin.category.move_up')"
+                :aria-label="__('dixlase-blog::admin.category.move_up')"
+            />
+
+            <x-form-button
+                type="button"
+                variant="ghost"
+                size="sm"
+                icon="fas fa-edit"
+                :xClick="'toggleEdit('.$category->id.')'"
+                :title="__('dixlase-blog::admin.category.edit')"
+                :aria-label="__('dixlase-blog::admin.category.edit')"
+            />
+
             <form id="delete-cat-{{ $category->id }}"
                   method="POST"
-                  action="{{ route('dixlase-blog::admin.blog.categories.destroy', ['category' => $category->id]) }}"
-                  class="inline">
+                  action="{{ route('dixlase-blog::admin.blog.categories.destroy', ['category' => $category->id]) }}">
                 @csrf
                 @method('DELETE')
-                <x-form-button
-                    type="button"
-                    icon="fas fa-trash"
-                    size="xs"
-                    variant="danger"
-                    @click="openModal('delete-cat-modal-{{ $category->id }}')"
-                    :title="__('dixlase-blog::admin.category.delete')"
-                />
             </form>
+            <x-form-button
+                type="button"
+                variant="ghost"
+                size="sm"
+                icon="fas fa-trash"
+                class="!text-red-600 hover:!text-red-900 dark:!text-red-400 dark:hover:!text-red-300"
+                :xClick="'openModal(\'delete-cat-modal-'.$category->id.'\')'"
+                :title="__('dixlase-blog::admin.category.delete')"
+                :aria-label="__('dixlase-blog::admin.category.delete')"
+            />
             <x-ui-modal
                 :id="'delete-cat-modal-'.$category->id"
                 :title="__('dixlase-blog::admin.category.delete_confirm_title')"
@@ -70,46 +105,47 @@ target for "make this category a child of X".
         </div>
     </div>
 
-    {{-- Inline edit form --}}
-    <div x-show="openId === {{ $category->id }}" x-cloak
+    {{-- Inline form: a child under this row --}}
+    <div x-show="isOpen('child-{{ $category->id }}')" x-cloak
+         class="border-t border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 px-3 py-3">
+        @include('dixlase-blog::admin.categories._create-form', [
+            'formKey' => 'child-'.$category->id,
+            'isCurrent' => old('_form') === 'child-'.$category->id,
+            'parent' => $category,
+        ])
+    </div>
+
+    {{-- Inline edit form. The parent is changed by drag and drop or by
+         "Move up a level", not here. --}}
+    <div x-show="isOpen('edit-{{ $category->id }}')" x-cloak
          class="border-t border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 px-3 py-3">
         <form action="{{ route('dixlase-blog::admin.blog.categories.update', ['category' => $category->id]) }}"
               method="POST"
               class="space-y-3">
             @csrf
             @method('PUT')
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <input type="hidden" name="_form" value="edit-{{ $category->id }}">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                     <x-form-label :for="'edit-label-'.$category->id" :text="__('dixlase-blog::admin.category.label_label')" />
-                    <x-form-text :id="'edit-label-'.$category->id" name="label" :value="old('label', $category->label)" required />
-                    <x-form-error name="label" />
+                    <x-form-text :id="'edit-label-'.$category->id" name="label" :value="old('_form') === 'edit-'.$category->id ? old('label') : $category->label" required />
+                    @if (old('_form') === 'edit-'.$category->id)
+                        <x-form-error name="label" />
+                    @endif
                 </div>
                 <div>
                     <x-form-label :for="'edit-slug-'.$category->id" :text="__('dixlase-blog::admin.category.slug_label')" />
-                    <x-form-text :id="'edit-slug-'.$category->id" name="slug" :value="old('slug', $category->slug)" class="font-mono" />
-                    <x-form-error name="slug" />
-                </div>
-                <div>
-                    <x-form-label :for="'edit-parent-'.$category->id" :text="__('dixlase-blog::admin.category.parent_label')" />
-                    <select :id="'edit-parent-'.$category->id" name="parent_id" class="input-common input-full">
-                        <option value="">{{ __('dixlase-blog::admin.category.parent_none') }}</option>
-                        @foreach ($allCategories as $cat)
-                            @if ($cat->id !== $category->id)
-                                <option value="{{ $cat->id }}"
-                                    @selected(old('parent_id', $category->parent_id) == $cat->id)>
-                                    {{ str_repeat('— ', $cat->depth) }}{{ $cat->label }}
-                                </option>
-                            @endif
-                        @endforeach
-                    </select>
-                    <x-form-error name="parent_id" />
+                    <x-form-text :id="'edit-slug-'.$category->id" name="slug" :value="old('_form') === 'edit-'.$category->id ? old('slug') : $category->slug" class="font-mono" />
+                    @if (old('_form') === 'edit-'.$category->id)
+                        <x-form-error name="slug" />
+                    @endif
                 </div>
             </div>
             <div class="flex gap-2">
                 <x-form-button type="submit" icon="fas fa-save" size="sm" variant="primary">
                     {{ __('dixlase-blog::admin.category.save') }}
                 </x-form-button>
-                <x-form-button type="button" size="sm" variant="secondary" @click="openId = null">
+                <x-form-button type="button" size="sm" variant="secondary" @click="closeForms()">
                     {{ __('dixlase-blog::admin.category.cancel') }}
                 </x-form-button>
             </div>

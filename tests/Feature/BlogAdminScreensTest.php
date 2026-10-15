@@ -175,6 +175,17 @@ class BlogAdminScreensTest extends TestCase
             ->assertSee('action="'.route('dixlase-blog::admin.blog.forceDelete', ['id' => $this->post->id]).'"', false);
     }
 
+    public function test_the_category_rows_offer_a_child_and_moving_up(): void
+    {
+        $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
+        $releases = BlogCategory::query()->where('slug', 'releases')->firstOrFail();
+
+        $this->get(route('dixlase-blog::admin.blog.categories.index'))->assertOk()
+            ->assertSee('action="'.route('dixlase-blog::admin.blog.categories.outdent', ['category' => $releases->id]).'"', false)
+            ->assertSee('name="parent_id" value="'.$releases->id.'"', false)
+            ->assertDontSee('<select id="create-parent_id"', false);
+    }
+
     public function test_every_admin_screen_opens_for_an_admin(): void
     {
         $this->assertScreensOpenFor(MemberRole::ADMIN);

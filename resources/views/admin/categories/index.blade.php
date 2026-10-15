@@ -7,14 +7,14 @@ https://exc-d.com
 Dixlase Blog is dual-licensed. Same terms as edit.blade.php.
 
 Categories index with drag-and-drop reordering (SortableJS via the
-blog-category-reorder Alpine component) plus inline-expansion forms
-for create / edit.
+blogCategoryReorder Alpine component) plus inline forms: create at the
+top level, add a child under a row, edit a row.
 
-The outer x-data (blogCategoryReorder) holds three concerns in a single
-Alpine scope:
+The outer x-data (blogCategoryReorder) holds, in a single Alpine scope:
   - Sortable instances + persist endpoint (data-save-url / data-csrf-token)
-  - openId                    which row's inline edit form is open
-  - creating                  whether the top-of-page create form is open
+  - which inline form is open; data-reopen names the form a failed
+    submit came from, so it opens again with its errors
+  - data-max-depth, the deepest level drag and drop may produce
 The single scope keeps the toolbar (saving / saved indicators next to
 the New Category button) coherent without prop-drilling.
 --}}
@@ -23,8 +23,11 @@ the New Category button) coherent without prop-drilling.
 
 @section('content')
     <div x-data="blogCategoryReorder"
+         class="dixlase-blog-categories"
          data-save-url="{{ route('dixlase-blog::admin.blog.categories.reorder') }}"
-         data-csrf-token="{{ csrf_token() }}">
+         data-csrf-token="{{ csrf_token() }}"
+         data-max-depth="{{ \Plugins\DixlaseBlog\App\Models\BlogCategory::MAX_DEPTH }}"
+         data-reopen="{{ old('_form') }}">
 
         <div class="mb-4 flex items-center justify-between gap-4">
             <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -51,7 +54,7 @@ the New Category button) coherent without prop-drilling.
                     icon="fas fa-plus"
                     size="sm"
                     variant="primary"
-                    @click="creating = !creating; openId = null"
+                    @click="toggleCreate()"
                 >
                     {{ __('dixlase-blog::admin.category.new_button') }}
                 </x-form-button>
@@ -62,56 +65,14 @@ the New Category button) coherent without prop-drilling.
             {{ __('dixlase-blog::admin.category.reorder_help') }}
         </p>
 
-        {{-- Inline create form --}}
-        <div x-show="creating" x-cloak
+        {{-- Inline create form (top level) --}}
+        <div x-show="isOpen('create')" x-cloak
              class="mb-4 rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-4">
-            <form action="{{ route('dixlase-blog::admin.blog.categories.store') }}" method="POST" class="space-y-3">
-                @csrf
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    <div>
-                        <x-form-label :for="'create-label'" :text="__('dixlase-blog::admin.category.label_label')" />
-                        <x-form-text id="create-label" name="label" :value="old('label')" required />
-                        <x-form-error name="label" />
-                    </div>
-                    <div>
-                        <x-form-label :for="'create-slug'" :text="__('dixlase-blog::admin.category.slug_label')" />
-                        <x-form-text id="create-slug" name="slug" :value="old('slug')" class="font-mono" />
-                        <x-form-help-text :text="__('dixlase-blog::admin.category.slug_help')" />
-                        <x-form-error name="slug" />
-                    </div>
-                    <div>
-                        <x-form-label :for="'create-parent_id'" :text="__('dixlase-blog::admin.category.parent_label')" />
-                        <select id="create-parent_id" name="parent_id" class="input-common input-full">
-                            <option value="">{{ __('dixlase-blog::admin.category.parent_none') }}</option>
-                            @foreach ($categories as $cat)
-                                <option value="{{ $cat->id }}"
-                                    @selected(old('parent_id') == $cat->id)>
-                                    {{ str_repeat('— ', $cat->depth) }}{{ $cat->label }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <x-form-error name="parent_id" />
-                    </div>
-                    {{-- Source language of the name; fixed once saved. Other
-                         languages are added in the translation editor. --}}
-                    @if ($multilingualEnabled)
-                        <div>
-                            <x-form-label :for="'create-lang'" :text="__('dixlase-blog::admin.category.lang_label')" />
-                            <x-form-select id="create-lang" name="lang" :options="$languageOptions" :value="$langValue" />
-                            <x-form-help-text :text="__('dixlase-blog::admin.category.lang_help')" />
-                            <x-form-error name="lang" />
-                        </div>
-                    @endif
-                </div>
-                <div class="flex gap-2">
-                    <x-form-button type="submit" icon="fas fa-save" size="sm" variant="primary">
-                        {{ __('dixlase-blog::admin.category.save') }}
-                    </x-form-button>
-                    <x-form-button type="button" size="sm" variant="secondary" @click="creating = false">
-                        {{ __('dixlase-blog::admin.category.cancel') }}
-                    </x-form-button>
-                </div>
-            </form>
+            @include('dixlase-blog::admin.categories._create-form', [
+                'formKey' => 'create',
+                'isCurrent' => old('_form') === 'create',
+                'parent' => null,
+            ])
         </div>
 
         {{-- Tree --}}
@@ -136,3 +97,26 @@ the New Category button) coherent without prop-drilling.
 
     </div>
 @endsection
+
+@push('styles')
+<style @cspNonce>
+/* Drag and drop: show where a row will land. Empty child lists that may
+   take the dragged row open up into a visible drop zone. */
+.dixlase-blog-categories .category-tree.is-drop-target {
+    outline: 2px dashed var(--color-blue-500);
+    outline-offset: 2px;
+    border-radius: 0.375rem;
+    background-color: color-mix(in srgb, var(--color-blue-500) 6%, transparent);
+}
+.dixlase-blog-categories.is-dragging .category-tree.can-accept:not(:has(> li)) {
+    min-height: 2.25rem;
+    margin: 0.25rem 0.5rem 0.5rem 1.5rem;
+    border: 1px dashed var(--color-gray-400);
+    border-radius: 0.375rem;
+}
+.dixlase-blog-categories .dixlase-blog-category-ghost {
+    opacity: 0.5;
+    outline: 2px solid var(--color-blue-500);
+}
+</style>
+@endpush

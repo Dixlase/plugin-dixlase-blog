@@ -61,6 +61,13 @@ class BlogCategory extends Model
 
     protected $table = 'plg_dixlase_blog_categories';
 
+    /**
+     * Deepest depth a category may sit at: 0 is top level, so 2 allows
+     * three levels (parent, child, grandchild). Deeper trees crowd the
+     * breadcrumbs, the sidebar list and the admin tree on a phone.
+     */
+    public const MAX_DEPTH = 2;
+
     /** @var list<string> */
     protected $fillable = [
         'label',
@@ -132,6 +139,15 @@ class BlogCategory extends Model
     {
         static::saving(function (self $category): void {
             $category->depth = self::computeDepthFor($category);
+
+            // Checked only when the category is placed, so a tree made
+            // deeper before the limit still saves on a rename.
+            if (! $category->exists || $category->isDirty('parent_id')) {
+                $height = $category->exists ? $category->subtreeHeight() : 0;
+                if ($category->depth + $height > self::MAX_DEPTH) {
+                    throw new DomainException(self::tooDeepMessage());
+                }
+            }
         });
 
         static::saved(function (self $category): void {
@@ -160,6 +176,39 @@ class BlogCategory extends Model
             }
             $child->fixDescendantDepths();
         }
+    }
+
+    /**
+     * Levels of descendants below this category: 0 without children, 1
+     * with children only, 2 with grandchildren.
+     */
+    public function subtreeHeight(): int
+    {
+        $height = 0;
+        $ids = [$this->id];
+        $seen = [$this->id];
+
+        while (true) {
+            $ids = self::query()->whereIn('parent_id', $ids)->whereNotIn('id', $seen)->pluck('id')->all();
+            if ($ids === []) {
+                return $height;
+            }
+            $seen = array_merge($seen, $ids);
+            $height++;
+        }
+    }
+
+    /**
+     * Whether a child may be added under this category.
+     */
+    public function canHaveChildren(): bool
+    {
+        return $this->depth < self::MAX_DEPTH;
+    }
+
+    public static function tooDeepMessage(): string
+    {
+        return __('dixlase-blog::admin.category.too_deep', ['levels' => self::MAX_DEPTH + 1]);
     }
 
     /**

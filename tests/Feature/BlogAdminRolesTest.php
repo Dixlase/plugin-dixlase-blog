@@ -106,6 +106,7 @@ class BlogAdminRolesTest extends TestCase
             'dixlase-blog::admin.blog.destroy',
             'dixlase-blog::admin.blog.restore',
             'dixlase-blog::admin.blog.categories.store',
+            'dixlase-blog::admin.blog.categories.outdent',
             'dixlase-blog::admin.blog.revisions.restore',
             'dixlase-blog::admin.blog.comments.index',
             'dixlase-blog::admin.blog.comments.status',
