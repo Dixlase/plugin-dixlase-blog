@@ -25,13 +25,16 @@ BlogContentRenderer).
     // BlogPost::getTranslation('seo_description'). Since DixlaseSEO 0.2.0 it
     // also takes the title, a fallback OGP image (the featured image, used
     // when the post has no OGP image of its own) and the og:type.
+    // The featured image for this language (a translation's, else the
+    // post's own); also the fallback OGP image.
+    $featuredMedia = $post->localizedFeaturedMedia();
     $seoHandlesHead = function_exists('dls_seo_set_page_meta');
     if ($seoHandlesHead) {
         // Positional, not named: DixlaseSEO 0.1.x declares only the first two
         // parameters, and PHP ignores extra positional arguments while an
         // unknown named argument is a fatal Error. Keep this call positional
         // so the page still renders on a site running 0.1.x.
-        dls_seo_set_page_meta($post, 'dixlase-blog', $title, $post->featured_media_id, 'article');
+        dls_seo_set_page_meta($post, 'dixlase-blog', $title, $featuredMedia?->id, 'article');
     }
 @endphp
 
@@ -58,8 +61,8 @@ BlogContentRenderer).
     <meta property="og:title" content="{{ $title }}">
     <meta property="og:type" content="article">
     <meta property="og:url" content="{{ route('dixlase-blog::front.show', ['slug' => $post->slug]) }}">
-    @if ($post->featuredMedia)
-        <meta property="og:image" content="{{ asset('storage/media/'.$post->featuredMedia->path) }}">
+    @if ($featuredMedia)
+        <meta property="og:image" content="{{ asset('storage/media/'.$featuredMedia->path) }}">
     @endif
 @endpush
 @endunless
@@ -84,10 +87,10 @@ BlogContentRenderer).
             <h1 class="dixlase-blog-post__title" lang="{{ $post->localizedLang('title') }}">{{ $title }}</h1>
         </header>
 
-        @if ($post->featuredMedia)
+        @if ($featuredMedia)
             <figure class="dixlase-blog-post__featured">
-                <img src="{{ asset('storage/media/'.$post->featuredMedia->path) }}"
-                     alt="{{ $post->featuredMedia->alt_text ?? $title }}">
+                <img src="{{ asset('storage/media/'.$featuredMedia->path) }}"
+                     alt="{{ $featuredMedia->alt_text ?? $title }}">
             </figure>
         @endif
 
