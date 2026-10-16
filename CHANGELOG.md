@@ -11,6 +11,14 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Added
 
+- Category reordering with buttons (#110, #113): every row has up, down and "move into the
+  category above" buttons, for keyboard and touch users. The row moves in place and the tree is
+  saved like a drop; focus stays on the pressed button, and the save status is read out.
+- Comment counts in the post list (#116): published comments, and the ones waiting for approval as
+  a link to the comments screen's Pending tab.
+- The comment rate limit is set on the settings screen (#123): a number of comments per period
+  from one IP address, five per ten minutes by default.
+- A plugin thumbnail for the plugin list (#109, #119).
 - A featured image per language (#99). When DixlaseMultilingual has the media field type (the
   release after 0.4.1, Dixlase/plugin-dixlase-multilingual#56), the translation editor takes a
   featured image for each language. The post page, the lists, related posts and the fallback OGP
@@ -89,6 +97,10 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Fixed
 
+- Reordering categories by drag and drop saves again (#107). Every save sent an empty tree and
+  was refused, and the error showed as "[object Object]".
+- The comments screen and the personal data screen show their titles instead of a translation key
+  (#115). A test now checks that every admin page has a title in English and Japanese.
 - The post editor's "Preview" button opens the post again (#105). The preview moved under the
   admin URL: core keeps the admin session apart from the front one, so the front route never saw
   the admin login and answered 404 for every post.
@@ -126,6 +138,9 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Changed
 
+- The package metadata describes 0.1.0 (#121): the description, tags and permission notes in
+  `plugin.json`, the `composer.json` description, and `license-info.json` (GPL-3.0-or-later with
+  the dual-license header). The README is rewritten for 0.1.0 in both languages (#122).
 - The post editor uses the live preview of core's shared content editor (#90), with the blog's own
   frame and renderer, instead of a split pane of its own; the title and the featured image are sent
   to it from the sidebar. Requires Dixlase 0.1.13.
