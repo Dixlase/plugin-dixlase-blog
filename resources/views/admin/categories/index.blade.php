@@ -84,7 +84,7 @@ the New Category button) coherent without prop-drilling.
             </div>
         @else
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3">
-                <ul class="category-tree list-none min-h-4 space-y-0" data-parent-id="">
+                <ul class="category-tree list-none min-h-4 space-y-0" data-parent-id="" data-tree-root>
                     @foreach ($categories->whereNull('parent_id') as $root)
                         @include('dixlase-blog::admin.categories._tree-node', [
                             'category' => $root,

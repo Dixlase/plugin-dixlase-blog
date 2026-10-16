@@ -190,6 +190,22 @@ class BlogAdminScreensTest extends TestCase
             ->assertDontSee('<select id="create-parent_id"', false);
     }
 
+    public function test_drag_and_drop_finds_the_root_list_to_save(): void
+    {
+        $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
+
+        // The root list sits inside a wrapper; the reorder script finds it by
+        // this marker, not as a direct child of the component element.
+        $this->get(route('dixlase-blog::admin.blog.categories.index'))->assertOk()
+            ->assertSee('data-parent-id="" data-tree-root', false);
+
+        $script = (string) file_get_contents(base_path('plugins/DixlaseBlog/resources/src/js/blog-category-reorder.js'));
+        $this->assertStringContainsString("querySelector('[data-tree-root]')", $script);
+        $this->assertStringNotContainsString("querySelector(':scope > .category-tree')", $script);
+        // Core's JSON errors are { error: { code, message } }.
+        $this->assertStringContainsString('data.error.message', $script);
+    }
+
     public function test_the_live_preview_shows_the_featured_image(): void
     {
         $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
