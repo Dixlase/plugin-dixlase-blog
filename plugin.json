@@ -24,6 +24,7 @@
         "attributions_file": null,
         "third_party": []
     },
+    "thumbnail": "thumbnail.png",
     "namespace": "Plugins\\DixlaseBlog",
     "providers": [
         "Plugins\\DixlaseBlog\\App\\Providers\\DixlaseBlogServiceProvider"
