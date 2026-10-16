@@ -159,7 +159,7 @@ return [
     'category' => [
         'heading' => 'Categories',
         'description' => 'Manage blog categories.',
-        'reorder_help' => 'Drag the handle (⋮⋮) on the left of a row to reorder, or drop it inside another category to make it a child. Categories nest three levels deep at most. + adds a child under a row; the outdent button moves a category up a level.',
+        'reorder_help' => 'Drag the handle (⋮⋮) on the left of a row to reorder, or drop it inside another category to make it a child. The arrow buttons do the same without dragging: up and down within a level, the indent button into the category above, the outdent button up a level. Categories nest three levels deep at most. + adds a child under a row.',
         'drag_handle_label' => 'Drag to reorder',
         'saving' => 'Saving…',
         'saved' => 'Saved',
@@ -181,6 +181,9 @@ return [
         'add_child' => 'Add a child category',
         'add_child_heading' => 'New category under “:parent”',
         'move_up' => 'Move up a level',
+        'move_earlier' => 'Move up',
+        'move_later' => 'Move down',
+        'move_into_above' => 'Move into the category above',
         'too_deep' => 'Categories nest :levels levels deep at most.',
         'delete_confirm_title' => 'Delete category',
         'delete_confirm_message' => 'Delete this category? Posts in this category will lose this categorization.',

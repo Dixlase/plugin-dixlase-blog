@@ -35,18 +35,20 @@ the New Category button) coherent without prop-drilling.
             </h1>
 
             <div class="flex items-center gap-3">
-                {{-- Save status indicator --}}
-                <span x-show="saving" x-cloak class="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    {{ __('dixlase-blog::admin.category.saving') }}
-                </span>
-                <span x-show="!saving && savedAt && !error" x-cloak class="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                    <i class="fas fa-check"></i>
-                    {{ __('dixlase-blog::admin.category.saved') }}
-                </span>
-                <span x-show="error" x-cloak class="inline-flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span x-text="error"></span>
+                {{-- Save status indicator, read out after a move --}}
+                <span role="status" aria-live="polite" class="inline-flex items-center gap-3">
+                    <span x-show="saving" x-cloak class="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        {{ __('dixlase-blog::admin.category.saving') }}
+                    </span>
+                    <span x-show="!saving && savedAt && !error" x-cloak class="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                        <i class="fas fa-check"></i>
+                        {{ __('dixlase-blog::admin.category.saved') }}
+                    </span>
+                    <span x-show="error" x-cloak class="inline-flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span x-text="error"></span>
+                    </span>
                 </span>
 
                 <x-form-button

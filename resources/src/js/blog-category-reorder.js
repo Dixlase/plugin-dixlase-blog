@@ -29,6 +29,10 @@ import Sortable from 'sortablejs';
  * cycle-check. Drops deeper than data-max-depth are refused while
  * dragging; the server refuses them too.
  *
+ * The move buttons on each row (up, down, into the row above) make the same
+ * changes without dragging, for keyboard and touch users, and save the
+ * tree the same way.
+ *
  * Usage:
  *   <div x-data="blogCategoryReorder" data-save-url="..." data-csrf-token="...">
  *       <ul class="category-tree" data-parent-id="" data-tree-root>
@@ -47,6 +51,8 @@ export default function blogCategoryReorder() {
         // The open inline form: 'create', 'child-{id}', 'edit-{id}' or null.
         openForm: null,
         saving: false,
+        // A move made while a save is in flight; saved once that one ends.
+        saveAgain: false,
         savedAt: null,
         error: null,
         sortables: [],
@@ -59,6 +65,7 @@ export default function blogCategoryReorder() {
             // A failed submit comes back with its form open.
             this.openForm = this.$el.dataset.reopen || null;
             this.attachSortables();
+            this.refreshRows();
         },
 
         isOpen(key) {
@@ -168,23 +175,95 @@ export default function blogCategoryReorder() {
         },
 
         /**
-         * After a drop, show "+" only where a child still fits and "Move up
-         * a level" only below the top level, as the server renders them.
+         * After a drop or a move, show "+" only where a child still fits and
+         * "Move up a level" only below the top level, as the server renders
+         * them, and enable the move buttons only where the move is possible.
          */
         refreshRows() {
             this.$el.querySelectorAll('li[data-category-id]').forEach((li) => {
                 const depth = this.listDepth(li.parentElement);
-                li.querySelectorAll(':scope > div > div > [data-when="can-add-child"]').forEach((el) => {
+                const buttons = (when) => li.querySelectorAll(':scope > div > div > [data-when="' + when + '"]');
+                buttons('can-add-child').forEach((el) => {
                     el.hidden = depth >= this.maxDepth;
                 });
-                li.querySelectorAll(':scope > div > div > [data-when="can-outdent"]').forEach((el) => {
+                buttons('can-outdent').forEach((el) => {
                     el.hidden = depth === 0;
+                });
+                buttons('can-move-earlier').forEach((el) => {
+                    el.disabled = this.siblingRow(li, -1) === null;
+                });
+                buttons('can-move-later').forEach((el) => {
+                    el.disabled = this.siblingRow(li, 1) === null;
+                });
+                buttons('can-move-into-above').forEach((el) => {
+                    el.hidden = this.siblingRow(li, -1) === null
+                        || depth + 1 + this.subtreeHeight(li) > this.maxDepth;
                 });
             });
         },
 
+        /** The row before (-1) or after (1) this one in the same list, or null. */
+        siblingRow(li, step) {
+            let node = step < 0 ? li.previousElementSibling : li.nextElementSibling;
+            while (node && !node.matches('li[data-category-id]')) {
+                node = step < 0 ? node.previousElementSibling : node.nextElementSibling;
+            }
+            return node;
+        },
+
+        row(id) {
+            return this.$el.querySelector('li[data-category-id="' + id + '"]');
+        },
+
+        moveEarlier(id) {
+            const li = this.row(id);
+            const before = li && this.siblingRow(li, -1);
+            if (!before) return;
+            li.parentElement.insertBefore(li, before);
+            this.afterMove(li, 'earlier');
+        },
+
+        moveLater(id) {
+            const li = this.row(id);
+            const after = li && this.siblingRow(li, 1);
+            if (!after) return;
+            li.parentElement.insertBefore(after, li);
+            this.afterMove(li, 'later');
+        },
+
+        /** Make the row the last child of the row above it. */
+        moveIntoAbove(id) {
+            const li = this.row(id);
+            const above = li && this.siblingRow(li, -1);
+            const list = above && above.querySelector(':scope > .category-tree');
+            if (!list || this.listDepth(list) + this.subtreeHeight(li) > this.maxDepth) return;
+            list.appendChild(li);
+            this.afterMove(li, 'into-above');
+        },
+
+        /**
+         * Save the moved tree like a drop, and keep focus on the pressed
+         * button (moving a node drops focus) or, when that button no longer
+         * applies, on the first move button of the row that does.
+         */
+        afterMove(li, move) {
+            this.refreshRows();
+            const usable = (el) => el && !el.disabled && !el.hidden;
+            const pressed = li.querySelector(':scope > div > div > [data-move="' + move + '"]');
+            const fallback = Array.from(li.querySelectorAll(':scope > div > div > [data-move]')).find(usable);
+            const target = usable(pressed) ? pressed : fallback;
+            if (target) target.focus();
+            this.persist();
+        },
+
         async persist() {
             if (!this.saveUrl) {
+                return;
+            }
+            // Pressing a move button again before the save answers must not
+            // let an older tree land after a newer one.
+            if (this.saving) {
+                this.saveAgain = true;
                 return;
             }
             this.saving = true;
@@ -224,6 +303,10 @@ export default function blogCategoryReorder() {
                 this.error = e.message || String(e);
             } finally {
                 this.saving = false;
+                if (this.saveAgain) {
+                    this.saveAgain = false;
+                    this.persist();
+                }
             }
         },
 

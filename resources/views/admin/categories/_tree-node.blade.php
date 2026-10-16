@@ -35,6 +35,43 @@ drops that would go deeper than BlogCategory::MAX_DEPTH.
         </div>
 
         <div class="flex items-center justify-end gap-2 shrink-0">
+            {{-- The same moves as drag and drop, for keyboard and touch. The
+                 row moves in place and the tree is saved like a drop; which
+                 of these apply is set by refreshRows() in the JS component. --}}
+            <x-form-button
+                type="button"
+                variant="ghost"
+                size="sm"
+                icon="fas fa-arrow-up"
+                data-move="earlier"
+                data-when="can-move-earlier"
+                :xClick="'moveEarlier('.$category->id.')'"
+                :title="__('dixlase-blog::admin.category.move_earlier')"
+                :aria-label="__('dixlase-blog::admin.category.move_earlier')"
+            />
+            <x-form-button
+                type="button"
+                variant="ghost"
+                size="sm"
+                icon="fas fa-arrow-down"
+                data-move="later"
+                data-when="can-move-later"
+                :xClick="'moveLater('.$category->id.')'"
+                :title="__('dixlase-blog::admin.category.move_later')"
+                :aria-label="__('dixlase-blog::admin.category.move_later')"
+            />
+            <x-form-button
+                type="button"
+                variant="ghost"
+                size="sm"
+                icon="fas fa-indent"
+                data-move="into-above"
+                data-when="can-move-into-above"
+                :xClick="'moveIntoAbove('.$category->id.')'"
+                :title="__('dixlase-blog::admin.category.move_into_above')"
+                :aria-label="__('dixlase-blog::admin.category.move_into_above')"
+            />
+
             {{-- "+" and "Move up a level" follow the row's depth; the JS
                  component updates them after a drag, see refreshRows(). --}}
             <x-form-button
