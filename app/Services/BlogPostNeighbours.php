@@ -53,10 +53,16 @@ class BlogPostNeighbours
 
     /**
      * The visible post published just before this one. Posts published at
-     * the same moment are ordered by id.
+     * the same moment are ordered by id. A post without a publish date (a
+     * draft, in the preview) has no place in the timeline and so has no
+     * neighbours.
      */
     public function previous(BlogPost $post): ?BlogPost
     {
+        if ($post->published_at === null) {
+            return null;
+        }
+
         return BlogPost::query()
             ->currentlyVisible()
             ->where(fn (Builder $query) => $query
@@ -71,6 +77,10 @@ class BlogPostNeighbours
 
     public function next(BlogPost $post): ?BlogPost
     {
+        if ($post->published_at === null) {
+            return null;
+        }
+
         return BlogPost::query()
             ->currentlyVisible()
             ->where(fn (Builder $query) => $query
