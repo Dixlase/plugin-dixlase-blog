@@ -45,6 +45,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Plugins\DixlaseBlog\App\Models\BlogCategory;
+use Plugins\DixlaseBlog\App\Models\BlogComment;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Models\BlogPostRevision;
 use Plugins\DixlaseBlog\App\Services\BlogPostService;
@@ -177,6 +178,32 @@ class BlogAdminScreensTest extends TestCase
             ->assertSee($this->post->title)
             ->assertSee('action="'.route('dixlase-blog::admin.blog.restore', ['id' => $this->post->id]).'"', false)
             ->assertSee('action="'.route('dixlase-blog::admin.blog.forceDelete', ['id' => $this->post->id]).'"', false);
+    }
+
+    public function test_the_post_list_counts_published_and_pending_comments(): void
+    {
+        $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
+        $statuses = [
+            BlogComment::STATUS_PUBLISHED, BlogComment::STATUS_PUBLISHED, BlogComment::STATUS_PUBLISHED,
+            BlogComment::STATUS_PENDING, BlogComment::STATUS_PENDING,
+            BlogComment::STATUS_SPAM,
+        ];
+        foreach ($statuses as $status) {
+            BlogComment::create([
+                'post_id' => $this->post->id,
+                'author_name' => 'Reader',
+                'author_email' => 'reader@example.com',
+                'body' => 'A comment',
+                'status' => $status,
+            ]);
+        }
+        // A trashed comment is not counted.
+        BlogComment::query()->where('status', BlogComment::STATUS_PUBLISHED)->first()->delete();
+
+        $this->get(route('dixlase-blog::admin.blog.index'))->assertOk()
+            ->assertSee(__('dixlase-blog::admin.post_index.comments_published', ['count' => 2]))
+            ->assertSee(__('dixlase-blog::admin.post_index.comments_pending', ['count' => 2]))
+            ->assertSee('href="'.route('dixlase-blog::admin.blog.comments.index', ['status' => BlogComment::STATUS_PENDING]).'"', false);
     }
 
     public function test_the_category_rows_offer_a_child_and_moving_up(): void

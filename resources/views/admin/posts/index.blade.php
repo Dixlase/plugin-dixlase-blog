@@ -63,6 +63,7 @@ Dixlase Blog is dual-licensed. You may use this file under either:
                                 <th class="admin-table__header" scope="col">{{ __('dixlase-blog::admin.post_index.col_title') }}</th>
                                 <th class="admin-table__header" scope="col">{{ __('dixlase-blog::admin.post_index.col_status') }}</th>
                                 <th class="admin-table__header" scope="col">{{ __('dixlase-blog::admin.post_index.col_categories') }}</th>
+                                <th class="admin-table__header" scope="col">{{ __('dixlase-blog::admin.post_index.col_comments') }}</th>
                                 <th class="admin-table__header" scope="col">{{ __('dixlase-blog::admin.post_index.col_published_at') }}</th>
                                 <th class="admin-table__header admin-table__header--actions" scope="col">{{ __('common.actions') }}</th>
                             </tr>
@@ -114,6 +115,24 @@ Dixlase Blog is dual-licensed. You may use this file under either:
                                         @empty
                                             <span class="text-xs text-gray-400">—</span>
                                         @endforelse
+                                    </td>
+                                    <td class="admin-table__cell" data-label="{{ __('dixlase-blog::admin.post_index.col_comments') }}" role="gridcell">
+                                        {{-- Published, then the ones waiting for approval, which
+                                             link to the comments screen's "Pending" tab. --}}
+                                        <div class="flex flex-wrap items-center gap-2 text-xs">
+                                            <span class="inline-flex items-center gap-1 text-gray-600 dark:text-gray-300"
+                                                  title="{{ __('dixlase-blog::admin.post_index.comments_published', ['count' => $post->published_comments_count]) }}">
+                                                <i class="fas fa-comment text-gray-400" aria-hidden="true"></i>
+                                                <span class="sr-only">{{ __('dixlase-blog::admin.post_index.comments_published', ['count' => $post->published_comments_count]) }}</span>
+                                                <span aria-hidden="true">{{ $post->published_comments_count }}</span>
+                                            </span>
+                                            @if ($post->pending_comments_count > 0)
+                                                <a href="{{ $pendingCommentsUrl }}"
+                                                   class="inline-flex items-center rounded px-2 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 hover:underline">
+                                                    {{ __('dixlase-blog::admin.post_index.comments_pending', ['count' => $post->pending_comments_count]) }}
+                                                </a>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="admin-table__cell" data-label="{{ __('dixlase-blog::admin.post_index.col_published_at') }}" role="gridcell">
                                         <time datetime="{{ $post->published_at?->toISOString() }}" class="admin-datetime">
