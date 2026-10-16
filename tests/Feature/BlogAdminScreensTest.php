@@ -190,6 +190,24 @@ class BlogAdminScreensTest extends TestCase
             ->assertDontSee('<select id="create-parent_id"', false);
     }
 
+    public function test_the_category_rows_offer_moves_without_dragging(): void
+    {
+        $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
+        $releases = BlogCategory::query()->where('slug', 'releases')->firstOrFail();
+
+        $this->get(route('dixlase-blog::admin.blog.categories.index'))->assertOk()
+            ->assertSee('@click="moveEarlier('.$releases->id.')"', false)
+            ->assertSee('@click="moveLater('.$releases->id.')"', false)
+            ->assertSee('@click="moveIntoAbove('.$releases->id.')"', false)
+            ->assertSee('aria-label="'.__('dixlase-blog::admin.category.move_into_above').'"', false)
+            ->assertSee('role="status" aria-live="polite"', false);
+
+        $script = (string) file_get_contents(base_path('plugins/DixlaseBlog/resources/src/js/blog-category-reorder.js'));
+        foreach (['moveEarlier(id)', 'moveLater(id)', 'moveIntoAbove(id)'] as $method) {
+            $this->assertStringContainsString($method, $script);
+        }
+    }
+
     public function test_drag_and_drop_finds_the_root_list_to_save(): void
     {
         $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
