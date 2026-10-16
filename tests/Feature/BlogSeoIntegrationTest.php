@@ -162,6 +162,30 @@ class BlogSeoIntegrationTest extends TestCase
         $this->assertSame('English description', $post->fresh()->getTranslation('seo_description', 'en', false));
     }
 
+    /**
+     * DixlaseSEO tries this image before the post's stored SEO image, so a
+     * translated language shares an image made for it: its own OGP image,
+     * else its featured image. The source language has none here and keeps
+     * the stored one.
+     */
+    public function test_seo_ogp_image_is_the_one_made_for_the_locale(): void
+    {
+        $post = $this->makePost();
+        $translations = new FakeTranslationResolver();
+        $this->app->instance(TranslationResolver::class, $translations);
+
+        $this->assertNull($post->getTranslation('seo_ogp_media_id', 'en', false));
+
+        $translations->set($post, 'en', ['featured_media_id' => '21']);
+        $this->assertSame('21', $post->fresh()->getTranslation('seo_ogp_media_id', 'en', false));
+
+        $translations->set($post, 'en', ['featured_media_id' => '21', 'seo_ogp_media_id' => '22']);
+        $this->assertSame('22', $post->fresh()->getTranslation('seo_ogp_media_id', 'en', false));
+
+        $translations->set($post, 'ja', ['featured_media_id' => '23', 'seo_ogp_media_id' => '24']);
+        $this->assertNull($post->fresh()->getTranslation('seo_ogp_media_id', 'ja', false));
+    }
+
     public function test_linkable_provider_lists_visible_posts_with_locale_less_urls(): void
     {
         $visible = $this->makePost();
