@@ -178,7 +178,8 @@ class BlogPostVisibilityTest extends TestCase
     {
         $this->actingAs(Member::factory()->create(['role' => MemberRole::EDITOR, 'status' => 1]), 'member');
 
-        foreach (['draft', 'scheduled-later', 'closed', 'live'] as $slug) {
+        // 'unstamped' has no publish date, as a fresh draft does.
+        foreach (['draft', 'scheduled-later', 'closed', 'live', 'unstamped'] as $slug) {
             $post = BlogPost::query()->where('slug', $slug)->firstOrFail();
 
             $this->get('/admin-custom/blog/'.$post->id.'/preview')

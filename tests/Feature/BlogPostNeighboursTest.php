@@ -137,6 +137,18 @@ class BlogPostNeighboursTest extends TestCase
         $this->assertSame($a->id, $neighbours->previous($b)?->id);
     }
 
+    public function test_a_post_without_a_publish_date_has_no_neighbours(): void
+    {
+        $this->makePost('Before', 1);
+        $draft = $this->makePost('Undated draft', 2, ContentStatus::DRAFT);
+        $draft->update(['published_at' => null]);
+        $this->makePost('After', 3);
+
+        $neighbours = app(BlogPostNeighbours::class);
+        $this->assertNull($neighbours->previous($draft->fresh()));
+        $this->assertNull($neighbours->next($draft->fresh()));
+    }
+
     public function test_related_posts_share_a_category_or_tag_most_shared_first(): void
     {
         $news = BlogCategory::create(['label' => 'News', 'slug' => 'news', 'display_order' => 0]);
