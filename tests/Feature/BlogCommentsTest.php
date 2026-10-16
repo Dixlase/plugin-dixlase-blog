@@ -284,11 +284,24 @@ class BlogCommentsTest extends TestCase
     {
         $this->enableComments();
 
-        for ($i = 0; $i < DixlaseBlogServiceProvider::COMMENT_RATE_MAX_ATTEMPTS; $i++) {
+        for ($i = 0; $i < (int) BlogSettings::DEFAULTS['comment_rate_max_attempts']; $i++) {
             $this->postComment()->assertRedirect();
         }
 
         $this->postComment()->assertStatus(429);
+    }
+
+    public function test_the_rate_limit_follows_the_settings(): void
+    {
+        $this->enableComments(['comment_rate_max_attempts' => 2, 'comment_rate_decay_minutes' => 1]);
+
+        $this->postComment()->assertRedirect();
+        $this->postComment()->assertRedirect();
+        $this->postComment()->assertStatus(429);
+
+        // The period has passed.
+        $this->travel(61)->seconds();
+        $this->postComment()->assertRedirect();
     }
 
     public function test_the_post_s_comment_setting_is_saved_from_the_edit_form(): void

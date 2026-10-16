@@ -63,10 +63,6 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
     /** The throttle on the comment form (routes/web.php). */
     public const COMMENT_RATE_LIMITER = 'dixlase-blog-comment';
 
-    public const COMMENT_RATE_MAX_ATTEMPTS = 5;
-
-    public const COMMENT_RATE_DECAY_MINUTES = 10;
-
     public function register(): void
     {
         $this->mergeAdminNavConfig(__DIR__.'/../../config/admin.php');
@@ -124,12 +120,15 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
 
     /**
      * Comment posts per visitor address, for the throttle on the comment
-     * route.
+     * route. The numbers come from the blog settings screen.
      */
     public static function defineCommentRateLimiter(): void
     {
         RateLimiter::for(self::COMMENT_RATE_LIMITER, function (Request $request) {
-            return Limit::perMinutes(self::COMMENT_RATE_DECAY_MINUTES, self::COMMENT_RATE_MAX_ATTEMPTS)->by((string) $request->ip());
+            $settings = app(BlogSettings::class);
+
+            return Limit::perMinutes($settings->commentRateDecayMinutes(), $settings->commentRateMaxAttempts())
+                ->by((string) $request->ip());
         });
     }
 

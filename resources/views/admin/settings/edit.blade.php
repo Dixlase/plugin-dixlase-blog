@@ -217,6 +217,50 @@ its own <section> in this one form.
                     <x-form-error name="comment_link_limit" />
                 </div>
 
+                {{-- The throttle on the comment form, per IP address. --}}
+                <fieldset>
+                    <legend class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {{ __('dixlase-blog::admin.settings.comment_rate_legend') }}
+                    </legend>
+                    <div class="mt-2 flex flex-wrap gap-4">
+                        <div class="w-40">
+                            <x-form-label
+                                for="comment_rate_decay_minutes"
+                                :text="__('dixlase-blog::admin.settings.comment_rate_decay_minutes_label')"
+                                :required="true"
+                            />
+                            <x-form-text
+                                id="comment_rate_decay_minutes"
+                                name="comment_rate_decay_minutes"
+                                type="number"
+                                :min="1"
+                                :max="$commentRateDecayMinutesMax"
+                                :value="old('comment_rate_decay_minutes', $blogSettings['comment_rate_decay_minutes'])"
+                                :required="true"
+                            />
+                            <x-form-error name="comment_rate_decay_minutes" />
+                        </div>
+                        <div class="w-40">
+                            <x-form-label
+                                for="comment_rate_max_attempts"
+                                :text="__('dixlase-blog::admin.settings.comment_rate_max_attempts_label')"
+                                :required="true"
+                            />
+                            <x-form-text
+                                id="comment_rate_max_attempts"
+                                name="comment_rate_max_attempts"
+                                type="number"
+                                :min="1"
+                                :max="$commentRateMaxAttemptsMax"
+                                :value="old('comment_rate_max_attempts', $blogSettings['comment_rate_max_attempts'])"
+                                :required="true"
+                            />
+                            <x-form-error name="comment_rate_max_attempts" />
+                        </div>
+                    </div>
+                    <x-form-help-text :text="__('dixlase-blog::admin.settings.comment_rate_help')" />
+                </fieldset>
+
                 <div>
                     <x-form-toggle
                         id="comment_notify"

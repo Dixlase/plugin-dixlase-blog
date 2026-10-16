@@ -79,6 +79,12 @@ class BlogSettings
     /** A comment with more links than this is held for approval. */
     public const COMMENT_LINK_LIMIT_MAX = 50;
 
+    /** Comments one IP address may post within the rate limit period. */
+    public const COMMENT_RATE_MAX_ATTEMPTS_MAX = 100;
+
+    /** The rate limit period, in minutes (one day at most). */
+    public const COMMENT_RATE_DECAY_MINUTES_MAX = 1440;
+
     /**
      * Every setting and its default, as stored (strings). Core inserts the
      * missing rows on install and update; see DixlaseBlogServiceProvider.
@@ -101,6 +107,10 @@ class BlogSettings
         'comment_moderation' => 'approval',
         'comments_close_after_days' => '0',
         'comment_link_limit' => '2',
+        // The comment form takes this many posts per period from one IP
+        // address (the throttle in routes/web.php).
+        'comment_rate_max_attempts' => '5',
+        'comment_rate_decay_minutes' => '10',
         // E-mail an admin about each new visitor comment.
         'comment_notify' => '1',
         // Empty: the site's system admin address (core setting).
@@ -242,6 +252,16 @@ class BlogSettings
         $address = trim((string) $this->value('comment_notify_email'));
 
         return $address !== '' ? $address : trim(ConfigHelper::getNotificationEmail());
+    }
+
+    public function commentRateMaxAttempts(): int
+    {
+        return max(1, min(self::COMMENT_RATE_MAX_ATTEMPTS_MAX, (int) $this->value('comment_rate_max_attempts')));
+    }
+
+    public function commentRateDecayMinutes(): int
+    {
+        return max(1, min(self::COMMENT_RATE_DECAY_MINUTES_MAX, (int) $this->value('comment_rate_decay_minutes')));
     }
 
     public function commentIpRetentionDays(): int
