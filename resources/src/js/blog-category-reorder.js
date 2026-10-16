@@ -56,14 +56,18 @@ export default function blogCategoryReorder() {
         savedAt: null,
         error: null,
         sortables: [],
+        // The component element. Inside a method called from @click, Alpine's
+        // $el is the clicked element, so the methods use this instead.
+        root: null,
 
         init() {
-            this.saveUrl = this.$el.dataset.saveUrl || '';
-            this.csrfToken = this.$el.dataset.csrfToken || '';
-            const max = parseInt(this.$el.dataset.maxDepth, 10);
+            this.root = this.$el;
+            this.saveUrl = this.root.dataset.saveUrl || '';
+            this.csrfToken = this.root.dataset.csrfToken || '';
+            const max = parseInt(this.root.dataset.maxDepth, 10);
             this.maxDepth = Number.isNaN(max) ? 2 : max;
             // A failed submit comes back with its form open.
-            this.openForm = this.$el.dataset.reopen || null;
+            this.openForm = this.root.dataset.reopen || null;
             this.attachSortables();
             this.refreshRows();
         },
@@ -99,7 +103,7 @@ export default function blogCategoryReorder() {
 
         attachSortables() {
             this.destroy();
-            const containers = this.$el.querySelectorAll('.category-tree');
+            const containers = this.root.querySelectorAll('.category-tree');
             containers.forEach((container) => {
                 const instance = Sortable.create(container, {
                     group: 'blog-categories',
@@ -123,16 +127,16 @@ export default function blogCategoryReorder() {
          * open up as drop zones only where the result stays within maxDepth.
          */
         startDrag(item) {
-            this.$el.classList.add('is-dragging');
+            this.root.classList.add('is-dragging');
             const height = this.subtreeHeight(item);
-            this.$el.querySelectorAll('.category-tree').forEach((list) => {
+            this.root.querySelectorAll('.category-tree').forEach((list) => {
                 const fits = !item.contains(list) && this.listDepth(list) + height <= this.maxDepth;
                 list.classList.toggle('can-accept', fits);
             });
         },
 
         allowDrop(item, list) {
-            this.$el.querySelectorAll('.category-tree.is-drop-target').forEach((el) => {
+            this.root.querySelectorAll('.category-tree.is-drop-target').forEach((el) => {
                 el.classList.remove('is-drop-target');
             });
             if (this.listDepth(list) + this.subtreeHeight(item) > this.maxDepth) {
@@ -143,8 +147,8 @@ export default function blogCategoryReorder() {
         },
 
         endDrag() {
-            this.$el.classList.remove('is-dragging');
-            this.$el.querySelectorAll('.category-tree').forEach((list) => {
+            this.root.classList.remove('is-dragging');
+            this.root.querySelectorAll('.category-tree').forEach((list) => {
                 list.classList.remove('can-accept', 'is-drop-target');
             });
             this.refreshRows();
@@ -155,7 +159,7 @@ export default function blogCategoryReorder() {
         listDepth(list) {
             let depth = 0;
             let node = list.parentElement;
-            while (node && node !== this.$el) {
+            while (node && node !== this.root) {
                 if (node.matches('li[data-category-id]')) {
                     depth++;
                 }
@@ -180,7 +184,7 @@ export default function blogCategoryReorder() {
          * them, and enable the move buttons only where the move is possible.
          */
         refreshRows() {
-            this.$el.querySelectorAll('li[data-category-id]').forEach((li) => {
+            this.root.querySelectorAll('li[data-category-id]').forEach((li) => {
                 const depth = this.listDepth(li.parentElement);
                 const buttons = (when) => li.querySelectorAll(':scope > div > div > [data-when="' + when + '"]');
                 buttons('can-add-child').forEach((el) => {
@@ -212,7 +216,7 @@ export default function blogCategoryReorder() {
         },
 
         row(id) {
-            return this.$el.querySelector('li[data-category-id="' + id + '"]');
+            return this.root.querySelector('li[data-category-id="' + id + '"]');
         },
 
         moveEarlier(id) {
@@ -336,7 +340,7 @@ export default function blogCategoryReorder() {
                 });
             };
             // The root list sits inside a wrapper, so it is not a direct child.
-            const root = this.$el.querySelector('[data-tree-root]');
+            const root = this.root.querySelector('[data-tree-root]');
             walk(root, null);
             return items;
         },

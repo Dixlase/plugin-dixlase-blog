@@ -206,6 +206,10 @@ class BlogAdminScreensTest extends TestCase
         foreach (['moveEarlier(id)', 'moveLater(id)', 'moveIntoAbove(id)'] as $method) {
             $this->assertStringContainsString($method, $script);
         }
+        // From an @click, Alpine's $el is the pressed button, so the methods
+        // must reach the tree through the element kept in init().
+        $this->assertSame(1, substr_count($script, 'this.$el'));
+        $this->assertStringContainsString('this.root = this.$el;', $script);
     }
 
     public function test_drag_and_drop_finds_the_root_list_to_save(): void
