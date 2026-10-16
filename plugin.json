@@ -76,6 +76,10 @@
                     {
                         "name": "featured_media_id",
                         "type": "media"
+                    },
+                    {
+                        "name": "seo_ogp_media_id",
+                        "type": "media"
                     }
                 ]
             },

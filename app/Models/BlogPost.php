@@ -327,6 +327,11 @@ class BlogPost extends Model implements Revisionable
      * (TranslatableTrait's signature). For seo_description it never comes
      * back empty: a translated description, else the stored one in the
      * source language, else the post's excerpt in the requested locale.
+     *
+     * For seo_ogp_media_id it is the image made for the requested locale:
+     * the translated OGP image, else the translated featured image. An
+     * image in the reader's language comes before the source language's
+     * SEO image, which DixlaseSEO tries next.
      */
     public function getTranslation(string $field, ?string $locale = null, bool $fallback = true): mixed
     {
@@ -340,6 +345,10 @@ class BlogPost extends Model implements Revisionable
             $stored = $locale === $this->sourceLocale() ? $this->seo_description : null;
 
             return $stored ?? $this->localized('excerpt', $locale);
+        }
+
+        if ($field === 'seo_ogp_media_id') {
+            return $this->translationFor('featured_media_id', $locale);
         }
 
         return $fallback ? $this->getAttribute($field) : null;
