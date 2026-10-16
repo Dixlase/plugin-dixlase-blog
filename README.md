@@ -2,17 +2,41 @@
 
 For Japanese, see [README.ja.md](./README.ja.md).
 
-A blog for Dixlase: posts with categories and tags, featured images, revisions with restore, draft / published / scheduled statuses, a trash, and public list, post, archive and RSS pages under `/blog`.
+A blog for Dixlase: posts with categories and tags, revisions and a trash; comments with moderation; a settings screen; a configurable sidebar; search and date archives; and public list, post, archive and RSS pages under `/blog` (the prefix is a setting). It works with DixlaseMultilingual for a bilingual blog and with DixlaseSEO for meta tags and the sitemap.
 
 ## Features
 
-- **Posts** — Title, slug, excerpt, body and featured image (picked from the core media library). The editor is the core content editor.
-- **Publish workflow** — Draft / Published / Scheduled, with an optional end date (`closed_at`) after which the post is hidden.
-- **Categories** — A hierarchy with drag-and-drop ordering. A post can belong to several categories.
+### Writing
+
+- **Posts** — Title, slug, excerpt, body and featured image (picked from the core media library). The editor is the core content editor, with a live preview; the HTML editor is for admins only.
+- **Publish workflow** — Draft / Published / Scheduled, with an optional end date (`closed_at`) after which the post is hidden. A post can be previewed in any status from the admin.
+- **Pinned posts** — Pinned posts come first in the list.
+- **Categories** — Up to three levels. Reorder them by dragging, or with the buttons on each row (up, down, into the category above, up a level), which also work from the keyboard. A post can belong to several categories.
 - **Tags** — Entered as free text on the post screen and created on save.
 - **Revisions** — A snapshot on every save, restorable at any time, with notes and protection against pruning.
 - **Trash** — Deleted posts can be restored or deleted permanently.
-- **Public pages** — `/blog` (paginated list), `/blog/{slug}` (post), `/blog/category/{slug}`, `/blog/tag/{slug}` and `/blog/feed.xml` (RSS). With DixlaseMultilingual's locale URLs enabled, the same pages are also served under `/{locale}/blog`.
+- **Roles** — Editors write and manage posts. Permanent deletion, the settings screen and personal-data requests are for admins.
+
+### Comments
+
+Off until the site turns them on on the settings screen. Each post can follow the blog setting, or open or close its own comments.
+
+- **Moderation** — Publish at once, or hold for approval. A comment with more links than the limit is always held. The post list shows each post's published and pending counts, and the Comments screen approves, unpublishes, marks as spam or trashes them, one at a time or in bulk.
+- **Replies** — Nested to any depth. An editor or above who is signed in comments as the site; those comments are published at once.
+- **Notification mail** — Each new visitor comment can be mailed to an address set on the settings screen.
+- **Spam protection** — Core's CAPTCHA (turn on "Blog: comment form" on the CAPTCHA settings screen) and a limit on comments per IP address within a period, set on the settings screen (five per ten minutes by default).
+- **Personal data** — Commenters' IP addresses are kept for a set number of days and then cleared by `dls:blog:prune-comment-ips`, which runs daily. The personal data screen finds every comment written with one e-mail address, to anonymise or delete them.
+
+### Public pages
+
+- **Pages** — `/blog` (list), `/blog/{slug}` (post), `/blog/category/{slug}`, `/blog/tag/{slug}`, `/blog/{year}/{month}` and `/blog/{year}/{month}/{day}` (date archives), `/blog/search?q=` (search) and `/blog/feed.xml` (RSS).
+- **Sidebar** — On or off, left or right, with search, categories, recent posts, monthly archives, a calendar and tags as widgets, in any order.
+- **On a post** — Previous / next and related posts, share buttons (X, Facebook, LINE, copy link) and breadcrumbs.
+
+### Integrations
+
+- **DixlaseMultilingual** — A post is written in one language and translated into the others; untranslated content shows the original. Category and tag names are translated too. With locale URLs enabled, the pages are also served under `/{locale}/blog`.
+- **DixlaseSEO** — Meta tags, OGP images, hreflang and the sitemap, with the same fields as DixlasePages.
 
 ## Installation
 
@@ -29,9 +53,9 @@ The built files under `resources/assets/` are not tracked in git. The release ZI
 
 ## Usage
 
-Once enabled, **Blog** appears in the admin sidebar with the post list, new post, categories and trash screens.
+Once enabled, **Blog Management** appears in the admin sidebar with the post list, new post, categories, comments, trash and blog settings screens.
 
-A post's public URL is `/blog/{slug}`. Use a short English slug; it is the post's permanent address.
+A post's public URL is `/blog/{slug}`. Use a short English slug; it is the post's permanent address. The `/blog` prefix can be changed on the settings screen.
 
 ## Customising the templates
 
@@ -41,7 +65,15 @@ The front pages use the plugin's own templates and stylesheet. To change a templ
 2. `themes/<active theme>/plugins/DixlaseBlog/resources/views/` — one theme
 3. `plugins/DixlaseBlog/resources/views/` — the defaults
 
-The templates are `front/index`, `front/show`, `front/archive` (category and tag pages), `front/_card` (a post in a list), `front/_pagination` and `front/feed` (RSS). Colours follow the theme's Tailwind colour tokens and its dark mode; to restyle without copying a template, override the `--dlsb-*` CSS variables on `.dixlase-blog`.
+The templates are:
+
+- `front/_layout` (the page frame with the sidebar), `front/index`, `front/show` and `front/archive` (category, tag, date and search pages)
+- `front/_card` (a post in a list), `front/_pagination`, `front/_breadcrumbs`, `front/_post-nav` (previous / next), `front/_related` and `front/_share`
+- `front/_comments` (the comment list and form) and `front/_comment` (one comment and its replies)
+- `front/sidebar/*` (one file per widget)
+- `front/feed` (RSS)
+
+Colours follow the theme's Tailwind colour tokens and its dark mode; to restyle without copying a template, override the `--dlsb-*` CSS variables on `.dixlase-blog`.
 
 ## License
 
