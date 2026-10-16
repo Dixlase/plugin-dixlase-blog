@@ -2,7 +2,7 @@
     "name": "Dixlase Blog",
     "package_name": "dixlase/dixlase-blog",
     "slug": "dixlase-blog",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": {
         "en": "Provides a blog: posts with revisions, a trash and featured images, hierarchical categories and tags, comments with moderation, notification mail and CAPTCHA, a settings screen, a configurable sidebar, search and date archives, pinned posts, previous / next and related posts, share buttons, breadcrumbs and an RSS feed. Works with DixlaseMultilingual for translations and with DixlaseSEO for meta tags and the sitemap.",
         "ja": "ブログ機能を提供します。リビジョン、ゴミ箱、アイキャッチ画像のある記事、階層カテゴリとタグ、承認・通知メール・CAPTCHA に対応したコメント、設定画面、設定できるサイドバー、検索と日付のアーカイブ、固定表示、前後の記事と関連記事、共有ボタン、パンくずリスト、RSS フィードを備えます。DixlaseMultilingual で翻訳に、DixlaseSEO でメタタグとサイトマップに対応します。"
@@ -196,8 +196,8 @@
         "middleware": false
     },
     "files": {
-        "CHANGELOG.ja.md": "sha256:8b45135351b02f8a2206e2ea90365995e993157a74da61d315b607e0a5966624",
-        "CHANGELOG.md": "sha256:3d4d1022c938420cef2ebc6ab6280fe9ca0c9ef34edbaf9742c96b2719c43ffe",
+        "CHANGELOG.ja.md": "sha256:f3e14751fa28dabf977d5974cd071e22567c75ca2189e6f570f21e7ec749957e",
+        "CHANGELOG.md": "sha256:75085a74ded7c1df6c99b50302e5d4b10fab4e4adfd7f18d10d4053f7f4d3648",
         "CONTRIBUTING.ja.md": "sha256:a43628cf75539ffc7a39e5a0bf604c91e2a95be97f364a3c260399681fe01881",
         "CONTRIBUTING.md": "sha256:04efb3f6a4d618518776fcd0f7c0ec229140e069c9706f90a5b8b2f0ef8e1786",
         "COPYRIGHT-POLICY.ja.md": "sha256:8544f9ca08306d5c6926a6508064ae6ece44286c4161a06475aa1a2946ab2d94",
@@ -229,7 +229,7 @@
         "app/Mail/BlogCommentNotification.php": "sha256:f73a331343c4ab186b0f50ace68551dca5382488eb78ece039b7069715eb0c64",
         "app/Models/BlogCategory.php": "sha256:d675213a4a2b577cc0c4508fe21b0d98f0202576cfaac416912e82bd46cf71af",
         "app/Models/BlogComment.php": "sha256:5e454a86d83db781eba15cfd8b159dcd84ace10694fc6591a805c6c25adbf8b7",
-        "app/Models/BlogPost.php": "sha256:8af1bd5c1c0967915136a14d8285b88d2f6438f05b4e54c9aa116ee56bf44613",
+        "app/Models/BlogPost.php": "sha256:ef1cc5352f8cc7d0afc554354a28e529a04dce4df82a36383e684bbc8a019a74",
         "app/Models/BlogPostRevision.php": "sha256:e6c198835b5c06fffc001483ee3507fc960d1c007c2d80e403f7759e9df58c92",
         "app/Models/BlogSetting.php": "sha256:fcc93516dff5334bf3eeecb3a6eadf97f9b09afadf40ffb93ffbb4e201124109",
         "app/Models/BlogTag.php": "sha256:c5519de9eeddabb4bb0ea783c81ff57316dee8d1304aa87b5159a577a8f262f6",
@@ -242,7 +242,7 @@
         "app/Services/BlogContentRenderer.php": "sha256:a4e4c67151e3d3b50434b82a21853e8b606fb69162fec7b0d5ab2835a5d65c15",
         "app/Services/BlogLocalizedUrlProvider.php": "sha256:380d4cf5d349749db7c980d0d5af6a2d38a2ee3fd976e6db3aa0b8a1c1bef322",
         "app/Services/BlogPostLinkableProvider.php": "sha256:fa0bc4a03601a1992194dd42fba2989639db1a13669ae978e9b2823b1da69cf2",
-        "app/Services/BlogPostNeighbours.php": "sha256:1c37bd2e079d6acfaf216ad646028ad3010b1677296c2ff59ff5ea2a78cf89aa",
+        "app/Services/BlogPostNeighbours.php": "sha256:2a1624c516b65a9464ea932d8d1a99acbd03f995fa54fca5e6fc66e55eb52c5d",
         "app/Services/BlogPostService.php": "sha256:869a94a741cb3c72c8d215191611d7274aaac6512f6914ca8d8b83e8e8d5b1b1",
         "app/Services/BlogScriptAuthoringPolicy.php": "sha256:62432d733953288f23e7942d57b320961e4e388a73e562beddcde2e75ca0d9aa",
         "app/Services/BlogSeoMeta.php": "sha256:319f4378499348cd0e22f07f2a1560771de149cdbe56ef0e4937d66eb7e4c667",
@@ -251,7 +251,7 @@
         "app/Support/BlogExcerpt.php": "sha256:2ea5867c6bd33b04c3e482774cd71355b108cef6952a3b10cfda5220de8e47e3",
         "app/Support/BlogMailMarkdown.php": "sha256:ea640e8c8c7cd4fa4599793113c94e61f0f4eed82001547dd892a2b169c5ce28",
         "app/Support/BlogSettings.php": "sha256:201eb3cf6133cbd6a7b9199a21a800cc03338d39da6b2d02ffdb6cbf51cce339",
-        "composer.json": "sha256:1df79c96822d8a3c6c3b5e73dd6fef19545d88d9cfcc74abf2d7af3db8158136",
+        "composer.json": "sha256:f42bfd9a946abf22948bc6dad8652493dcdc59bec6685528c870d959c42550fa",
         "config/admin.php": "sha256:3114d980b10d3f76c355f34aa7cfa52eba083409cc994f41eccebfa1f0f2c653",
         "config/admin/database-cleanup.php": "sha256:29f176102ae2b77b208abd688c8338d4918ebc1cee7febd7553a1b96371588e8",
         "config/admin/roles.php": "sha256:462472b08604c49add6fb447241bef201dd845052c00e2336d665d73db68004e",
@@ -281,7 +281,7 @@
         "lang/ja/route-slug.php": "sha256:3e4b347887eb1564725c8162d4795c63823e8ca102ccdfa7566285a571efd18c",
         "license-info.json": "sha256:27febc29bf90ae573eb5b5386023e10fd024253ebcf56eb86ff42dff93106128",
         "package-lock.json": "sha256:56738e9d660701ddfe90be3dc9e0933a001c83c21ce4dcc4236ef10cb2ac95ef",
-        "package.json": "sha256:c2bc9e2c1fac7dc30a906c2756b3bc2851edc6d864232a8ce46249d97636b3df",
+        "package.json": "sha256:9f4c37deaefa9cad967137fa8a6bbbce987b89ef5dfd72d79e35680f426e1499",
         "phpunit.xml": "sha256:77ec274db7ba908e0c39b96381dd7c1a1ce4fd6b468f47ebe037090fe9c56959",
         "resources/src/css/style.scss": "sha256:2f6a92bb576ba4d326422323979188474c57298264bb96102ec16eb788dd4d7f",
         "resources/src/js/app.js": "sha256:c725a517cce3f54b02b7d777f8d3612a6ff0225212de0b9c8379cdefe862c023",
@@ -346,19 +346,19 @@
         "tests/Feature/BlogFrontLocaleTest.php": "sha256:834720b3e3cc9bbda9dd925f82f54b9287fe9ad2a429f937fdeadf63cf84fb70",
         "tests/Feature/BlogPinnedPostsTest.php": "sha256:ea89a307ae8e7161cb42bc6d87f1fad2e7a952661fd3020e9e0a374578325f7a",
         "tests/Feature/BlogPostLifecycleTest.php": "sha256:5354978a58c04436fdf4cc69c06fa7544f80d7596657ded44c3ca3cb472c06cd",
-        "tests/Feature/BlogPostNeighboursTest.php": "sha256:201cb6a898ee5a72bcc74adad3efbeec2f35bb292e973ea25bc9ee4ac328a864",
+        "tests/Feature/BlogPostNeighboursTest.php": "sha256:891979eadfc086f6815fe51172315e10deae6102b00caa27a680d3adae093735",
         "tests/Feature/BlogPostSeoPageMetaTest.php": "sha256:368f2a5bb1502132422f6689b14db44cf5c7d9a4f4b92906abd579d976257a90",
-        "tests/Feature/BlogPostVisibilityTest.php": "sha256:22c266acdeb6240e6239d2b519ad2f225a6d4249c400f4b49c4a163d0735db45",
+        "tests/Feature/BlogPostVisibilityTest.php": "sha256:3ae0971860f9a3172190cc11bc1aedb7afbedfc7d6df219453f69e1f71e3dc09",
         "tests/Feature/BlogRouteFilesTest.php": "sha256:64944c697b705cf7d53bc4961dcae235c5875f4843ccaf055995092c10c428f2",
         "tests/Feature/BlogRouteSlugTest.php": "sha256:14d45da7e6505efb37440b5e58ee2691d717d0e968ba6c02fa8da4df845f9940",
         "tests/Feature/BlogScriptAuthoringTest.php": "sha256:d77a9dc303d052043ba846b342a32b60d74334995bbca3fdd7f4c4a55f03871d",
-        "tests/Feature/BlogSeoIntegrationTest.php": "sha256:0c5390a6759dba10392520933a3ee1cd2f4e6681b5d8bfd509a4c53af91fad18",
+        "tests/Feature/BlogSeoIntegrationTest.php": "sha256:956e76cb7dec7c0f97049b90478458d6298301c7c791b3312c31d4a7c902a260",
         "tests/Feature/BlogSettingsTest.php": "sha256:a0ea8e8e80f845cec377b7f706f9edee9e2cb6282ef79027eb29b941987c577e",
         "tests/Feature/BlogShareButtonsTest.php": "sha256:be2eeb6ec8c687092db4ac6128e2ca3132a4b6497f130e763f0fb45bf11acad0",
         "tests/Feature/BlogSidebarTest.php": "sha256:3111dfd7fe6a42f7754b5ff1526b9a96d0b93e1c309b91e23e0350d08ef35da1",
         "tests/Feature/BlogTranslateButtonTest.php": "sha256:946f34d6dda98877742d37bd38bf0c1e8bf0315c3a96e14d24b40611864c75e8",
         "tests/Feature/BlogTranslationKeysTest.php": "sha256:c0e6e467fc9ecf3283de194a9f20695950d61b1cdf991e067b5a2f02de4f4f12",
-        "tests/Feature/BlogTranslationTest.php": "sha256:6c26d7f7b208f314cb2fd66b1b711a819e599c83285becac10041ce46b75a49f",
+        "tests/Feature/BlogTranslationTest.php": "sha256:86c7acf6479bd66641cbcfda98a0ae8f62fbc8789bb0af7732ea8b07336961d9",
         "tests/Feature/BlogViewCspTest.php": "sha256:3d7569b07443e6714eb736534013e75a7bc62402105de1665c3fe49d64dfed51",
         "tests/Feature/BlogViewOverrideTest.php": "sha256:3f21c841898fe8919afef9037b477545fa2d222874f2311fd3437031e243ab88",
         "tests/Feature/PluginSelfAuditTest.php": "sha256:9ffde032b38e3e484084f65b5fbf2e304b488d5bf72187c2852c8336836c587c",
@@ -374,6 +374,6 @@
     "signing": {
         "algo": "ed25519",
         "key_id": "dixlase-authority-2026",
-        "signed_at": "2026-10-16T08:41:50+00:00"
+        "signed_at": "2026-10-16T18:01:11+00:00"
     }
 }

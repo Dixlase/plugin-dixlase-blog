@@ -5,6 +5,21 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.1.1] - 2026-10-17
+
+### Added
+
+- Each language shares its own OGP image (#135, fixes #134). The translation editor takes an OGP
+  image per language (`seo_ogp_media_id`, type `media`). In a translated language a shared post
+  shows that language's OGP image, else its featured image, then the source language's SEO image
+  and featured image, then the site's default. The source language is unchanged. Needs
+  DixlaseSEO 0.2.3 and DixlaseMultilingual 0.5.0.
+
+### Fixed
+
+- The "Preview" button opens a draft that has no publish date again, instead of a 500 error
+  (#132, fixes #131). A post with no publish date has no previous or next post.
+
 ## [0.1.0] - 2026-10-16
 
 The first release (#13).
