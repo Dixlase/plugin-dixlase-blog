@@ -201,7 +201,7 @@ class BlogAdminScreensTest extends TestCase
 
         $script = (string) file_get_contents(base_path('plugins/DixlaseBlog/resources/src/js/blog-category-reorder.js'));
         $this->assertStringContainsString("querySelector('[data-tree-root]')", $script);
-        $this->assertStringNotContainsString("querySelector(':scope > .category-tree')", $script);
+        $this->assertStringNotContainsString("this.$el.querySelector(':scope > .category-tree')", $script);
         // Core's JSON errors are { error: { code, message } }.
         $this->assertStringContainsString('data.error.message', $script);
     }
