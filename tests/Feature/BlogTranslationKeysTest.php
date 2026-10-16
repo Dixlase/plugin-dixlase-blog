@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace Plugins\DixlaseBlog\Tests\Feature;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Tests\TestCase;
 
@@ -95,6 +96,35 @@ class BlogTranslationKeysTest extends TestCase
                 // run time; see the tests below.
                 if (! str_ends_with($key, '.') && ! str_ends_with($key, '_') && ! isset($en[$key])) {
                     $missing[] = $key.' ('.str_replace($this->pluginPath().'/', '', $path).')';
+                }
+            }
+        }
+
+        $this->assertSame([], $missing);
+    }
+
+    /**
+     * Core titles an admin page from its route name (AdminInterfaceTrait):
+     * dixlase-blog::admin.blog.comments.index reads
+     * dixlase-blog::admin.blog.comments.index.heading.
+     */
+    public function test_every_admin_page_has_a_heading(): void
+    {
+        Route::middleware('plugin')->prefix('admin-custom')->group($this->pluginPath().'/routes/admin.php');
+        Route::getRoutes()->refreshNameLookups();
+
+        $missing = [];
+        foreach (Route::getRoutes()->getRoutes() as $route) {
+            $name = (string) $route->getName();
+            // The previews render the theme's layout, not an admin page.
+            if (! str_starts_with($name, 'dixlase-blog::admin.') || ! in_array('GET', $route->methods(), true)
+                || str_starts_with($name, 'dixlase-blog::admin.blog.preview')) {
+                continue;
+            }
+            $key = substr($name, strlen('dixlase-blog::')).'.heading';
+            foreach (self::LOCALES as $locale) {
+                if (! array_key_exists($key, $this->keys($locale))) {
+                    $missing[] = "{$locale}: {$key}";
                 }
             }
         }

@@ -47,6 +47,12 @@ return [
             'index' => ['heading' => 'リビジョン履歴'],
             'show' => ['heading' => 'リビジョン差分'],
         ],
+        'comments' => [
+            'index' => ['heading' => 'コメント'],
+            'personalData' => [
+                'index' => ['heading' => 'コメントした人の個人情報'],
+            ],
+        ],
         'settings' => [
             'edit' => ['heading' => 'ブログ設定'],
         ],
