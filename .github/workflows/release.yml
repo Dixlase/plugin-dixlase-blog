@@ -46,10 +46,12 @@ jobs:
         # Includes: everything the plugin ships or wants to be
         #   inspectable after install (source, prebuilt resources/assets,
         #   composer.json, plugin.json, README, LICENSE, …).
-        # Excludes: dev-only metadata (.git, .github, tests, package
-        #   manager caches, AI assistant configs, planning docs) and the
+        # Excludes: dev-only metadata (.git, .github, package manager
+        #   caches, AI assistant configs, planning docs) and the
         #   node_modules tree that the build step just installed on the
-        #   runner. package.json / vite.config.mjs / resources/src remain
+        #   runner. tests/ and phpunit.xml stay in: the signature manifest
+        #   covers them, so a ZIP without them would fail verification as
+        #   "missing" until core excludes them from signing and verifying. package.json / vite.config.mjs / resources/src remain
         #   in the ZIP so `--build` can still rebuild after install if a
         #   node-equipped operator ever needs to.
         id: package
