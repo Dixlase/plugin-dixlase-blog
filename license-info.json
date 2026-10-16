@@ -2,6 +2,6 @@
     "software": "Dixlase Blog",
     "author": "exc-D inc.",
     "website": "https://exc-d.com",
-    "license": "GPL-3.0",
-    "template": "license-gpl.txt"
+    "license": "GPL-3.0-or-later",
+    "template": "license-dual-gpl.txt"
 }
