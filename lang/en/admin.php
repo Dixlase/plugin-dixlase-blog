@@ -47,6 +47,12 @@ return [
             'index' => ['heading' => 'Revisions'],
             'show' => ['heading' => 'Revision Diff'],
         ],
+        'comments' => [
+            'index' => ['heading' => 'Comments'],
+            'personalData' => [
+                'index' => ['heading' => 'Commenters\' personal data'],
+            ],
+        ],
         'settings' => [
             'edit' => ['heading' => 'Blog Settings'],
         ],
