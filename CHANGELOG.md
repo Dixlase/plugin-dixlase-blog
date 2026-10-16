@@ -11,6 +11,10 @@ Work toward the first release, 0.1.0 (#13).
 
 ### Added
 
+- A featured image per language (#99). When DixlaseMultilingual has the media field type (the
+  release after 0.4.1, Dixlase/plugin-dixlase-multilingual#56), the translation editor takes a
+  featured image for each language. The post page, the lists, related posts and the fallback OGP
+  image show it, and fall back to the post's own image when none is set or the media item is gone.
 - Commenters' personal data (#63). An ADMIN finds every comment written with one e-mail address
   (the trash included) and removes the name, e-mail and IP address from them or deletes them.
   IP addresses are kept for a set number of days (30 by default; 0 keeps none) and then cleared by

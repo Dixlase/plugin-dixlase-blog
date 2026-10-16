@@ -35,12 +35,14 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\Tests\Feature;
 
+use App\Contracts\Site\SiteContextInterface;
 use App\Contracts\TranslationResolver;
 use App\Enums\ContentEditorType;
 use App\Enums\ContentStatus;
 use App\Helpers\LocaleHelper;
 use App\Http\Middleware\CheckInstallationReady;
 use App\Http\Middleware\CheckMaintenanceMode;
+use App\Models\Media;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Route;
@@ -173,6 +175,34 @@ class BlogTranslationTest extends TestCase
         $this->assertSame(LocaleHelper::getSiteDefaultLocale(), $post->lang);
     }
 
+    public function test_a_translation_s_featured_image_is_shown_for_its_locale(): void
+    {
+        $this->bindResolver();
+        $post = $this->makePost('ja');
+        $post->update(['featured_media_id' => $this->media('ja.png')->id]);
+        $this->translate($post, 'en', ['title' => 'English title', 'featured_media_id' => (string) $this->media('en.png')->id]);
+
+        App::setLocale('en');
+        $this->assertSame('en.png', $post->localizedFeaturedMedia()?->name);
+
+        App::setLocale('ja');
+        $this->assertSame('ja.png', $post->fresh()->localizedFeaturedMedia()?->name);
+    }
+
+    public function test_a_missing_translated_image_falls_back_to_the_post_s_own(): void
+    {
+        $this->bindResolver();
+        $post = $this->makePost('ja');
+        $post->update(['featured_media_id' => $this->media('ja.png')->id]);
+        $this->translate($post, 'en', ['featured_media_id' => '999999']);
+        $untranslated = $this->makePost('ja', 'other');
+        $untranslated->update(['featured_media_id' => $this->media('other.png')->id]);
+
+        App::setLocale('en');
+        $this->assertSame('ja.png', $post->localizedFeaturedMedia()?->name);
+        $this->assertSame('other.png', $untranslated->localizedFeaturedMedia()?->name);
+    }
+
     public function test_feed_shows_translations_for_the_locale(): void
     {
         $this->bindResolver();
@@ -203,7 +233,8 @@ class BlogTranslationTest extends TestCase
 
         $types = array_column($manifest['multilingual_content']['types'], null, 'key');
         $this->assertSame(BlogPost::class, $types['dixlase-blog:post']['model']);
-        $this->assertSame(['title', 'excerpt', 'content', 'seo_description'], array_column($types['dixlase-blog:post']['fields'], 'name'));
+        $this->assertSame(['title', 'excerpt', 'content', 'seo_description', 'featured_media_id'], array_column($types['dixlase-blog:post']['fields'], 'name'));
+        $this->assertSame('media', array_column($types['dixlase-blog:post']['fields'], 'type', 'name')['featured_media_id']);
         $this->assertSame(BlogCategory::class, $types['dixlase-blog:category']['model']);
         $this->assertSame(['label'], array_column($types['dixlase-blog:category']['fields'], 'name'));
         $this->assertSame(BlogTag::class, $types['dixlase-blog:tag']['model']);
@@ -247,6 +278,18 @@ class BlogTranslationTest extends TestCase
         ], null);
 
         $this->assertSame('ja', $post->tags->first()?->lang);
+    }
+
+    private function media(string $name): Media
+    {
+        return Media::query()->create([
+            // Media rows belong to the current site.
+            'site_id' => rescue(fn () => app(SiteContextInterface::class)->currentSiteId(), 1, false),
+            'name' => $name,
+            'alt_text' => $name,
+            'path' => '2026/10/'.$name,
+            'type' => 'image/png',
+        ]);
     }
 
     private function makePost(?string $lang, string $slug = 'hello', string $title = '日本語のタイトル'): BlogPost

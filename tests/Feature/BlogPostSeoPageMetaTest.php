@@ -35,12 +35,14 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\Tests\Feature;
 
+use App\Contracts\Site\SiteContextInterface;
 use App\Contracts\TranslationResolver;
 use App\Enums\ContentEditorType;
 use App\Enums\ContentStatus;
 use App\Http\Middleware\CheckInstallationReady;
 use App\Http\Middleware\CheckMaintenanceMode;
 use App\Http\Middleware\SetFrontLocale;
+use App\Models\Media;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
@@ -136,6 +138,22 @@ class BlogPostSeoPageMetaTest extends TestCase
         $this->assertSame('article', $ogType);
     }
 
+    public function test_the_page_and_the_list_show_the_featured_image_of_the_language(): void
+    {
+        $ja = $this->media('ja.png');
+        $en = $this->media('en.png');
+        $post = $this->makePost(['featured_media_id' => $ja->id]);
+        $this->translations->set($post, 'en', ['featured_media_id' => (string) $en->id]);
+
+        $this->get('/en/blog/hello')->assertOk()
+            ->assertSee(asset('storage/media/2026/10/en.png'), false)
+            ->assertDontSee(asset('storage/media/2026/10/ja.png'), false);
+        $this->assertSame($en->id, SeoPageMetaRecorder::$calls[0][3]);
+
+        $this->get('/en/blog')->assertOk()->assertSee(asset('storage/media/2026/10/en.png'), false);
+        $this->get('/ja/blog')->assertOk()->assertSee(asset('storage/media/2026/10/ja.png'), false);
+    }
+
     public function test_the_title_follows_the_language_shown(): void
     {
         $post = $this->makePost();
@@ -181,6 +199,18 @@ class BlogPostSeoPageMetaTest extends TestCase
     /**
      * @param  array<string, mixed>  $attributes
      */
+    private function media(string $name): Media
+    {
+        return Media::query()->create([
+            // Media rows belong to the current site.
+            'site_id' => rescue(fn () => app(SiteContextInterface::class)->currentSiteId(), 1, false),
+            'name' => $name,
+            'alt_text' => $name,
+            'path' => '2026/10/'.$name,
+            'type' => 'image/png',
+        ]);
+    }
+
     private function makePost(array $attributes = []): BlogPost
     {
         return BlogPost::create($attributes + [

@@ -162,6 +162,39 @@ class BlogPost extends Model implements Revisionable
         return $this->belongsTo(Media::class, 'featured_media_id');
     }
 
+    /** @var array<int, Media|null> Translated featured images, by media id. */
+    private array $translatedFeaturedMedia = [];
+
+    /**
+     * The featured image to show in a locale: the one set for it in the
+     * translation editor (DixlaseMultilingual), else the post's own. A
+     * translated image whose media item is gone falls back as well.
+     */
+    public function localizedFeaturedMedia(?string $locale = null): ?Media
+    {
+        $id = $this->translationFor('featured_media_id', $locale);
+        if ($id === null || ! ctype_digit($id)) {
+            return $this->featuredMedia;
+        }
+
+        $id = (int) $id;
+        if (! array_key_exists($id, $this->translatedFeaturedMedia)) {
+            $this->translatedFeaturedMedia[$id] = Media::query()->find($id);
+        }
+
+        return $this->translatedFeaturedMedia[$id] ?? $this->featuredMedia;
+    }
+
+    /**
+     * The id of that image, for DixlaseSEO's fallback OGP image. The post's
+     * own id is handed on even when its media item is not loaded, since
+     * DixlaseSEO resolves the id itself.
+     */
+    public function localizedFeaturedMediaId(?string $locale = null): ?int
+    {
+        return $this->localizedFeaturedMedia($locale)?->id ?? $this->featured_media_id;
+    }
+
     /**
      * @return BelongsToMany<BlogCategory>
      */

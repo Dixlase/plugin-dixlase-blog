@@ -17,13 +17,14 @@ pinned posts first.
     $title = $post->localized('title');
     $excerpt = $post->localized('excerpt');
     $url = route('dixlase-blog::front.show', ['slug' => $post->slug]);
+    $featuredMedia = $post->localizedFeaturedMedia();
 @endphp
 
 <article class="dixlase-blog-card">
-    @if ($post->featured_media_id && $post->featuredMedia)
+    @if ($featuredMedia)
         <a href="{{ $url }}" class="dixlase-blog-card__media" tabindex="-1" aria-hidden="true">
-            <img src="{{ asset('storage/media/'.$post->featuredMedia->path) }}"
-                 alt="{{ $post->featuredMedia->alt_text ?? $title }}"
+            <img src="{{ asset('storage/media/'.$featuredMedia->path) }}"
+                 alt="{{ $featuredMedia->alt_text ?? $title }}"
                  loading="lazy">
         </a>
     @endif
