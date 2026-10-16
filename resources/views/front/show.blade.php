@@ -34,7 +34,7 @@ BlogContentRenderer).
         // parameters, and PHP ignores extra positional arguments while an
         // unknown named argument is a fatal Error. Keep this call positional
         // so the page still renders on a site running 0.1.x.
-        dls_seo_set_page_meta($post, 'dixlase-blog', $title, $featuredMedia?->id, 'article');
+        dls_seo_set_page_meta($post, 'dixlase-blog', $title, $post->localizedFeaturedMediaId(), 'article');
     }
 @endphp
 

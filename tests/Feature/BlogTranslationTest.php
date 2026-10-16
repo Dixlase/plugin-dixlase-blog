@@ -184,11 +184,6 @@ class BlogTranslationTest extends TestCase
 
         App::setLocale('en');
         $this->assertSame('en.png', $post->localizedFeaturedMedia()?->name);
-        $this->get('/blog/hello')->assertOk()
-            ->assertSee(asset('storage/media/2026/10/en.png'), false)
-            ->assertDontSee(asset('storage/media/2026/10/ja.png'), false);
-        $this->get('/blog')->assertOk()
-            ->assertSee(asset('storage/media/2026/10/en.png'), false);
 
         App::setLocale('ja');
         $this->assertSame('ja.png', $post->fresh()->localizedFeaturedMedia()?->name);

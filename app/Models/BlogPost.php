@@ -186,6 +186,16 @@ class BlogPost extends Model implements Revisionable
     }
 
     /**
+     * The id of that image, for DixlaseSEO's fallback OGP image. The post's
+     * own id is handed on even when its media item is not loaded, since
+     * DixlaseSEO resolves the id itself.
+     */
+    public function localizedFeaturedMediaId(?string $locale = null): ?int
+    {
+        return $this->localizedFeaturedMedia($locale)?->id ?? $this->featured_media_id;
+    }
+
+    /**
      * @return BelongsToMany<BlogCategory>
      */
     public function categories(): BelongsToMany
