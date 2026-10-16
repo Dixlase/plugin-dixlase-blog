@@ -31,7 +31,7 @@ import Sortable from 'sortablejs';
  *
  * Usage:
  *   <div x-data="blogCategoryReorder" data-save-url="..." data-csrf-token="...">
- *       <ul class="category-tree" data-parent-id="">
+ *       <ul class="category-tree" data-parent-id="" data-tree-root>
  *           <li data-category-id="1">
  *               <div>... row content with .drag-handle ...</div>
  *               <ul class="category-tree" data-parent-id="1">...</ul>
@@ -207,7 +207,10 @@ export default function blogCategoryReorder() {
                     let message = 'Save failed';
                     try {
                         const data = await response.json();
-                        if (data?.error) {
+                        // Core renders JSON errors as { error: { code, message } }.
+                        if (typeof data?.error?.message === 'string') {
+                            message = data.error.message;
+                        } else if (typeof data?.error === 'string') {
                             message = data.error;
                         } else if (data?.message) {
                             message = data.message;
@@ -249,7 +252,8 @@ export default function blogCategoryReorder() {
                     }
                 });
             };
-            const root = this.$el.querySelector(':scope > .category-tree');
+            // The root list sits inside a wrapper, so it is not a direct child.
+            const root = this.$el.querySelector('[data-tree-root]');
             walk(root, null);
             return items;
         },
