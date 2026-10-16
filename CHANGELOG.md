@@ -5,9 +5,9 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
-## [Unreleased]
+## [0.1.0] - 2026-10-16
 
-Work toward the first release, 0.1.0 (#13).
+The first release (#13).
 
 ### Added
 
