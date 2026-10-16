@@ -47,7 +47,9 @@ use Illuminate\Routing\Controller;
 use Illuminate\View\View;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogPostStoreRequest;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogPostUpdateRequest;
+use Illuminate\Database\Eloquent\Builder;
 use Plugins\DixlaseBlog\App\Models\BlogCategory;
+use Plugins\DixlaseBlog\App\Models\BlogComment;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Services\BlogContentRenderer;
 use Plugins\DixlaseBlog\App\Services\BlogPostService;
@@ -73,11 +75,17 @@ class DixlaseBlogAdminPostsController extends Controller
     {
         $posts = BlogPost::query()
             ->with(['categories', 'tags', 'author'])
+            // Comment counts for the list, without a query per row.
+            ->withCount([
+                'comments as published_comments_count' => fn (Builder $q) => $q->where('status', BlogComment::STATUS_PUBLISHED),
+                'comments as pending_comments_count' => fn (Builder $q) => $q->where('status', BlogComment::STATUS_PENDING),
+            ])
             ->orderByDesc('created_at')
             ->paginate(20);
 
         return view('dixlase-blog::admin.posts.index', array_merge($this->viewParams, [
             'posts' => $posts,
+            'pendingCommentsUrl' => route('dixlase-blog::admin.blog.comments.index', ['status' => BlogComment::STATUS_PENDING]),
             'permalinks' => $posts->getCollection()->mapWithKeys(fn (BlogPost $post) => [
                 $post->id => route('dixlase-blog::front.show', ['slug' => $post->slug]),
             ])->all(),
