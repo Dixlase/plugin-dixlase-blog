@@ -91,6 +91,8 @@ class DixlaseBlogAdminSettingsController extends Controller
             ],
             'commentsCloseAfterDaysMax' => BlogSettings::COMMENTS_CLOSE_AFTER_DAYS_MAX,
             'commentLinkLimitMax' => BlogSettings::COMMENT_LINK_LIMIT_MAX,
+            'commentRateMaxAttemptsMax' => BlogSettings::COMMENT_RATE_MAX_ATTEMPTS_MAX,
+            'commentRateDecayMinutesMax' => BlogSettings::COMMENT_RATE_DECAY_MINUTES_MAX,
             // Shown as the placeholder: where mail goes when the field is empty.
             'siteAdminEmail' => ConfigHelper::getNotificationEmail(),
             'commentIpRetentionDaysMax' => BlogSettings::COMMENT_IP_RETENTION_DAYS_MAX,
