@@ -140,7 +140,7 @@ class BlogComments
     }
 
     /**
-     * The site's privacy notice: a plugin's (DixlaseLegal's), else the URL
+     * The site's privacy notice: one a plugin provides, else the URL
      * on the blog settings screen.
      */
     public function privacyPolicyUrl(): ?string
@@ -149,7 +149,7 @@ class BlogComments
     }
 
     /**
-     * The privacy policy a plugin such as DixlaseLegal provides.
+     * The privacy policy a plugin provides.
      */
     public function providedPrivacyPolicyUrl(): ?string
     {

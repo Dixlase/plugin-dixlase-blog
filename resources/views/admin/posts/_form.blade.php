@@ -21,8 +21,8 @@ blogFeaturedPreview).
 In edit mode the editor-type selector is hidden (showEditorSelector =
 false). Once a post has been saved with an editor type, switching types
 loses content fidelity, so the editor type becomes a locked badge in the
-sidebar's "Meta info" section instead. Same convention DixlaseLegal and
-the FrontPage admin use.
+sidebar's "Meta info" section instead. Same convention the FrontPage
+admin uses.
 --}}
 
 @php

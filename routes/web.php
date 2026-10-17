@@ -38,8 +38,7 @@ use Plugins\DixlaseBlog\App\Providers\DixlaseBlogServiceProvider;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
 // Front-end routes only; the admin routes are in routes/admin.php. With
-// DixlaseMultilingual's locale URLs on, this file is also loaded under
-// /{locale}. The front.ip middleware is required to enforce the IP
+// locale URLs on, this file is also loaded under /{locale}. The front.ip middleware is required to enforce the IP
 // filter — omitting it materially weakens security.
 //
 // The prefix ("blog" by default) is the route_slug setting, read when the

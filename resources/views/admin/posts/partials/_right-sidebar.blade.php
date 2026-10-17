@@ -56,8 +56,7 @@ side validation continues to enforce it.
         ? $post->editor_type
         : \App\Enums\ContentEditorType::tryFromSlug($editorTypeSlug ?? 'markdown');
 
-    // Named in the admin's language, as DixlaseMultilingual's translate
-    // button names it.
+    // Named in the admin's language, as the translate button names it.
     $langCode = $post->exists ? $post->sourceLocale() : ($langValue ?? config('app.locale'));
     $langName = \App\Helpers\LocaleHelper::getLocaleName($langCode, false);
 @endphp
@@ -136,7 +135,7 @@ side validation continues to enforce it.
             </div>
             <x-form-help-text :text="__('dixlase-blog::admin.post_form.meta_editor_locked_help')" />
 
-            {{-- DixlaseMultilingual's button; it renders nothing for an unsaved
+            {{-- The translation plugin's button; it renders nothing for an unsaved
                  post. <x-dynamic-component> keeps this view compiling without
                  the plugin, and the view check keeps it rendering: a missing
                  component throws instead of rendering empty. --}}

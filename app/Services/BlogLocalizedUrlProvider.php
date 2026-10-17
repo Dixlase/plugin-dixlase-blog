@@ -41,10 +41,10 @@ use Illuminate\Http\Request;
 /**
  * The same blog page in every supported locale, for hreflang links.
  *
- * Answers only for the blog's front routes, and only on the /{locale}
- * copy of them that DixlaseMultilingual mounts. Every language shares the
- * post's slug, so each alternate is the current route with another
- * locale; DixlaseMultilingual keeps only the enabled locales.
+ * Answers only for the blog's front routes, and only on their /{locale}
+ * copy. Every language shares the post's slug, so each alternate is the
+ * current route with another locale; the caller keeps only the enabled
+ * locales.
  */
 final class BlogLocalizedUrlProvider implements LocalizedUrlProvider
 {

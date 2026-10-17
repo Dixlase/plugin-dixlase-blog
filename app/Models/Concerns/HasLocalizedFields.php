@@ -40,7 +40,7 @@ use Illuminate\Support\Facades\App;
 
 /**
  * Reads translated field values through the core TranslationResolver
- * contract, which DixlaseMultilingual binds when it is installed.
+ * contract, which a translation plugin binds when one is installed.
  *
  * A record is written in one language (its source locale). Other locales
  * are overlays; where an overlay is missing or empty, the source text is

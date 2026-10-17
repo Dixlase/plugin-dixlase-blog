@@ -62,7 +62,7 @@ use Plugins\DixlaseBlog\App\Support\BlogExcerpt;
  * @property ContentStatus $status
  * @property bool $is_pinned
  * @property string $comment_status inherit, open or closed (COMMENT_STATUSES)
- * @property string|null $lang Source language; other languages are DixlaseMultilingual overlays
+ * @property string|null $lang Source language; other languages are translation overlays
  * @property int|null $user_id
  * @property \Illuminate\Support\Carbon|null $published_at
  * @property \Illuminate\Support\Carbon|null $closed_at
@@ -167,7 +167,7 @@ class BlogPost extends Model implements Revisionable
 
     /**
      * The featured image to show in a locale: the one set for it in the
-     * translation editor (DixlaseMultilingual), else the post's own. A
+     * translation editor, else the post's own. A
      * translated image whose media item is gone falls back as well.
      */
     public function localizedFeaturedMedia(?string $locale = null): ?Media
@@ -314,7 +314,7 @@ class BlogPost extends Model implements Revisionable
 
     /**
      * The SEO description stored by DixlaseSEO, in the source language.
-     * Exposed as an attribute so DixlaseMultilingual's editor shows it as
+     * Exposed as an attribute so the translation editor shows it as
      * the source text of the translatable seo_description field.
      */
     public function getSeoDescriptionAttribute(): ?string

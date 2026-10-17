@@ -16,7 +16,7 @@
  */
 
 /**
- * Plugin-local Vite config (mirrors DixlaseLegal / DixlaseInquiry / etc).
+ * Plugin-local Vite config (mirrors DixlaseInquiry / etc).
  *
  * The plugin builds independently — `npx vite build` from this directory
  * produces resources/assets/{js,css,manifest.json}. Core's plugin asset

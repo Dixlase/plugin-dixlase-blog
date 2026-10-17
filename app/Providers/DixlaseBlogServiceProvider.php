@@ -71,7 +71,7 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
         $this->app->singleton(BlogPostLinkableProvider::class);
         $this->app->tag([BlogPostLinkableProvider::class], 'linkable.providers');
 
-        // Picked up by DixlaseMultilingual for hreflang alternates.
+        // Read through the localized-url.providers tag for hreflang alternates.
         $this->app->singleton(BlogLocalizedUrlProvider::class);
         $this->app->tag([BlogLocalizedUrlProvider::class], 'localized-url.providers');
 

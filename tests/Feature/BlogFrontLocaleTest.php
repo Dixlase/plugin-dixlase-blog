@@ -53,7 +53,7 @@ use Plugins\DixlaseBlog\Tests\Support\FakeTranslationResolver;
 use Tests\TestCase;
 
 /**
- * The front under a /{locale} prefix, the way DixlaseMultilingual mounts
+ * The front under a /{locale} prefix, the way a translation plugin mounts
  * plugin routes: the same route file is loaded a second time inside a
  * {locale} group with the same route names, and SetFrontLocale fills the
  * locale from the URL.
@@ -102,7 +102,7 @@ class BlogFrontLocaleTest extends TestCase
                 Route::get('/blog/{slug}', [DixlaseBlogFrontController::class, 'show'])->name('show');
             });
         };
-        // DixlaseMultilingual registers the {locale} copy first. Laravel's
+        // The translation plugin registers the {locale} copy first. Laravel's
         // name index keeps the first route for a name, so route() builds
         // /{locale}/blog/... URLs, with the locale filled from the URL
         // default the middleware sets. Locale-less requests get a locale

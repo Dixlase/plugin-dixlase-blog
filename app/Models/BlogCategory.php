@@ -47,7 +47,7 @@ use Plugins\DixlaseBlog\App\Models\Concerns\HasLocalizedFields;
  * @property int $id
  * @property string $label
  * @property string $slug
- * @property string|null $lang Source language of the name; other languages are DixlaseMultilingual overlays
+ * @property string|null $lang Source language of the name; other languages are translation overlays
  * @property int|null $parent_id
  * @property int $depth
  * @property int $display_order

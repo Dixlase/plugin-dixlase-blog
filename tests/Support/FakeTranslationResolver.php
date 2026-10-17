@@ -39,8 +39,8 @@ use App\Contracts\TranslationResolver;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * In-memory stand-in for the TranslationResolver that DixlaseMultilingual
- * binds, so the blog's translation tests do not depend on that plugin.
+ * In-memory stand-in for the TranslationResolver that a translation plugin
+ * binds, so the blog's translation tests do not depend on one.
  */
 final class FakeTranslationResolver implements TranslationResolver
 {
