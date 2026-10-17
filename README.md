@@ -2,7 +2,7 @@
 
 For Japanese, see [README.ja.md](./README.ja.md).
 
-A blog for Dixlase: posts with categories and tags, revisions and a trash; comments with moderation; a settings screen; a configurable sidebar; search and date archives; and public list, post, archive and RSS pages under `/blog` (the prefix is a setting). It works with DixlaseMultilingual for a bilingual blog and with DixlaseSEO for meta tags and the sitemap.
+A blog for Dixlase: posts with categories and tags, revisions and a trash; comments with moderation; a settings screen; a configurable sidebar; search and date archives; and public list, post, archive and RSS pages under `/blog` (the prefix is a setting). It works with DixlaseSEO for meta tags and the sitemap.
 
 ## Features
 
@@ -35,7 +35,6 @@ Off until the site turns them on on the settings screen. Each post can follow th
 
 ### Integrations
 
-- **DixlaseMultilingual** — A post is written in one language and translated into the others; untranslated content shows the original. Category and tag names are translated too. With locale URLs enabled, the pages are also served under `/{locale}/blog`.
 - **DixlaseSEO** — Meta tags, OGP images, hreflang and the sitemap, with the same fields as DixlasePages.
 
 ## Installation
