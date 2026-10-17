@@ -69,6 +69,18 @@ plugins.
             }
             return;
         }
+        // The post's custom CSS as it is typed. Its JavaScript is never
+        // sent here: this frame runs under the admin session.
+        if (event.data.action === 'updateCustomCss') {
+            var styleEl = document.getElementById('preview-custom-css');
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = 'preview-custom-css';
+                document.head.appendChild(styleEl);
+            }
+            styleEl.textContent = typeof event.data.css === 'string' ? event.data.css : '';
+            return;
+        }
         if (event.data.action !== 'updateContent') return;
 
         if (titleEl && typeof event.data.title === 'string') {

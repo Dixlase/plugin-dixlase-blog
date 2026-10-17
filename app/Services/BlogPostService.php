@@ -179,6 +179,8 @@ class BlogPostService
             ->only([
                 'title',
                 'content',
+                'custom_css',
+                'custom_js',
                 'featured_media_id',
                 'editor_type',
                 'status',

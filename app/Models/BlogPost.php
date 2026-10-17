@@ -56,6 +56,8 @@ use Plugins\DixlaseBlog\App\Support\BlogExcerpt;
  * @property string $title
  * @property string $slug
  * @property string|null $content
+ * @property string|null $custom_css Served only for HTML posts
+ * @property string|null $custom_js Served only for HTML posts
  * @property string|null $excerpt
  * @property int|null $featured_media_id
  * @property ContentEditorType $editor_type
@@ -95,6 +97,8 @@ class BlogPost extends Model implements Revisionable
         'title',
         'slug',
         'content',
+        'custom_css',
+        'custom_js',
         'excerpt',
         'featured_media_id',
         'editor_type',
@@ -399,6 +403,8 @@ class BlogPost extends Model implements Revisionable
             'title',
             'slug',
             'content',
+            'custom_css',
+            'custom_js',
             'excerpt',
             'featured_media_id',
             'editor_type',

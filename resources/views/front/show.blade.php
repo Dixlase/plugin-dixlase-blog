@@ -43,6 +43,25 @@ BlogContentRenderer).
 
 @include('dixlase-blog::front._assets')
 
+{{-- The post's own CSS and JavaScript (HTML posts only), as files next to
+     the post. The editors' previews run under the admin session and may
+     show a post the files are not served for, so they carry the CSS in the
+     page and never run the JavaScript. --}}
+@if (trim($customCss ?? '') !== '')
+    @push('styles')
+        @if ($isPreview ?? false)
+            <style @cspNonce>{!! str_ireplace('</style', '<\/style', $customCss) !!}</style>
+        @else
+            <link rel="stylesheet" href="{{ route('dixlase-blog::front.custom-style', ['slug' => $post->slug]) }}?v={{ $customAssetVersion }}">
+        @endif
+    @endpush
+@endif
+@if (trim($customJs ?? '') !== '' && ! ($isPreview ?? false))
+    @push('scripts')
+        <script @cspNonce src="{{ route('dixlase-blog::front.custom-script', ['slug' => $post->slug]) }}?v={{ $customAssetVersion }}" defer></script>
+    @endpush
+@endif
+
 {{-- The editors' preview of a post in any status stays out of search
      engines. --}}
 @if ($isPreview ?? false)
