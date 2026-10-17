@@ -99,7 +99,7 @@ class DixlaseBlogAdminPostRevisionsController extends Controller
         $revisionSnapshot = (array) ($revision->snapshot ?? []);
 
         $diffs = [];
-        foreach (['title', 'slug', 'content', 'excerpt'] as $field) {
+        foreach (['title', 'slug', 'content', 'custom_css', 'custom_js', 'excerpt'] as $field) {
             $left = (string) ($revisionSnapshot[$field] ?? '');
             $right = (string) ($currentSnapshot[$field] ?? '');
             if (! $this->diffPresenter->hasChanges($left, $right)) {

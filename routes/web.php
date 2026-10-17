@@ -30,8 +30,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+use App\Http\Middleware\ContentSecurityPolicy;
 use Illuminate\Support\Facades\Route;
 use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogCommentController;
+use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogCustomAssetController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFeedController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFrontController;
 use Plugins\DixlaseBlog\App\Providers\DixlaseBlogServiceProvider;
@@ -68,5 +70,14 @@ Route::middleware(['front.ip'])
         Route::post($blog.'/{slug}/comments', [DixlaseBlogCommentController::class, 'store'])
             ->middleware('throttle:'.DixlaseBlogServiceProvider::COMMENT_RATE_LIMITER)
             ->name('comment');
+        // A post's own CSS and JavaScript (HTML posts). Outside the content
+        // security policy middleware, as DixlasePages serves a page's: the
+        // response is a file, not a document.
+        Route::get($blog.'/{slug}/custom-style.css', [DixlaseBlogCustomAssetController::class, 'style'])
+            ->name('custom-style')
+            ->withoutMiddleware([ContentSecurityPolicy::class]);
+        Route::get($blog.'/{slug}/custom-script.js', [DixlaseBlogCustomAssetController::class, 'script'])
+            ->name('custom-script')
+            ->withoutMiddleware([ContentSecurityPolicy::class]);
         Route::get($blog.'/{slug}', [DixlaseBlogFrontController::class, 'show'])->name('show');
     });

@@ -155,6 +155,7 @@ class DixlaseBlogFrontController extends Controller
             'categories.*' => ['integer'],
             'tags' => ['nullable', 'array', 'max:50'],
             'tags.*' => ['nullable', 'string', 'max:100'],
+            'custom_css' => ['nullable', 'string', 'max:500000'],
         ]);
 
         if ($request->route('post') !== null) {
@@ -178,6 +179,12 @@ class DixlaseBlogFrontController extends Controller
             'closed_at' => $data['closed_at'] ?? null,
             'featured_media_id' => ($data['featured_media_id'] ?? 0) ?: null,
         ]);
+        // The CSS being typed, from members who may write it; the form
+        // leaves the field out in Simple mode. The JavaScript is never run
+        // here (show.blade.php), so it is not taken.
+        if ($request->has('custom_css') && BlogScriptAuthoringPolicy::canAuthorScripts($member)) {
+            $post->custom_css = $data['custom_css'] ?? null;
+        }
         $post->excerpt = filled($data['excerpt'] ?? null) ? $data['excerpt'] : BlogExcerpt::fromContent($post->content);
 
         $post->setRelation('featuredMedia', $post->featured_media_id !== null ? Media::query()->find($post->featured_media_id) : null);
@@ -263,6 +270,11 @@ class DixlaseBlogFrontController extends Controller
             'postUrl' => $postUrl,
             'shareLinks' => $this->shareLinks->for($postUrl, (string) $post->localized('title')),
             'breadcrumbs' => $this->breadcrumbs->forPost($post, $postUrl),
+            // Kept only for HTML posts (BlogPostStoreRequest); a post saved
+            // before that rule, or switched back by a revision, shows none.
+            'customCss' => $post->editor_type === ContentEditorType::HTML ? (string) $post->custom_css : '',
+            'customJs' => $post->editor_type === ContentEditorType::HTML ? (string) $post->custom_js : '',
+            'customAssetVersion' => $post->updated_at?->timestamp ?? 0,
         ]);
     }
 

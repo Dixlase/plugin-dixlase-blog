@@ -23,6 +23,10 @@ false). Once a post has been saved with an editor type, switching types
 loses content fidelity, so the editor type becomes a locked badge in the
 sidebar's "Meta info" section instead. Same convention the FrontPage
 admin uses.
+
+With the HTML editor, members who may author scripts also get the CSS and
+JavaScript tabs, as for pages (not in Simple mode). The preview applies
+the CSS as it is typed and never runs the JavaScript.
 --}}
 
 @php
@@ -40,6 +44,9 @@ admin uses.
     $previewFrameUrl = $isEditMode
         ? route('dixlase-blog::admin.blog.previewFrame', ['post' => $post->id])
         : route('dixlase-blog::admin.blog.previewFrame');
+
+    $assetTabs = \Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy::canAuthorScripts(auth('member')->user())
+        && ! \Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy::isSimpleMode();
 @endphp
 
 @csrf
@@ -73,7 +80,14 @@ admin uses.
     :previewFrameUrl="$previewFrameUrl"
     :previewUrl="route('dixlase-blog::admin.blog.preview')"
     previewRender="server"
+    :assetTabs="$assetTabs"
+    :customCss="old('custom_css', $post->custom_css ?? '')"
+    :customJs="old('custom_js', $post->custom_js ?? '')"
+    :cssPlaceholder="__('dixlase-blog::admin.post_form.css_placeholder')"
+    :jsPlaceholder="__('dixlase-blog::admin.post_form.js_placeholder')"
 />
+<x-form-error name="custom_css" />
+<x-form-error name="custom_js" />
 <x-form-error name="content" />
 
 {{-- ===== Right sidebar ===== --}}
