@@ -13,7 +13,7 @@ and this plugin follows Semantic Versioning.
   image per language (`seo_ogp_media_id`, type `media`). In a translated language a shared post
   shows that language's OGP image, else its featured image, then the source language's SEO image
   and featured image, then the site's default. The source language is unchanged. Needs
-  DixlaseSEO 0.2.3 and DixlaseMultilingual 0.5.0.
+  DixlaseSEO 0.2.3.
 
 ### Fixed
 
@@ -34,9 +34,8 @@ The first release (#13).
 - The comment rate limit is set on the settings screen (#123): a number of comments per period
   from one IP address, five per ten minutes by default.
 - A plugin thumbnail for the plugin list (#109, #119).
-- A featured image per language (#99). When DixlaseMultilingual has the media field type (the
-  release after 0.4.1, Dixlase/plugin-dixlase-multilingual#56), the translation editor takes a
-  featured image for each language. The post page, the lists, related posts and the fallback OGP
+- A featured image per language (#99). The translation editor takes a featured image for each
+  language. The post page, the lists, related posts and the fallback OGP
   image show it, and fall back to the post's own image when none is set or the media item is gone.
 - Commenters' personal data (#63). An ADMIN finds every comment written with one e-mail address
   (the trash included) and removes the name, e-mail and IP address from them or deletes them.
@@ -103,7 +102,7 @@ The first release (#13).
   under `custom/plugins/DixlaseBlog/resources/views/` or
   `themes/<theme>/plugins/DixlaseBlog/resources/views/`, as with DixlasePages; the old
   `themes/<theme>/views/dixlase-blog/` path is no longer read.
-- Posts can be translated with DixlaseMultilingual (#8). A post is written in one language,
+- Posts can be translated (#8). A post is written in one language,
   chosen when it is created, and other languages are added as translations sharing the
   post's slug. Where a translation is missing, the original text is shown.
 - Category and tag names can be translated the same way (#9); slugs stay shared. A
@@ -180,9 +179,6 @@ The first release (#13).
 - A click anywhere on a post card in the listings opens the post; the category and tag chips
   still open their archives (#52). Hovering a card lightens its background; the title keeps its
   colour (#64).
-- The post edit screen uses DixlaseMultilingual's translate button instead of its own
-  (#35); the help text now names the source language in the admin's language. The
-  `post_form.translate_button` and `post_form.translate_help` strings were removed.
 - The built front-end assets under `resources/assets/` are no longer tracked in git, and
   their file names carry a content hash so browsers pick up a new build (#5). Run
   `npm run build` in a local checkout.
