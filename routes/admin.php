@@ -79,6 +79,12 @@ Route::name('dixlase-blog::admin.')
         Route::get('/blog/{post}/preview', [DixlaseBlogFrontController::class, 'preview'])
             ->whereNumber('post')
             ->name('blog.previewPage');
+        // The form as it stands, saved or not (the sidebar's "Preview"
+        // button, through core's new-tab preview). {post} is the post being
+        // edited; without it, a new one.
+        Route::post('/blog/preview-page/{post?}', [DixlaseBlogFrontController::class, 'previewForm'])
+            ->whereNumber('post')
+            ->name('blog.previewForm');
 
         // ===== Trash =====
         Route::get('/blog/trash', [DixlaseBlogAdminPostsController::class, 'trash'])->name('blog.trash');

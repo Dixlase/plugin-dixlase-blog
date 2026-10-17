@@ -41,13 +41,11 @@ side validation continues to enforce it.
         'scheduled' => \App\Enums\ContentStatus::SCHEDULED->label(),
     ];
 
-    // The sidebar Preview button opens the saved post in the theme's full
-    // layout in a new tab, whatever its status (an admin route, so the
-    // admin login applies), vs. the editor's split-pane preview which shows
-    // unsaved changes in a stripped-down iframe shell.
-    $publicPreviewUrl = $isEditMode
-        ? route('dixlase-blog::admin.blog.previewPage', ['post' => $post->id])
-        : null;
+    // The sidebar Preview button posts the form, saved or not, and opens
+    // the post in the theme's full layout in a new tab (an admin route, so
+    // the admin login applies), vs. the editor's split-pane preview which
+    // shows the body alone in a stripped-down iframe shell.
+    $formPreviewUrl = route('dixlase-blog::admin.blog.previewForm', $isEditMode ? ['post' => $post->id] : []);
 
     // Resolve editor type once for the meta-info badge so the badge
     // reads the same enum the form-content-editor uses to drive content
@@ -67,29 +65,12 @@ side validation continues to enforce it.
 >
 
     {{-- ===== 1. Preview ===== --}}
-    <div>
-        @if ($publicPreviewUrl)
-            <x-form-button
-                type="button"
-                icon="fas fa-eye"
-                variant="secondary"
-                size="sm"
-                @click="window.open('{{ $publicPreviewUrl }}', '_blank', 'noopener,noreferrer')"
-                class="w-full"
-            >
-                {{ __('dixlase-blog::admin.post_form.preview_button') }}
-            </x-form-button>
-            <x-form-help-text :text="__('dixlase-blog::admin.post_form.preview_help_edit')" />
-        @else
-            <button type="button"
-                    class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                    disabled>
-                <i class="fas fa-eye"></i>
-                {{ __('dixlase-blog::admin.post_form.preview_button') }}
-            </button>
-            <x-form-help-text :text="__('dixlase-blog::admin.post_form.preview_help_create')" />
-        @endif
-    </div>
+    <x-content-editor.new-tab-preview
+        :url="$formPreviewUrl"
+        icon="fas fa-eye"
+        :label="__('dixlase-blog::admin.post_form.preview_button')"
+        :help="__('dixlase-blog::admin.post_form.preview_help')"
+    />
 
     {{-- ===== 2. Author info (edit only — sits between Preview and Meta info per operator request) ===== --}}
     @if ($isEditMode)

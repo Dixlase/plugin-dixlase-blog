@@ -79,6 +79,7 @@ return [
                 'preview' => $editor,
                 'previewFrame' => $editor,
                 'previewPage' => $editor,
+                'previewForm' => $editor,
                 // Soft delete: the post goes to the trash and can be restored.
                 'destroy' => $editor,
 
