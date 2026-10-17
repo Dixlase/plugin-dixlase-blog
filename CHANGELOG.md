@@ -5,6 +5,20 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.1.2] - 2026-10-18
+
+### Added
+
+- The "Preview" button on the post editor shows the text being edited, before it is saved, and
+  works on the create screen as well, where it used to be disabled (#141, fixes #140). Nothing is
+  written while previewing. The preview is rendered in the post's source language and sent with
+  `noindex, nofollow`.
+
+### Changed
+
+- The README, comments, tests, language files, `plugin.json` and this changelog no longer name plugins that are not distributed publicly. Each integration is
+  described by the core mechanism it goes through (#137, fixes #136; #139, fixes #138). No behaviour changed.
+
 ## [0.1.1] - 2026-10-17
 
 ### Added
