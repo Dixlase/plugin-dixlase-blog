@@ -58,7 +58,7 @@ BlogContentRenderer).
 @endif
 @if (trim($customJs ?? '') !== '' && ! ($isPreview ?? false))
     @push('scripts')
-        <script src="{{ route('dixlase-blog::front.custom-script', ['slug' => $post->slug]) }}?v={{ $customAssetVersion }}" defer></script>
+        <script @cspNonce src="{{ route('dixlase-blog::front.custom-script', ['slug' => $post->slug]) }}?v={{ $customAssetVersion }}" defer></script>
     @endpush
 @endif
 
