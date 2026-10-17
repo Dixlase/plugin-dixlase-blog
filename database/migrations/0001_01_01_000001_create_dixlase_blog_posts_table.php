@@ -54,7 +54,7 @@ return new class extends Migration
             $table->tinyInteger('editor_type')->default(1);
             // Status (0=draft, 1=published, 2=scheduled) — see App\Enums\ContentStatus
             $table->tinyInteger('status')->default(0);
-            // Language code; pre-provisioned for future DixlaseMultilingual integration.
+            // Language code; the source language other languages are translated from.
             // Defaults to the site primary locale at write time.
             $table->string('lang', 10)->nullable();
             $table->foreignId('user_id')->nullable()->constrained('members')->nullOnDelete();

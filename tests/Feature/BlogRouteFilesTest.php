@@ -39,7 +39,7 @@ use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 /**
- * routes/web.php holds only the front routes, because DixlaseMultilingual
+ * routes/web.php holds only the front routes, because a translation plugin
  * loads it a second time under /{locale}; the admin routes live in
  * routes/admin.php, which core loads once with its admin middleware.
  */

@@ -58,8 +58,8 @@ use Tests\TestCase;
 /**
  * Posts, category names and tag names are translated through the core
  * TranslationResolver contract
- * (bound by DixlaseMultilingual). A stand-in resolver keeps these tests
- * independent of that plugin.
+ * (bound by a translation plugin). A stand-in resolver keeps these tests
+ * independent of one.
  */
 class BlogTranslationTest extends TestCase
 {

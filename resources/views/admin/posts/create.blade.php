@@ -29,8 +29,7 @@ Dixlase Blog is dual-licensed. You may use this file under either:
     {{-- The form's x-data dispatches "right-sidebar-active" so the admin
          layout knows to apply lg:mr-80 to #admin-main-content (which is
          what stops the centre column from drawing under the right
-         sidebar at lg+ breakpoints). DixlaseLegal's editor x-data does
-         the same thing in its init() hook. --}}
+         sidebar at lg+ breakpoints). --}}
     <form id="blog-post-form"
           action="{{ route('dixlase-blog::admin.blog.store') }}"
           method="POST"

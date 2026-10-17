@@ -36,7 +36,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Source language of category and tag names. Other languages are
- * DixlaseMultilingual overlays, as for posts. Null means the site's
+ * translation overlays, as for posts. Null means the site's
  * default locale.
  */
 return new class extends Migration

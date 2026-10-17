@@ -47,8 +47,8 @@ use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Tests\TestCase;
 
 /**
- * The post edit screen embeds DixlaseMultilingual's translate button when
- * that plugin is present, and still renders when it is not.
+ * The post edit screen embeds the translation plugin's translate button
+ * when that plugin is present, and still renders when it is not.
  */
 class BlogTranslateButtonTest extends TestCase
 {
@@ -130,7 +130,7 @@ class BlogTranslateButtonTest extends TestCase
     }
 
     /**
-     * Stand in for DixlaseMultilingual's anonymous component, under a
+     * Stand in for the translation plugin's anonymous component, under a
      * throwaway directory rather than the real plugin.
      */
     private function fakeMultilingualButton(): void

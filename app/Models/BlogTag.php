@@ -43,7 +43,7 @@ use Plugins\DixlaseBlog\App\Models\Concerns\HasLocalizedFields;
  * @property int $id
  * @property string $name
  * @property string $slug
- * @property string|null $lang Source language of the name; other languages are DixlaseMultilingual overlays
+ * @property string|null $lang Source language of the name; other languages are translation overlays
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  */

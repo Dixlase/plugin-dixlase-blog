@@ -41,7 +41,7 @@ The first release (#13).
   (the trash included) and removes the name, e-mail and IP address from them or deletes them.
   IP addresses are kept for a set number of days (30 by default; 0 keeps none) and then cleared by
   the daily `dls:blog:prune-comment-ips` task. Trashed comments are offered to core's database
-  cleanup. The comment form links the privacy policy DixlaseLegal provides, else a URL set on the
+  cleanup. The comment form links the privacy policy a plugin provides, else a URL set on the
   settings screen.
 - A comments screen (#62): every post's comments in tabs (pending, published, spam, trash), with
   approve, unpublish, mark as spam, trash and restore, singly or in bulk, and a reply as the site
@@ -52,7 +52,7 @@ The first release (#13).
   new comment is published at once or held for approval, can close comments a number of days after
   publishing, and holds a comment with too many links. Each post follows the blog setting or is
   opened or closed on its own. Visitors give a name, an e-mail address (never shown) and consent to
-  the privacy notice (linked when DixlaseLegal provides one); an editor or above signed in comments
+  the privacy notice (linked when a plugin provides one); an editor or above signed in comments
   as the site. Replies nest to any depth, comments are shared by every language of a post, and the
   cards show the comment count. Spam is kept down by core's CAPTCHA (the form is listed in its
   settings), a rate limit and a honeypot field. Overridable as `front/_comments.blade.php` and

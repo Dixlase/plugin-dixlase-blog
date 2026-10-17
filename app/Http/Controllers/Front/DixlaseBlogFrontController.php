@@ -70,8 +70,8 @@ class DixlaseBlogFrontController extends Controller
     }
 
     /**
-     * Route parameters are read by name. DixlaseMultilingual mounts these
-     * routes a second time under /{locale}, and Laravel hands controller
+     * Route parameters are read by name. With locale URLs on, these routes
+     * are mounted a second time under /{locale}, and Laravel hands controller
      * arguments over by position, so a `string $slug` argument would
      * receive the locale there.
      */
@@ -215,8 +215,9 @@ class DixlaseBlogFrontController extends Controller
     /**
      * Search the visible posts. Every word must appear in the title, the
      * excerpt or the body. Only the text a post was written in is
-     * searched: translations live in DixlaseMultilingual's tables, which
-     * the blog may not query, and core's TranslationResolver cannot search.
+     * searched: translations live in the translation plugin's tables,
+     * which the blog may not query, and core's TranslationResolver cannot
+     * search.
      * Results are not for search engines (X-Robots-Tag).
      */
     public function search(Request $request): Response

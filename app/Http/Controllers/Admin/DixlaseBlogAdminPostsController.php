@@ -126,10 +126,9 @@ class DixlaseBlogAdminPostsController extends Controller
      * read the {post} parameter by NAME from the Request instead.
      * Laravel passes route parameters to controller methods by position,
      * so a parameter added by any surrounding route group (the admin
-     * routes once lived in routes/web.php, which DixlaseMultilingual also
-     * mounts under /{locale}) would land in the wrong argument. Reading
-     * by name is unaffected by such groups. This mirrors DixlaseLegal's
-     * "resolve manually from the request" approach.
+     * routes once lived in routes/web.php, which a translation plugin may
+     * also mount under /{locale}) would land in the wrong argument. Reading
+     * by name is unaffected by such groups.
      */
     public function edit(Request $request): View
     {
@@ -308,10 +307,10 @@ class DixlaseBlogAdminPostsController extends Controller
     /**
      * Source-language picker for the post form.
      *
-     * The picker shows only while DixlaseMultilingual's locale URLs are on;
-     * a single-language site has nothing to choose and the post takes the
-     * site's default locale. The translate button comes from
-     * DixlaseMultilingual itself (see the post form's right sidebar).
+     * The picker shows only while locale URLs are on; a single-language
+     * site has nothing to choose and the post takes the site's default
+     * locale. The translate button comes from the translation plugin
+     * itself (see the post form's right sidebar).
      *
      * @return array{multilingualEnabled: bool, languageOptions: array<string, string>, langValue: string}
      */

@@ -118,7 +118,7 @@ class BlogSettings
         // Then cleared by dls:blog:prune-comment-ips (scheduled daily).
         'comment_ip_retention_days' => '30',
         // Linked from the comment form when no plugin provides a privacy
-        // policy (DixlaseLegal does).
+        // policy.
         'privacy_policy_url' => '',
     ];
 
