@@ -252,7 +252,7 @@
         "app/Support/BlogExcerpt.php": "sha256:2ea5867c6bd33b04c3e482774cd71355b108cef6952a3b10cfda5220de8e47e3",
         "app/Support/BlogMailMarkdown.php": "sha256:ea640e8c8c7cd4fa4599793113c94e61f0f4eed82001547dd892a2b169c5ce28",
         "app/Support/BlogSettings.php": "sha256:f924fbd89de7b0a7e3352aaa7ee9c86c4b20ce7f33cb19ec0fb78860c616a2ea",
-        "composer.json": "sha256:5c23defe7c41040b7c208524b62faff9467f0aaf090d2b08d7d4ae2e5c804618",
+        "composer.json": "sha256:218c1c8a112658b808ba0cdfdab306a8bd134887af76749889ba31a2bc2bb48a",
         "config/admin.php": "sha256:3114d980b10d3f76c355f34aa7cfa52eba083409cc994f41eccebfa1f0f2c653",
         "config/admin/database-cleanup.php": "sha256:29f176102ae2b77b208abd688c8338d4918ebc1cee7febd7553a1b96371588e8",
         "config/admin/roles.php": "sha256:f7f430a436faf331b900596c32d816b0c1e16ebcc83cacbd51cf8800623c66c3",
@@ -283,7 +283,7 @@
         "lang/ja/route-slug.php": "sha256:3e4b347887eb1564725c8162d4795c63823e8ca102ccdfa7566285a571efd18c",
         "license-info.json": "sha256:27febc29bf90ae573eb5b5386023e10fd024253ebcf56eb86ff42dff93106128",
         "package-lock.json": "sha256:56738e9d660701ddfe90be3dc9e0933a001c83c21ce4dcc4236ef10cb2ac95ef",
-        "package.json": "sha256:bd9d00ad8b9810db8fc83f3f2f34890b5f23cb3314382ec49554ec63c21ab64c",
+        "package.json": "sha256:93f0a6a58c464e1c119fb6a4fc04f3facc12604492dcad6fc8f2f358a032f49a",
         "phpunit.xml": "sha256:77ec274db7ba908e0c39b96381dd7c1a1ce4fd6b468f47ebe037090fe9c56959",
         "resources/src/css/style.scss": "sha256:2f6a92bb576ba4d326422323979188474c57298264bb96102ec16eb788dd4d7f",
         "resources/src/js/app.js": "sha256:c725a517cce3f54b02b7d777f8d3612a6ff0225212de0b9c8379cdefe862c023",
@@ -378,6 +378,6 @@
     "signing": {
         "algo": "ed25519",
         "key_id": "dixlase-authority-2026",
-        "signed_at": "2026-10-19T17:10:42+00:00"
+        "signed_at": "2026-10-19T19:22:01+00:00"
     }
 }
