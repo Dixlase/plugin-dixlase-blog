@@ -57,8 +57,8 @@ use Tests\TestCase;
 
 /**
  * An HTML post's own CSS and JavaScript: kept only for HTML posts, served
- * as files next to a visible post, and in the editors' previews the CSS
- * only.
+ * as files next to a visible post, and inside the page in the editors'
+ * previews, the JavaScript only for members who may write it.
  */
 class BlogPostCustomAssetsTest extends TestCase
 {
@@ -105,6 +105,9 @@ class BlogPostCustomAssetsTest extends TestCase
         Route::middleware('web')->prefix('admin-custom')->post('/blog/preview-page/{post?}', [DixlaseBlogFrontController::class, 'previewForm'])
             ->whereNumber('post')
             ->name('dixlase-blog::admin.blog.previewForm');
+        Route::middleware('web')->prefix('admin-custom')->get('/blog/{post}/preview', [DixlaseBlogFrontController::class, 'preview'])
+            ->whereNumber('post')
+            ->name('dixlase-blog::admin.blog.previewPage');
         Route::getRoutes()->refreshNameLookups();
         Route::getRoutes()->refreshActionLookups();
 
@@ -206,7 +209,7 @@ class BlogPostCustomAssetsTest extends TestCase
         $this->get('/blog/plain')->assertOk()->assertDontSee('custom-style.css', false);
     }
 
-    public function test_the_form_preview_shows_the_css_being_typed_and_never_the_script(): void
+    public function test_the_form_preview_carries_the_css_and_js_being_typed(): void
     {
         $post = $this->makePost(ContentEditorType::HTML, 'post', ['custom_css' => 'h1{}', 'custom_js' => 'stored()']);
         $form = [
@@ -215,25 +218,45 @@ class BlogPostCustomAssetsTest extends TestCase
             'editor_type' => 'html',
             'status' => 'draft',
             'custom_css' => 'h2{color:blue}</style><script>x()</script>',
-            'custom_js' => 'typed()',
+            'custom_js' => 'typed("</script><b>")',
         ];
 
         $this->actingAs($this->member(MemberRole::ADMIN), 'member');
         $this->post('/admin-custom/blog/preview-page/'.$post->id, $form)
             ->assertOk()
             ->assertSee('h2{color:blue}<\/style><script>x()</script></style>', false)
+            ->assertSee('typed("<\/script><b>")</script>', false)
             ->assertDontSee('custom-style.css', false)
             ->assertDontSee('custom-script.js', false)
-            ->assertDontSee('typed()', false)
             ->assertDontSee('stored()', false);
 
-        // A member who may not write it sees the stored CSS, not the posted.
+        // A member who may not write them sees the stored CSS, not the
+        // posted, and no script runs for them.
         $this->actingAs($this->member(MemberRole::EDITOR), 'member');
         $this->post('/admin-custom/blog/preview-page/'.$post->id, $form)
             ->assertOk()
             ->assertSee('<style', false)
             ->assertSee('h1{}', false)
-            ->assertDontSee('h2{color:blue}', false);
+            ->assertDontSee('h2{color:blue}', false)
+            ->assertDontSee('typed(', false)
+            ->assertDontSee('stored()', false);
+    }
+
+    public function test_the_preview_of_a_draft_runs_its_script_only_for_a_script_author(): void
+    {
+        $post = $this->makePost(ContentEditorType::HTML, 'draft', ['custom_css' => 'h1{}', 'custom_js' => 'stored()']);
+
+        $this->actingAs($this->member(MemberRole::ADMIN), 'member');
+        $this->get('/admin-custom/blog/'.$post->id.'/preview')
+            ->assertOk()
+            ->assertSee('stored()</script>', false)
+            ->assertDontSee('custom-script.js', false);
+
+        $this->actingAs($this->member(MemberRole::EDITOR), 'member');
+        $this->get('/admin-custom/blog/'.$post->id.'/preview')
+            ->assertOk()
+            ->assertSee('h1{}', false)
+            ->assertDontSee('stored()', false);
     }
 
     private function member(MemberRole $role): Member

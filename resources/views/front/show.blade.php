@@ -44,9 +44,10 @@ BlogContentRenderer).
 @include('dixlase-blog::front._assets')
 
 {{-- The post's own CSS and JavaScript (HTML posts only), as files next to
-     the post. The editors' previews run under the admin session and may
-     show a post the files are not served for, so they carry the CSS in the
-     page and never run the JavaScript. --}}
+     the post. The editors' previews may show a post the files are not
+     served for (a draft, unsaved input), so they carry both in the page.
+     The JavaScript runs there only for a member who may write it
+     ($previewRunsScript): the preview is under the admin URL. --}}
 @if (trim($customCss ?? '') !== '')
     @push('styles')
         @if ($isPreview ?? false)
@@ -56,9 +57,13 @@ BlogContentRenderer).
         @endif
     @endpush
 @endif
-@if (trim($customJs ?? '') !== '' && ! ($isPreview ?? false))
+@if (trim($customJs ?? '') !== '' && (! ($isPreview ?? false) || ($previewRunsScript ?? false)))
     @push('scripts')
-        <script @cspNonce src="{{ route('dixlase-blog::front.custom-script', ['slug' => $post->slug]) }}?v={{ $customAssetVersion }}" defer></script>
+        @if ($isPreview ?? false)
+            <script @cspNonce>{!! str_ireplace('</script', '<\/script', $customJs) !!}</script>
+        @else
+            <script @cspNonce src="{{ route('dixlase-blog::front.custom-script', ['slug' => $post->slug]) }}?v={{ $customAssetVersion }}" defer></script>
+        @endif
     @endpush
 @endif
 
