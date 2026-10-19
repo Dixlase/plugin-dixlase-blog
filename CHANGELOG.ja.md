@@ -5,6 +5,23 @@ Dixlase Blog プラグインの主要な変更はすべてこのファイルに�
 フォーマットは [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) に準拠し、
 本プラグインはセマンティックバージョニングに従います。
 
+## [0.1.3] - 2026-10-20
+
+### 追加
+
+- HTML エディタのとき、記事ごとに CSS と JavaScript を持てるようにしました(#143、#142 を修正)。
+  決まりは DixlasePages と同じです。タブを出すのは、スクリプトを書けるメンバー(ADMIN 以上)だけ
+  です。コードは改訂履歴に残り、公開中の HTML の記事に限って `/blog/{slug}/custom-style.css` と
+  `custom-script.js` として配信します。編集画面の中のプレビューは入力中の CSS を反映し、新しい
+  タブのプレビューでは JavaScript も動かします。
+
+### 更新について
+
+このリリースには、データベースのマイグレーション(記事のテーブルに列を 2 つ足します)が入って
+います。プラグインのマイグレーションは `php artisan migrate` では実行されません。
+`dls:plugin:update` で更新すると実行されます。ほかの方法でファイルを置いたサイトでは、
+`php artisan dls:plugin:migrate DixlaseBlog --force` を一度実行してください。
+
 ## [0.1.2] - 2026-10-18
 
 ### 追加

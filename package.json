@@ -1,6 +1,6 @@
 {
     "name": "plugins/dixlase-blog",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "Dixlase Blog - blog plugin for Dixlase CMS",
     "private": true,
     "scripts": {
