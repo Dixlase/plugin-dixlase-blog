@@ -45,6 +45,8 @@ side validation continues to enforce it.
     // the post in the theme's full layout in a new tab (an admin route, so
     // the admin login applies), vs. the editor's split-pane preview which
     // shows the body alone in a stripped-down iframe shell.
+    $postPublicUrl = $isEditMode ? route('dixlase-blog::front.show', ['slug' => $post->getOriginal('slug')]) : null;
+
     $formPreviewUrl = route('dixlase-blog::admin.blog.previewForm', $isEditMode ? ['post' => $post->id] : []);
 
     // Resolve editor type once for the meta-info badge so the badge
@@ -92,6 +94,21 @@ side validation continues to enforce it.
                 <div class="flex gap-2">
                     <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.updated_at') }}:</dt>
                     <dd class="text-gray-700 dark:text-gray-300">{{ $post->updated_at?->format('Y-m-d H:i') }}</dd>
+                </div>
+                {{-- The saved post's address. Readers get a 404 there until
+                     the post is visible, so until then it opens the preview. --}}
+                <div class="flex gap-2">
+                    <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.url') }}:</dt>
+                    <dd class="min-w-0 text-gray-700 dark:text-gray-300">
+                        @if ($post->isCurrentlyVisible())
+                            <a href="{{ $postPublicUrl }}" target="_blank" rel="noopener"
+                               class="break-all text-blue-600 hover:underline dark:text-blue-400">{{ $postPublicUrl }}</a>
+                        @else
+                            <a href="{{ route('dixlase-blog::admin.blog.previewPage', ['post' => $post->id]) }}" target="_blank" rel="noopener"
+                               class="break-all text-blue-600 hover:underline dark:text-blue-400">{{ $postPublicUrl }}</a>
+                            <span class="block text-gray-500 dark:text-gray-400">{{ __('dixlase-blog::admin.post.url_not_public') }}</span>
+                        @endif
+                    </dd>
                 </div>
             </dl>
         </div>

@@ -100,6 +100,8 @@ return [
         'tags_help' => 'スペース (または Enter) で確定。空欄状態の Backspace で末尾のタグを削除。先頭の # は省略可。',
         'created_at' => '作成日時',
         'updated_at' => '更新日時',
+        'url' => 'URL',
+        'url_not_public' => 'まだ公開されていません。リンクはプレビューを開きます。',
         'author' => '執筆者',
         'author_unknown' => '(不明)',
     ],

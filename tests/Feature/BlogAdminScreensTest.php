@@ -168,6 +168,36 @@ class BlogAdminScreensTest extends TestCase
             ->assertDontSee('href="'.$draft.'"', false);
     }
 
+    public function test_the_editor_links_to_the_post_or_its_preview(): void
+    {
+        $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
+        $draft = app(BlogPostService::class)->create([
+            'title' => 'Draft post',
+            'slug' => 'draft-post',
+            'content' => 'Body',
+            'editor_type' => 'markdown',
+            'status' => 'draft',
+        ], null);
+
+        // A visible post links to its own page.
+        $public = route('dixlase-blog::front.show', ['slug' => $this->post->slug]);
+        $this->get(route('dixlase-blog::admin.blog.edit', ['post' => $this->post->id]))->assertOk()
+            ->assertSee('href="'.$public.'" target="_blank"', false)
+            ->assertDontSee(__('dixlase-blog::admin.post.url_not_public'));
+
+        // A draft shows its address but opens the preview.
+        $address = route('dixlase-blog::front.show', ['slug' => 'draft-post']);
+        $this->get(route('dixlase-blog::admin.blog.edit', ['post' => $draft->id]))->assertOk()
+            ->assertSee('href="'.route('dixlase-blog::admin.blog.previewPage', ['post' => $draft->id]).'" target="_blank"', false)
+            ->assertSee('>'.$address.'</a>', false)
+            ->assertDontSee('href="'.$address.'"', false)
+            ->assertSee(__('dixlase-blog::admin.post.url_not_public'));
+
+        // A new post has no address yet.
+        $this->get(route('dixlase-blog::admin.blog.create'))->assertOk()
+            ->assertDontSee(__('dixlase-blog::admin.post.url_not_public'));
+    }
+
     public function test_the_trash_lists_posts_in_the_post_list_table(): void
     {
         $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));

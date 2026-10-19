@@ -100,6 +100,8 @@ return [
         'tags_help' => 'Press Space (or Enter) to confirm a tag. Backspace on empty input removes the last tag. Leading # is optional.',
         'created_at' => 'Created',
         'updated_at' => 'Updated',
+        'url' => 'URL',
+        'url_not_public' => 'Not public yet: the link opens the preview.',
         'author' => 'Author',
         'author_unknown' => '(unknown)',
     ],
