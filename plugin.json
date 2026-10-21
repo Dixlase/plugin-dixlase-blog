@@ -350,7 +350,7 @@
         "tests/Feature/BlogPostCustomAssetsTest.php": "sha256:4a54637b6a0f0dcb871be88b3a4abc443aaecd387aa5071786b9be6624fbdeff",
         "tests/Feature/BlogPostLifecycleTest.php": "sha256:5354978a58c04436fdf4cc69c06fa7544f80d7596657ded44c3ca3cb472c06cd",
         "tests/Feature/BlogPostNeighboursTest.php": "sha256:891979eadfc086f6815fe51172315e10deae6102b00caa27a680d3adae093735",
-        "tests/Feature/BlogPostSeoPageMetaTest.php": "sha256:368f2a5bb1502132422f6689b14db44cf5c7d9a4f4b92906abd579d976257a90",
+        "tests/Feature/BlogPostSeoPageMetaTest.php": "sha256:254881a3a3256f74f0851172f0f0c3161911377a76f39cae5222f521d8d848c5",
         "tests/Feature/BlogPostVisibilityTest.php": "sha256:3ae0971860f9a3172190cc11bc1aedb7afbedfc7d6df219453f69e1f71e3dc09",
         "tests/Feature/BlogPreviewFormTest.php": "sha256:2fb8974568eb9e4f4ede9cec5fdbdb1538274a256c949c70e34a368cec10e62f",
         "tests/Feature/BlogRouteFilesTest.php": "sha256:b6db391e39bf52081dad33ce6050e3b8bbc611fd61efd8e806418c0fe48d0588",
@@ -378,6 +378,6 @@
     "signing": {
         "algo": "ed25519",
         "key_id": "dixlase-authority-2026",
-        "signed_at": "2026-10-19T19:22:01+00:00"
+        "signed_at": "2026-10-21T06:45:52+00:00"
     }
 }
