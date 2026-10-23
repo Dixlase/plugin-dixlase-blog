@@ -165,22 +165,25 @@ class BlogSettingsTest extends TestCase
         $this->get('/blog?page=2')->assertOk()->assertSee('Post number 3');
     }
 
-    public function test_the_top_page_layout_and_its_count_are_saved_and_checked(): void
+    public function test_the_top_page_layout_and_its_count_are_saved(): void
     {
         $this->assertSame('cards', app(BlogSettings::class)->indexLayout());
         $this->assertSame(5, app(BlogSettings::class)->indexFullPostsPerPage());
-
-        foreach ([['index_layout' => 'grid'], ['index_full_posts_per_page' => '0'], ['index_full_posts_per_page' => '21']] as $input) {
-            $this->put(route('dixlase-blog::admin.blog.settings.update'), $input)
-                ->assertSessionHasErrors(array_key_first($input));
-        }
-        // The rejected requests' errors are still flashed.
-        $this->flushSession();
 
         $this->put(route('dixlase-blog::admin.blog.settings.update'), ['index_layout' => 'full', 'index_full_posts_per_page' => '3'])
             ->assertSessionHasNoErrors();
         $this->assertSame('full', app(BlogSettings::class)->indexLayout());
         $this->assertSame(3, app(BlogSettings::class)->indexFullPostsPerPage());
+    }
+
+    public function test_the_top_page_layout_and_its_count_must_be_valid(): void
+    {
+        foreach ([['index_layout' => 'grid'], ['index_full_posts_per_page' => '0'], ['index_full_posts_per_page' => '21']] as $input) {
+            $this->put(route('dixlase-blog::admin.blog.settings.update'), $input)
+                ->assertSessionHasErrors(array_key_first($input));
+        }
+
+        $this->assertSame(0, DB::table('plg_dixlase_blog_settings')->count());
     }
 
     public function test_the_top_page_shows_the_latest_posts_in_full_and_pages(): void
