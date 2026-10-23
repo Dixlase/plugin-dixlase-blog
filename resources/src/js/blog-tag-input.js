@@ -67,6 +67,13 @@ export default function blogTagInput() {
         },
 
         onKeydown(event) {
+            // While an input method is composing (Japanese and the like),
+            // Space converts and Enter confirms the conversion; neither is
+            // a tag yet. Safari reports the Enter that ends a composition
+            // with isComposing false but keyCode 229.
+            if (event.isComposing || event.keyCode === 229) {
+                return;
+            }
             // Space and Enter both commit the current word as a tag.
             if (event.key === ' ' || event.key === 'Spacebar' || event.key === 'Enter') {
                 event.preventDefault();
