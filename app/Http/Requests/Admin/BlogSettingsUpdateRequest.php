@@ -74,6 +74,7 @@ class BlogSettingsUpdateRequest extends FormRequest
                 'min:'.BlogSettings::POSTS_PER_PAGE_MIN,
                 'max:'.BlogSettings::POSTS_PER_PAGE_MAX,
             ],
+            'index_layout' => ['sometimes', 'required', Rule::in(BlogSettings::INDEX_LAYOUTS)],
             'sidebar_enabled' => ['sometimes', 'required', 'boolean'],
             'sidebar_position' => ['sometimes', 'required', Rule::in(BlogSettings::SIDEBAR_POSITIONS)],
             // The widget rows in their order on the form, and which are on.
@@ -182,6 +183,7 @@ class BlogSettingsUpdateRequest extends FormRequest
     {
         return [
             'posts_per_page' => __('dixlase-blog::admin.settings.posts_per_page_label'),
+            'index_layout' => __('dixlase-blog::admin.settings.index_layout_label'),
             'route_slug' => __('dixlase-blog::admin.settings.route_slug_label'),
             'sidebar_position' => __('dixlase-blog::admin.settings.sidebar_position_label'),
             'sidebar_recent_count' => __('dixlase-blog::admin.settings.sidebar_recent_count_label'),

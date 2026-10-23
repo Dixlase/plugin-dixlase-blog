@@ -62,6 +62,18 @@ its own <section> in this one form.
                     <x-form-help-text :text="__('dixlase-blog::admin.settings.posts_per_page_help', ['min' => $postsPerPageMin, 'max' => $postsPerPageMax])" />
                     <x-form-error name="posts_per_page" />
                 </div>
+
+                <div>
+                    <x-form-label :text="__('dixlase-blog::admin.settings.index_layout_label')" :required="true" class="mb-2" />
+                    <x-form-radio-card-group
+                        name="index_layout"
+                        :options="$indexLayoutOptions"
+                        :value="old('index_layout', $blogSettings['index_layout'])"
+                        :columns="2"
+                    />
+                    <x-form-help-text :text="__('dixlase-blog::admin.settings.index_layout_help')" />
+                    <x-form-error name="index_layout" />
+                </div>
             </div>
         </section>
 

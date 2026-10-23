@@ -804,6 +804,37 @@ $bp-2xl: 96rem;
     }
 }
 
+// The top page in full mode (index_layout = full): the latest posts one
+// after another, each title an h2 linking to the post.
+.dixlase-blog-full-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.dixlase-blog-full-list__post + .dixlase-blog-full-list__post {
+    padding-top: 3rem;
+    border-top: 1px solid var(--dlsb-border);
+}
+
+.dixlase-blog-full-list .dixlase-blog-post__title {
+    font-size: 1.875rem;
+
+    @media (min-width: $bp-md) {
+        font-size: 2.25rem;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+
+        &:hover,
+        &:focus-visible {
+            text-decoration: underline;
+        }
+    }
+}
+
 .dixlase-blog-post__featured {
     margin: 0 0 2rem;
 

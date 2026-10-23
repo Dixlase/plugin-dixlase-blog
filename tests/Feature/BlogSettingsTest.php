@@ -105,7 +105,7 @@ class BlogSettingsTest extends TestCase
     public function test_settings_read_as_their_defaults_until_saved(): void
     {
         $this->assertSame(0, DB::table('plg_dixlase_blog_settings')->count());
-        $this->assertSame(12, app(BlogSettings::class)->postsPerPage());
+        $this->assertSame(10, app(BlogSettings::class)->postsPerPage());
     }
 
     public function test_core_is_told_the_table_and_every_default(): void
@@ -163,5 +163,69 @@ class BlogSettingsTest extends TestCase
             ->assertSee('Post number 2')
             ->assertDontSee('Post number 3');
         $this->get('/blog?page=2')->assertOk()->assertSee('Post number 3');
+    }
+
+    public function test_the_top_page_layout_is_saved(): void
+    {
+        $this->assertSame('cards', app(BlogSettings::class)->indexLayout());
+
+        $this->put(route('dixlase-blog::admin.blog.settings.update'), ['index_layout' => 'full'])
+            ->assertSessionHasNoErrors();
+        $this->assertSame('full', app(BlogSettings::class)->indexLayout());
+    }
+
+    public function test_the_top_page_layout_must_be_known(): void
+    {
+        $this->put(route('dixlase-blog::admin.blog.settings.update'), ['index_layout' => 'grid'])
+            ->assertSessionHasErrors('index_layout');
+
+        $this->assertSame(0, DB::table('plg_dixlase_blog_settings')->count());
+    }
+
+    public function test_the_top_page_shows_the_latest_posts_in_full_and_pages(): void
+    {
+        // A layout with the stacks, where the posts' CSS link lands.
+        File::put($this->layoutDirectory.'/layouts/app.blade.php', "<html><head>@stack('styles')</head><body>@yield('content')@stack('scripts')</body></html>");
+
+        foreach (range(1, 3) as $n) {
+            BlogPost::create([
+                'title' => 'Post number '.$n,
+                'slug' => 'post-'.$n,
+                'content' => "Full body {$n}\n\nSecond paragraph {$n}",
+                'excerpt' => 'Excerpt '.$n,
+                'editor_type' => ContentEditorType::MARKDOWN,
+                'status' => ContentStatus::PUBLISHED,
+                'lang' => 'en',
+                'published_at' => now()->subDays($n),
+            ]);
+        }
+        BlogPost::create([
+            'title' => 'Styled post',
+            'slug' => 'styled',
+            'content' => '<p>Styled body</p>',
+            'custom_css' => 'p{color:red}',
+            'custom_js' => 'alert(1)',
+            'editor_type' => ContentEditorType::HTML,
+            'status' => ContentStatus::PUBLISHED,
+            'lang' => 'en',
+            'published_at' => now(),
+        ]);
+        app(BlogSettings::class)->save(['index_layout' => 'full', 'posts_per_page' => 2]);
+
+        $this->get('/blog')->assertOk()
+            ->assertSee('Styled body', false)
+            ->assertSee('<p>Full body 1</p>', false)
+            ->assertSee('Second paragraph 1')
+            ->assertDontSee('Post number 2')
+            ->assertSee('<h2 class="dixlase-blog-post__title" lang="en"><a href="'.route('dixlase-blog::front.show', ['slug' => 'post-1']).'">Post number 1</a></h2>', false)
+            // The HTML post's CSS, never its script.
+            ->assertSee(route('dixlase-blog::front.custom-style', ['slug' => 'styled']), false)
+            ->assertDontSee('custom-script.js', false)
+            ->assertSee('page=2', false);
+        $this->get('/blog?page=2')->assertOk()->assertSee('<p>Full body 2</p>', false)->assertSee('Post number 3');
+
+        // Back on cards, the top page shows excerpts again.
+        app(BlogSettings::class)->save(['index_layout' => 'cards']);
+        $this->get('/blog')->assertOk()->assertSee('Excerpt 1')->assertDontSee('Second paragraph 1');
     }
 }

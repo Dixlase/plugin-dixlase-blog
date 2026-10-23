@@ -48,6 +48,9 @@ class BlogSettings
 
     public const POSTS_PER_PAGE_MAX = 100;
 
+    /** How the blog's top page shows posts: cards, or the latest in full. */
+    public const INDEX_LAYOUTS = ['cards', 'full'];
+
     public const SIDEBAR_POSITIONS = ['right', 'left'];
 
     /** Sidebar widgets, in their default order. */
@@ -94,7 +97,10 @@ class BlogSettings
     public const DEFAULTS = [
         // The first path segment of every public blog URL.
         'route_slug' => 'blog',
-        'posts_per_page' => '12',
+        // Ten pages evenly in the two-column cards and keeps a page of
+        // posts in full to a readable length.
+        'posts_per_page' => '10',
+        'index_layout' => 'cards',
         'sidebar_enabled' => '1',
         'sidebar_position' => 'right',
         // JSON list of {"key": ..., "enabled": ...} in display order.
@@ -140,13 +146,24 @@ class BlogSettings
     }
 
     /**
-     * Posts per page on the index and the archives.
+     * Posts per page on the index (cards or in full) and the archives.
      */
     public function postsPerPage(): int
     {
         $value = (int) $this->value('posts_per_page');
 
         return max(self::POSTS_PER_PAGE_MIN, min(self::POSTS_PER_PAGE_MAX, $value));
+    }
+
+    /**
+     * How the top page shows posts: 'cards' or 'full'. An unknown stored
+     * value reads as cards.
+     */
+    public function indexLayout(): string
+    {
+        $value = (string) $this->value('index_layout');
+
+        return in_array($value, self::INDEX_LAYOUTS, true) ? $value : 'cards';
     }
 
     public function sidebarEnabled(): bool

@@ -69,6 +69,10 @@ class DixlaseBlogAdminSettingsController extends Controller
             'routeSlugMax' => BlogSettings::ROUTE_SLUG_MAX,
             'postsPerPageMin' => BlogSettings::POSTS_PER_PAGE_MIN,
             'postsPerPageMax' => BlogSettings::POSTS_PER_PAGE_MAX,
+            'indexLayoutOptions' => [
+                ['value' => 'cards', 'label' => __('dixlase-blog::admin.settings.index_layout_cards'), 'icon' => 'fas fa-table-cells-large'],
+                ['value' => 'full', 'label' => __('dixlase-blog::admin.settings.index_layout_full'), 'icon' => 'fas fa-newspaper'],
+            ],
             // Labels resolved here, as admin views take no logic.
             'sidebarWidgets' => array_map(
                 fn (array $widget) => $widget + ['label' => __('dixlase-blog::admin.settings.sidebar_widget_'.$widget['key'])],
