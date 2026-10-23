@@ -22,7 +22,11 @@ plugins.
 @section('title', ' - ' . __('dixlase-blog::admin.post_form.preview_button'))
 
 @section('content')
-<article class="dixlase-blog-preview prose prose-lg dark:prose-invert mx-auto py-8 px-4 max-w-3xl">
+{{-- The preview layout's header is fixed at the top (3.5rem), so the
+     article starts below it, as the post page does (.dixlase-blog). pt-28
+     is a utility the theme already builds; one only this view used would
+     need every site's theme rebuilt. --}}
+<article class="dixlase-blog-preview prose prose-lg dark:prose-invert mx-auto pt-28 pb-8 px-4 max-w-3xl">
     <h1 id="preview-title" class="dixlase-blog-preview__title">{{ $initialTitle ?? '' }}</h1>
     {{-- The featured image, as the post page shows it above the body;
          blogFeaturedPreview in the editor swaps it ("updateFeatured"). --}}
