@@ -48,6 +48,14 @@ class BlogSettings
 
     public const POSTS_PER_PAGE_MAX = 100;
 
+    /** How the blog's top page shows posts: cards, or the latest in full. */
+    public const INDEX_LAYOUTS = ['cards', 'full'];
+
+    public const INDEX_FULL_POSTS_MIN = 1;
+
+    /** Full posts are long, so a page holds fewer of them than cards. */
+    public const INDEX_FULL_POSTS_MAX = 20;
+
     public const SIDEBAR_POSITIONS = ['right', 'left'];
 
     /** Sidebar widgets, in their default order. */
@@ -95,6 +103,9 @@ class BlogSettings
         // The first path segment of every public blog URL.
         'route_slug' => 'blog',
         'posts_per_page' => '12',
+        'index_layout' => 'cards',
+        // Posts per page on the top page when it shows them in full.
+        'index_full_posts_per_page' => '5',
         'sidebar_enabled' => '1',
         'sidebar_position' => 'right',
         // JSON list of {"key": ..., "enabled": ...} in display order.
@@ -147,6 +158,27 @@ class BlogSettings
         $value = (int) $this->value('posts_per_page');
 
         return max(self::POSTS_PER_PAGE_MIN, min(self::POSTS_PER_PAGE_MAX, $value));
+    }
+
+    /**
+     * How the top page shows posts: 'cards' or 'full'. An unknown stored
+     * value reads as cards.
+     */
+    public function indexLayout(): string
+    {
+        $value = (string) $this->value('index_layout');
+
+        return in_array($value, self::INDEX_LAYOUTS, true) ? $value : 'cards';
+    }
+
+    /**
+     * Posts per page on the top page when it shows them in full.
+     */
+    public function indexFullPostsPerPage(): int
+    {
+        $value = (int) $this->value('index_full_posts_per_page');
+
+        return max(self::INDEX_FULL_POSTS_MIN, min(self::INDEX_FULL_POSTS_MAX, $value));
     }
 
     public function sidebarEnabled(): bool

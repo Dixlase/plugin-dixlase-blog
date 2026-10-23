@@ -64,6 +64,8 @@ class DixlaseBlogFrontController extends Controller
 
     public function index(): View
     {
+        $full = $this->settings->indexLayout() === 'full';
+
         // Pinned posts first; the archives and the feed keep date order.
         $posts = BlogPost::query()
             ->currentlyVisible()
@@ -71,12 +73,33 @@ class DixlaseBlogFrontController extends Controller
             ->withPublishedCommentCount()
             ->orderByDesc('is_pinned')
             ->orderByDesc('published_at')
-            ->paginate($this->settings->postsPerPage());
+            ->paginate($full ? $this->settings->indexFullPostsPerPage() : $this->settings->postsPerPage());
 
         return view('dixlase-blog::front.index', [
             'posts' => $posts,
+            'fullPosts' => $full ? $posts->getCollection()->map(fn (BlogPost $post) => $this->fullPost($post))->all() : null,
             'breadcrumbs' => $this->breadcrumbs->forIndex(),
         ]);
+    }
+
+    /**
+     * A post as the top page shows it in full: its rendered body, and the
+     * URL of its own CSS (HTML posts). Its JavaScript is left out: a
+     * post's script assumes it is alone on the page.
+     *
+     * @return array{post: BlogPost, contentHtml: string, customCssUrl: ?string}
+     */
+    private function fullPost(BlogPost $post): array
+    {
+        $hasCss = $post->editor_type === ContentEditorType::HTML && trim((string) $post->custom_css) !== '';
+
+        return [
+            'post' => $post,
+            'contentHtml' => $this->renderer->renderPost($post),
+            'customCssUrl' => $hasCss
+                ? route('dixlase-blog::front.custom-style', ['slug' => $post->slug]).'?v='.($post->updated_at?->timestamp ?? 0)
+                : null,
+        ];
     }
 
     /**
