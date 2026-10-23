@@ -174,6 +174,8 @@ class BlogSettingsTest extends TestCase
             $this->put(route('dixlase-blog::admin.blog.settings.update'), $input)
                 ->assertSessionHasErrors(array_key_first($input));
         }
+        // The rejected requests' errors are still flashed.
+        $this->flushSession();
 
         $this->put(route('dixlase-blog::admin.blog.settings.update'), ['index_layout' => 'full', 'index_full_posts_per_page' => '3'])
             ->assertSessionHasNoErrors();
@@ -183,6 +185,9 @@ class BlogSettingsTest extends TestCase
 
     public function test_the_top_page_shows_the_latest_posts_in_full_and_pages(): void
     {
+        // A layout with the stacks, where the posts' CSS link lands.
+        File::put($this->layoutDirectory.'/layouts/app.blade.php', "<html><head>@stack('styles')</head><body>@yield('content')@stack('scripts')</body></html>");
+
         foreach (range(1, 3) as $n) {
             BlogPost::create([
                 'title' => 'Post number '.$n,
