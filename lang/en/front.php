@@ -93,6 +93,8 @@ return [
         'next' => 'Next post',
         'related' => 'Related posts',
         'back_to_index' => '← Back to all posts',
+        // The edit link in the admin bar, for members who may edit posts.
+        'admin_bar_edit' => 'Edit this post',
         'pinned' => 'Pinned',
     ],
 

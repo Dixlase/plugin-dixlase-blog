@@ -67,6 +67,13 @@ BlogContentRenderer).
     @endpush
 @endif
 
+{{-- An edit link in core's admin bar, for a member who may edit posts
+     (the controller decides; see adminEditUrl()). --}}
+@if ($adminEditUrl ?? null)
+    @section('admin_bar_edit_url', $adminEditUrl)
+    @section('admin_bar_edit_label', __('dixlase-blog::front.post.admin_bar_edit'))
+@endif
+
 {{-- The editors' preview of a post in any status stays out of search
      engines. --}}
 @if ($isPreview ?? false)
