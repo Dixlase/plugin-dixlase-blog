@@ -105,7 +105,7 @@ class BlogSettingsTest extends TestCase
     public function test_settings_read_as_their_defaults_until_saved(): void
     {
         $this->assertSame(0, DB::table('plg_dixlase_blog_settings')->count());
-        $this->assertSame(12, app(BlogSettings::class)->postsPerPage());
+        $this->assertSame(10, app(BlogSettings::class)->postsPerPage());
     }
 
     public function test_core_is_told_the_table_and_every_default(): void
@@ -165,23 +165,19 @@ class BlogSettingsTest extends TestCase
         $this->get('/blog?page=2')->assertOk()->assertSee('Post number 3');
     }
 
-    public function test_the_top_page_layout_and_its_count_are_saved(): void
+    public function test_the_top_page_layout_is_saved(): void
     {
         $this->assertSame('cards', app(BlogSettings::class)->indexLayout());
-        $this->assertSame(5, app(BlogSettings::class)->indexFullPostsPerPage());
 
-        $this->put(route('dixlase-blog::admin.blog.settings.update'), ['index_layout' => 'full', 'index_full_posts_per_page' => '3'])
+        $this->put(route('dixlase-blog::admin.blog.settings.update'), ['index_layout' => 'full'])
             ->assertSessionHasNoErrors();
         $this->assertSame('full', app(BlogSettings::class)->indexLayout());
-        $this->assertSame(3, app(BlogSettings::class)->indexFullPostsPerPage());
     }
 
-    public function test_the_top_page_layout_and_its_count_must_be_valid(): void
+    public function test_the_top_page_layout_must_be_known(): void
     {
-        foreach ([['index_layout' => 'grid'], ['index_full_posts_per_page' => '0'], ['index_full_posts_per_page' => '21']] as $input) {
-            $this->put(route('dixlase-blog::admin.blog.settings.update'), $input)
-                ->assertSessionHasErrors(array_key_first($input));
-        }
+        $this->put(route('dixlase-blog::admin.blog.settings.update'), ['index_layout' => 'grid'])
+            ->assertSessionHasErrors('index_layout');
 
         $this->assertSame(0, DB::table('plg_dixlase_blog_settings')->count());
     }
@@ -214,7 +210,7 @@ class BlogSettingsTest extends TestCase
             'lang' => 'en',
             'published_at' => now(),
         ]);
-        app(BlogSettings::class)->save(['index_layout' => 'full', 'index_full_posts_per_page' => 2, 'posts_per_page' => 12]);
+        app(BlogSettings::class)->save(['index_layout' => 'full', 'posts_per_page' => 2]);
 
         $this->get('/blog')->assertOk()
             ->assertSee('Styled body', false)

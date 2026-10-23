@@ -74,25 +74,6 @@ its own <section> in this one form.
                     <x-form-help-text :text="__('dixlase-blog::admin.settings.index_layout_help')" />
                     <x-form-error name="index_layout" />
                 </div>
-
-                <div class="max-w-xs">
-                    <x-form-label
-                        for="index_full_posts_per_page"
-                        :text="__('dixlase-blog::admin.settings.index_full_posts_per_page_label')"
-                        :required="true"
-                    />
-                    <x-form-text
-                        id="index_full_posts_per_page"
-                        name="index_full_posts_per_page"
-                        type="number"
-                        :min="$indexFullPostsMin"
-                        :max="$indexFullPostsMax"
-                        :value="old('index_full_posts_per_page', $blogSettings['index_full_posts_per_page'])"
-                        :required="true"
-                    />
-                    <x-form-help-text :text="__('dixlase-blog::admin.settings.index_full_posts_per_page_help', ['min' => $indexFullPostsMin, 'max' => $indexFullPostsMax])" />
-                    <x-form-error name="index_full_posts_per_page" />
-                </div>
             </div>
         </section>
 

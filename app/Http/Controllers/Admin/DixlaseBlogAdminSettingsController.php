@@ -73,8 +73,6 @@ class DixlaseBlogAdminSettingsController extends Controller
                 ['value' => 'cards', 'label' => __('dixlase-blog::admin.settings.index_layout_cards'), 'icon' => 'fas fa-table-cells-large'],
                 ['value' => 'full', 'label' => __('dixlase-blog::admin.settings.index_layout_full'), 'icon' => 'fas fa-newspaper'],
             ],
-            'indexFullPostsMin' => BlogSettings::INDEX_FULL_POSTS_MIN,
-            'indexFullPostsMax' => BlogSettings::INDEX_FULL_POSTS_MAX,
             // Labels resolved here, as admin views take no logic.
             'sidebarWidgets' => array_map(
                 fn (array $widget) => $widget + ['label' => __('dixlase-blog::admin.settings.sidebar_widget_'.$widget['key'])],

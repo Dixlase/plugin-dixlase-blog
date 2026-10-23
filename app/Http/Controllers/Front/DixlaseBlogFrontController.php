@@ -73,7 +73,7 @@ class DixlaseBlogFrontController extends Controller
             ->withPublishedCommentCount()
             ->orderByDesc('is_pinned')
             ->orderByDesc('published_at')
-            ->paginate($full ? $this->settings->indexFullPostsPerPage() : $this->settings->postsPerPage());
+            ->paginate($this->settings->postsPerPage());
 
         return view('dixlase-blog::front.index', [
             'posts' => $posts,
