@@ -93,6 +93,8 @@ return [
         'next' => '次の記事',
         'related' => '関連記事',
         'back_to_index' => '← 記事一覧へ戻る',
+        // The edit link in the admin bar, for members who may edit posts.
+        'admin_bar_edit' => 'この記事を編集',
         'pinned' => '固定',
     ],
 

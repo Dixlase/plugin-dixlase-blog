@@ -23,6 +23,8 @@ use App\Enums\ContentStatus;
 use App\Helpers\CaptchaHelper;
 use App\Helpers\LocaleHelper;
 use App\Models\Media;
+use App\Services\Auth\SignedInMemberResolver;
+use App\Services\PermissionRegistry;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -116,7 +118,28 @@ class DixlaseBlogFrontController extends Controller
             ->with(['categories', 'tags', 'featuredMedia', 'author'])
             ->firstOrFail();
 
-        return view('dixlase-blog::front.show', $this->postViewData($request, $post));
+        return view('dixlase-blog::front.show', array_merge($this->postViewData($request, $post), [
+            'adminEditUrl' => $this->adminEditUrl($post),
+        ]));
+    }
+
+    /**
+     * The post's edit screen, for core's admin bar, when the member signed
+     * in to the admin may open it; null otherwise. The front request does
+     * not carry the admin login, so the member is read through core's
+     * resolver, and the blog's role settings (with a site's overrides)
+     * decide, as they do for the edit route itself.
+     */
+    private function adminEditUrl(BlogPost $post): ?string
+    {
+        $member = app(SignedInMemberResolver::class)->resolve();
+        $role = $member?->getMemberRole();
+
+        if ($role === null || ! PermissionRegistry::canAccessPlugin('DixlaseBlog', 'blog.edit', $role)) {
+            return null;
+        }
+
+        return route('dixlase-blog::admin.blog.edit', ['post' => $post->id]);
     }
 
     /**
