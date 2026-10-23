@@ -116,6 +116,7 @@ class DixlaseBlogFrontController extends Controller
         return response()
             ->view('dixlase-blog::front.show', array_merge($this->postViewData($request, $post), [
                 'isPreview' => true,
+                'previewRunsScript' => BlogScriptAuthoringPolicy::canAuthorScripts($this->comments->siteCommenter()),
             ]))
             ->header('X-Robots-Tag', 'noindex, nofollow')
             ->header('Cache-Control', 'no-store, private');
@@ -155,6 +156,8 @@ class DixlaseBlogFrontController extends Controller
             'categories.*' => ['integer'],
             'tags' => ['nullable', 'array', 'max:50'],
             'tags.*' => ['nullable', 'string', 'max:100'],
+            'custom_css' => ['nullable', 'string', 'max:500000'],
+            'custom_js' => ['nullable', 'string', 'max:500000'],
         ]);
 
         if ($request->route('post') !== null) {
@@ -178,6 +181,16 @@ class DixlaseBlogFrontController extends Controller
             'closed_at' => $data['closed_at'] ?? null,
             'featured_media_id' => ($data['featured_media_id'] ?? 0) ?: null,
         ]);
+        // The CSS and JavaScript being typed, from members who may write
+        // them; the form leaves the fields out in Simple mode, and then the
+        // stored ones are shown.
+        $canAuthorScripts = BlogScriptAuthoringPolicy::canAuthorScripts($member);
+        if ($request->has('custom_css') && $canAuthorScripts) {
+            $post->custom_css = $data['custom_css'] ?? null;
+        }
+        if ($request->has('custom_js') && $canAuthorScripts) {
+            $post->custom_js = $data['custom_js'] ?? null;
+        }
         $post->excerpt = filled($data['excerpt'] ?? null) ? $data['excerpt'] : BlogExcerpt::fromContent($post->content);
 
         $post->setRelation('featuredMedia', $post->featured_media_id !== null ? Media::query()->find($post->featured_media_id) : null);
@@ -199,6 +212,7 @@ class DixlaseBlogFrontController extends Controller
         return response()
             ->view('dixlase-blog::front.show', array_merge($this->postViewData($request, $post, $this->renderer->render($post->content, $editorType)), [
                 'isPreview' => true,
+                'previewRunsScript' => $canAuthorScripts,
             ]))
             ->header('X-Robots-Tag', 'noindex, nofollow')
             ->header('Cache-Control', 'no-store, private');
@@ -263,6 +277,11 @@ class DixlaseBlogFrontController extends Controller
             'postUrl' => $postUrl,
             'shareLinks' => $this->shareLinks->for($postUrl, (string) $post->localized('title')),
             'breadcrumbs' => $this->breadcrumbs->forPost($post, $postUrl),
+            // Kept only for HTML posts (BlogPostStoreRequest); a post saved
+            // before that rule, or switched back by a revision, shows none.
+            'customCss' => $post->editor_type === ContentEditorType::HTML ? (string) $post->custom_css : '',
+            'customJs' => $post->editor_type === ContentEditorType::HTML ? (string) $post->custom_js : '',
+            'customAssetVersion' => $post->updated_at?->timestamp ?? 0,
         ]);
     }
 

@@ -22,7 +22,11 @@ plugins.
 @section('title', ' - ' . __('dixlase-blog::admin.post_form.preview_button'))
 
 @section('content')
-<article class="dixlase-blog-preview prose prose-lg dark:prose-invert mx-auto py-8 px-4 max-w-3xl">
+{{-- The preview layout's header is fixed at the top (3.5rem), so the
+     article starts below it, as the post page does (.dixlase-blog). pt-28
+     is a utility the theme already builds; one only this view used would
+     need every site's theme rebuilt. --}}
+<article class="dixlase-blog-preview prose prose-lg dark:prose-invert mx-auto pt-28 pb-8 px-4 max-w-3xl">
     <h1 id="preview-title" class="dixlase-blog-preview__title">{{ $initialTitle ?? '' }}</h1>
     {{-- The featured image, as the post page shows it above the body;
          blogFeaturedPreview in the editor swaps it ("updateFeatured"). --}}
@@ -67,6 +71,18 @@ plugins.
             if (titleEl && typeof event.data.title === 'string') {
                 titleEl.textContent = event.data.title;
             }
+            return;
+        }
+        // The post's custom CSS as it is typed. Its JavaScript is never
+        // sent here: this frame runs under the admin session.
+        if (event.data.action === 'updateCustomCss') {
+            var styleEl = document.getElementById('preview-custom-css');
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = 'preview-custom-css';
+                document.head.appendChild(styleEl);
+            }
+            styleEl.textContent = typeof event.data.css === 'string' ? event.data.css : '';
             return;
         }
         if (event.data.action !== 'updateContent') return;

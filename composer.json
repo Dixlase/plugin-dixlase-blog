@@ -1,8 +1,8 @@
 {
     "name": "dixlase/dixlase-blog",
-    "description": "Blog plugin for Dixlase CMS: posts, categories and tags, comments, a sidebar, archives and an RSS feed.",
+    "description": "Blog plugin for Dixlase: posts, categories and tags, comments, a sidebar, archives and an RSS feed.",
     "type": "dixlase-plugin",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "license": "GPL-3.0-or-later",
     "authors": [
         {

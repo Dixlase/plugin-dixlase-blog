@@ -5,6 +5,22 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.1.3] - 2026-10-20
+
+### Added
+
+- With the HTML editor, a post can carry its own CSS and JavaScript, under the same rules as
+  DixlasePages (#143, fixes #142). Only members who may author scripts (ADMIN and above) see the
+  tabs. The code is kept in revisions and served as `/blog/{slug}/custom-style.css` and
+  `custom-script.js` for a published HTML post only. The live preview applies the CSS as it is
+  typed; the new-tab preview runs the JavaScript as well.
+
+### Upgrade notes
+
+This release adds a database migration (two columns on the posts table). Plugin migrations are
+not run by `php artisan migrate`. Updating with `dls:plugin:update` runs it; a site that receives
+the files another way runs `php artisan dls:plugin:migrate DixlaseBlog --force` once.
+
 ## [0.1.2] - 2026-10-18
 
 ### Added

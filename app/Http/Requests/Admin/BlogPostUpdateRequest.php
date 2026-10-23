@@ -93,6 +93,9 @@ class BlogPostUpdateRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:200', 'regex:'.BlogPost::SLUG_PATTERN, $slugRule],
             'content' => ['nullable', 'string', 'max:500000'],
+            // Kept only for HTML posts; see prepareForValidation().
+            'custom_css' => ['nullable', 'string', 'max:500000'],
+            'custom_js' => ['nullable', 'string', 'max:500000'],
             'excerpt' => ['nullable', 'string', 'max:500'],
             'featured_media_id' => ['nullable', 'integer', 'exists:media,id'],
             // The editor type is fixed once a post is saved.
@@ -118,10 +121,19 @@ class BlogPostUpdateRequest extends FormRequest
 
     /**
      * The media picker submits 0 (or an empty string) for "no image".
+     *
+     * Custom CSS and JavaScript are served only for HTML posts, which only
+     * members who may author scripts can write; for any other post they
+     * are dropped, so nothing script-capable is stored. A form without the
+     * fields (Simple mode hides them) leaves the stored ones alone.
      */
     protected function prepareForValidation(): void
     {
         $this->nullBlankInput(['published_at', 'closed_at'], ['featured_media_id']);
+
+        if ($this->postBeingUpdated()?->editor_type !== ContentEditorType::HTML) {
+            $this->merge(['custom_css' => null, 'custom_js' => null]);
+        }
 
         $seoMeta = $this->input('seo_meta');
         if (is_array($seoMeta) && in_array($seoMeta['ogp_media_id'] ?? null, ['', '0', 0], true)) {
