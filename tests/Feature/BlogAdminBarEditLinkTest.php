@@ -77,6 +77,7 @@ class BlogAdminBarEditLinkTest extends TestCase
         $this->app['view']->addNamespace('dixlase-blog', base_path('plugins/DixlaseBlog/resources/views'));
         $this->app->singleton(BlogSettings::class);
         $this->app->instance(TranslationResolver::class, new FakeTranslationResolver());
+        app()->setLocale('en');
 
         // A bare layout that prints the admin bar's sections the way core
         // reads them.
