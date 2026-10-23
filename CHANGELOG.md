@@ -5,6 +5,39 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.1.4] - 2026-10-24
+
+### Added
+
+- The blog settings choose how the top page (`/{blog}`) shows posts: as cards (the default,
+  unchanged) or the latest posts in full (#155, fixes #154). In full, each post shows its date,
+  author, linked title, featured image, body, categories and tags; pinned posts come first, and an
+  HTML post's own CSS is loaded but not its JavaScript. "Posts per page" now applies to both
+  layouts, and its default drops from 12 to 10; a site that already stored a count keeps it. The
+  category, tag and date archives keep their cards.
+- The post editor shows the post's URL under "Author info" (#148, fixes #147). A post readers can
+  see links to its page; a draft, a scheduled post or a closed post links to the preview, with a
+  note that it is not public yet. A new post shows nothing until it has been saved.
+- A published post's page offers core's admin bar a link to the post's edit screen, for a member
+  signed in to the admin who may edit posts (#157, fixes #156). The link appears with Dixlase
+  0.1.19 or later.
+
+### Fixed
+
+- The live preview in the post editor starts below the theme's fixed header, so the post title is
+  no longer hidden under it (#153, fixes #152).
+- In the tag field, confirming an input-method conversion with Enter or Space no longer adds the
+  unconverted text as a tag (#146, fixes #145).
+
+### Changed
+
+- The package descriptions call the product Dixlase instead of Dixlase CMS (#149).
+
+### Development
+
+- `BlogPostSeoPageMetaTest` ends as skipped, instead of as six failures, when DixlaseSEO is loaded
+  (#151, fixes #150). No runtime code changed.
+
 ## [0.1.3] - 2026-10-20
 
 ### Added
