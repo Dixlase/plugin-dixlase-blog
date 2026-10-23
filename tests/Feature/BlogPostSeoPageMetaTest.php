@@ -117,7 +117,10 @@ class BlogPostSeoPageMetaTest extends TestCase
 
     protected function tearDown(): void
     {
-        File::deleteDirectory($this->layoutDirectory);
+        // setUp() can skip before the directory is made, and tearDown() still runs.
+        if (isset($this->layoutDirectory)) {
+            File::deleteDirectory($this->layoutDirectory);
+        }
 
         parent::tearDown();
     }

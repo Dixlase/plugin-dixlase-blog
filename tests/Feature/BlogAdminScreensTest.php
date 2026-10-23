@@ -314,6 +314,16 @@ class BlogAdminScreensTest extends TestCase
         $this->assertMatchesRegularExpression('/<figure id="preview-featured"[^>]*\bhidden\b/', $html);
     }
 
+    public function test_the_live_preview_starts_below_the_fixed_header(): void
+    {
+        $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
+
+        $html = $this->get(route('dixlase-blog::admin.blog.previewFrame'))->assertOk()->getContent();
+
+        // The theme's preview header is fixed (3.5rem); py-8 left the title under it.
+        $this->assertMatchesRegularExpression('/<article class="dixlase-blog-preview[^"]*\bpt-28\b/', $html);
+    }
+
     public function test_every_admin_screen_opens_for_an_admin(): void
     {
         $this->assertScreensOpenFor(MemberRole::ADMIN);
