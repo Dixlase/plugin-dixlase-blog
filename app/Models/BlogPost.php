@@ -56,7 +56,7 @@ use Plugins\DixlaseBlog\App\Support\BlogExcerpt;
  * @property string $title
  * @property string $slug
  * @property string|null $content
- * @property string|null $custom_css Served only for HTML posts
+ * @property string|null $custom_css Served only for HTML and Markdown posts
  * @property string|null $custom_js Served only for HTML posts
  * @property string|null $excerpt
  * @property int|null $featured_media_id

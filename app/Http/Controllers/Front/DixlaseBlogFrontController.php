@@ -93,7 +93,7 @@ class DixlaseBlogFrontController extends Controller
      */
     private function fullPost(BlogPost $post): array
     {
-        $hasCss = $post->editor_type === ContentEditorType::HTML && trim((string) $post->custom_css) !== '';
+        $hasCss = BlogScriptAuthoringPolicy::carriesCustomCss($post->editor_type) && trim((string) $post->custom_css) !== '';
 
         return [
             'post' => $post,
@@ -325,8 +325,8 @@ class DixlaseBlogFrontController extends Controller
             'breadcrumbs' => $this->breadcrumbs->forPost($post, $postUrl),
             // Kept only for HTML posts (BlogPostStoreRequest); a post saved
             // before that rule, or switched back by a revision, shows none.
-            'customCss' => $post->editor_type === ContentEditorType::HTML ? (string) $post->custom_css : '',
-            'customJs' => $post->editor_type === ContentEditorType::HTML ? (string) $post->custom_js : '',
+            'customCss' => BlogScriptAuthoringPolicy::carriesCustomCss($post->editor_type) ? (string) $post->custom_css : '',
+            'customJs' => BlogScriptAuthoringPolicy::carriesCustomJs($post->editor_type) ? (string) $post->custom_js : '',
             'customAssetVersion' => $post->updated_at?->timestamp ?? 0,
         ]);
     }
