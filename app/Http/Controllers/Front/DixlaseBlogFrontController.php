@@ -48,6 +48,7 @@ use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 use Plugins\DixlaseBlog\App\Services\BlogShareLinks;
 use Plugins\DixlaseBlog\App\Support\BlogExcerpt;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
+use Plugins\DixlaseBlog\App\Support\DisplayTimezoneDatetime;
 
 class DixlaseBlogFrontController extends Controller
 {
@@ -223,8 +224,12 @@ class DixlaseBlogFrontController extends Controller
                 ?? $post->status ?? ContentStatus::DRAFT,
             'comment_status' => $data['comment_status'] ?? $post->comment_status,
             'lang' => $data['lang'] ?? $post->lang,
-            'published_at' => $data['published_at'] ?? null,
-            'closed_at' => $data['closed_at'] ?? null,
+            // Submitted by the editor's datetime-local fields, so a wall
+            // clock in the display timezone, not UTC (see
+            // DisplayTimezoneDatetime). Without this the preview dates the
+            // post by the offset.
+            'published_at' => DisplayTimezoneDatetime::toUtc($data['published_at'] ?? null),
+            'closed_at' => DisplayTimezoneDatetime::toUtc($data['closed_at'] ?? null),
             'featured_media_id' => ($data['featured_media_id'] ?? 0) ?: null,
         ]);
         // The CSS and JavaScript being typed, from members who may write
