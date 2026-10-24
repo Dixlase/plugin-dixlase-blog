@@ -34,12 +34,16 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\Tests\Feature;
 
+use App\Enums\ContentEditorType;
+use App\Enums\ContentStatus;
 use App\Enums\MemberRole;
 use App\Http\Middleware\CheckInstallationReady;
+use App\Http\Middleware\CheckMaintenanceMode;
 use App\Models\Member;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Support\DisplayTimezoneDatetime;
@@ -60,6 +64,8 @@ class BlogPostDisplayTimezoneTest extends TestCase
 {
     use RefreshDatabase;
 
+    private string $themeDirectory;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -70,12 +76,33 @@ class BlogPostDisplayTimezoneTest extends TestCase
         ]);
 
         $this->app['translator']->addNamespace('dixlase-blog', base_path('plugins/DixlaseBlog/lang'));
+        $this->app['view']->addNamespace('dixlase-blog', base_path('plugins/DixlaseBlog/resources/views'));
 
+        // AppServiceProvider registers these after a database query, which
+        // fails while the test app boots before migrating; core's own admin
+        // tests register them the same way.
+        $this->app['view']->addNamespace('admin', resource_path('views/'.config('themes.admin_theme', 'admin')));
+        $this->app['view']->addNamespace('components', resource_path('views/components'));
+        $this->app['view']->addNamespace('layouts', resource_path('views/layouts'));
+
+        // The editor links to the public page, whose template comes from the
+        // theme. A bare layout in a throwaway directory stands in for it.
+        $this->themeDirectory = storage_path('framework/testing/blog-timezone-theme-'.uniqid());
+        File::ensureDirectoryExists($this->themeDirectory.'/layouts');
+        File::put($this->themeDirectory.'/layouts/app.blade.php', '<html><title>@yield(\'title\')</title><body>@yield(\'content\')</body></html>');
+        File::put($this->themeDirectory.'/layouts/preview.blade.php', '<html><body>@yield(\'content\')@stack(\'scripts\')</body></html>');
+        $this->app['view']->replaceNamespace('themes', [$this->themeDirectory]);
+
+        // The admin screens name the public routes, so those are loaded too.
+        Route::middleware('web')->group(base_path('plugins/DixlaseBlog/routes/web.php'));
         Route::middleware('plugin')->prefix('admin-custom')->group(base_path('plugins/DixlaseBlog/routes/admin.php'));
         Route::getRoutes()->refreshNameLookups();
         Route::getRoutes()->refreshActionLookups();
 
-        $this->withoutMiddleware(CheckInstallationReady::class);
+        $this->withoutMiddleware([
+            CheckInstallationReady::class,
+            CheckMaintenanceMode::class,
+        ]);
 
         // The site stores UTC and displays Tokyo: the pairing the defect
         // showed up on, and a round nine hours, so an off-by-offset bug
@@ -88,6 +115,7 @@ class BlogPostDisplayTimezoneTest extends TestCase
     protected function tearDown(): void
     {
         Carbon::setTestNow();
+        File::deleteDirectory($this->themeDirectory);
 
         parent::tearDown();
     }
@@ -182,12 +210,14 @@ class BlogPostDisplayTimezoneTest extends TestCase
 
     public function test_the_edit_screen_shows_the_local_wall_clock(): void
     {
+        // editor_type and status are int-backed enums on the model, so the
+        // slugs the HTTP layer accepts are not valid here.
         $post = BlogPost::create([
             'title' => 'Scheduled',
             'slug' => 'scheduled',
             'content' => 'Body',
-            'editor_type' => 'markdown',
-            'status' => 'scheduled',
+            'editor_type' => ContentEditorType::MARKDOWN,
+            'status' => ContentStatus::SCHEDULED,
             'lang' => 'en',
             'published_at' => '2026-10-26 01:00:00',
             'closed_at' => '2026-11-02 01:00:00',
@@ -203,17 +233,32 @@ class BlogPostDisplayTimezoneTest extends TestCase
         $this->assertStringContainsString('Asia/Tokyo', (string) $html);
     }
 
-    public function test_a_redisplayed_form_shows_the_local_wall_clock_not_the_stored_utc(): void
+    public function test_the_form_renders_old_input_through_the_conversion(): void
     {
-        // What prepareForValidation() merges is UTC, so that is what is
-        // flashed on a failed validation. Printed raw it would show the
-        // member 01:00 for the 10:00 they typed.
-        $html = $this->withSession(['_old_input' => ['published_at' => '2026-10-26 01:00:00']])
-            ->get(route('dixlase-blog::admin.blog.create'))
-            ->assertOk()
-            ->getContent();
+        // prepareForValidation() merges UTC, so that is what is flashed on a
+        // failed validation: printed raw, the member would be shown 01:00
+        // for the 10:00 they typed. The view therefore has to pass old()
+        // through the conversion, not only the model attribute.
+        //
+        // Asserted on the view rather than by replaying a refusal over HTTP:
+        // the admin area uses its own session table, so flashed input does
+        // not reach a second request in this harness, and a test that drove
+        // it through a redirect would pass for the wrong reason.
+        $sidebar = (string) file_get_contents(
+            __DIR__.'/../../resources/views/admin/posts/partials/_right-sidebar.blade.php'
+        );
 
-        $this->assertStringContainsString('value="2026-10-26T10:00"', (string) $html);
+        foreach (['published_at', 'closed_at'] as $field) {
+            $this->assertStringContainsString(
+                "DisplayTimezoneDatetime::forInput(old('{$field}'",
+                $sidebar,
+                "{$field} must render old() through the display-timezone conversion"
+            );
+        }
+
+        // The shape this replaced: a raw wall-clock format off the model,
+        // which is UTC and ignores the display timezone.
+        $this->assertStringNotContainsString("?->format('Y-m-d\\TH:i')", $sidebar);
     }
 
     public function test_an_unparseable_datetime_is_reported_rather_than_dropped(): void
