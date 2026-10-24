@@ -42,11 +42,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\NullsBlankInput;
+use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\ReadsDatetimeInDisplayTimezone;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 
 class BlogPostUpdateRequest extends FormRequest
 {
     use NullsBlankInput;
+    use ReadsDatetimeInDisplayTimezone;
 
     /**
      * An HTML (or legacy Blade) body is script-capable: only members who may
@@ -130,6 +132,9 @@ class BlogPostUpdateRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->nullBlankInput(['published_at', 'closed_at'], ['featured_media_id']);
+
+        // The two datetime-local fields mean the display timezone, not UTC.
+        $this->readDatetimeInDisplayTimezone(['published_at', 'closed_at']);
 
         if ($this->postBeingUpdated()?->editor_type !== ContentEditorType::HTML) {
             $this->merge(['custom_css' => null, 'custom_js' => null]);

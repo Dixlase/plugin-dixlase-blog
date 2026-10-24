@@ -135,9 +135,12 @@ Dixlase Blog is dual-licensed. You may use this file under either:
                                         </div>
                                     </td>
                                     <td class="admin-table__cell" data-label="{{ __('dixlase-blog::admin.post_index.col_published_at') }}" role="gridcell">
-                                        <time datetime="{{ $post->published_at?->toISOString() }}" class="admin-datetime">
-                                            {{ $post->published_at?->format(__('dixlase-blog::admin.post_index.datetime_format')) ?? '—' }}
-                                        </time>
+                                        <x-ui-datetime
+                                            :value="$post->published_at"
+                                            :format="__('dixlase-blog::admin.post_index.datetime_format')"
+                                            empty-label="—"
+                                            class="admin-datetime"
+                                        />
                                     </td>
                                     <td class="admin-table__cell admin-table__cell--actions" data-label="{{ __('common.actions') }}" role="gridcell">
                                         <div class="flex items-center justify-end gap-2">

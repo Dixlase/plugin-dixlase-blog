@@ -42,12 +42,14 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\NullsBlankInput;
+use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\ReadsDatetimeInDisplayTimezone;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 
 class BlogPostStoreRequest extends FormRequest
 {
     use NullsBlankInput;
+    use ReadsDatetimeInDisplayTimezone;
 
     public function authorize(): bool
     {
@@ -107,6 +109,9 @@ class BlogPostStoreRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->nullBlankInput(['published_at', 'closed_at'], ['featured_media_id']);
+
+        // The two datetime-local fields mean the display timezone, not UTC.
+        $this->readDatetimeInDisplayTimezone(['published_at', 'closed_at']);
 
         if ($this->input('editor_type') !== ContentEditorType::HTML->slug()) {
             $this->merge(['custom_css' => null, 'custom_js' => null]);
