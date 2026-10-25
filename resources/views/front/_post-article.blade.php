@@ -12,11 +12,11 @@ page in "full" mode shows each of its latest posts with it (h2, the
 title linking to the post).
 
 Takes $post and $contentHtml (BlogContentRenderer). Optional:
-$headingTag ('h1' by default) and $titleUrl (a link on the title).
+$headingTag ('h1' by default, or 'h2' / 'h3') and $titleUrl (a link on the title).
 --}}
 
 @php
-    $headingTag = ($headingTag ?? 'h1') === 'h2' ? 'h2' : 'h1';
+    $headingTag = in_array($headingTag ?? 'h1', ['h2', 'h3'], true) ? $headingTag : 'h1';
     $titleUrl ??= null;
     $title = $post->localized('title');
     $featuredMedia = $post->localizedFeaturedMedia();

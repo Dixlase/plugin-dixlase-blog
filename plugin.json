@@ -119,7 +119,7 @@
         "front_routes": true,
         "api_routes": false,
         "settings_page": true,
-        "shortcodes": false,
+        "shortcodes": true,
         "helper_functions": false
     },
     "permissions": {
@@ -158,7 +158,7 @@
             "write_other_plugins": []
         },
         "system": {
-            "register_shortcodes": false,
+            "register_shortcodes": true,
             "register_middleware": false,
             "register_commands": true,
             "register_blade_directives": false,

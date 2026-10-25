@@ -92,6 +92,66 @@ $bp-2xl: 96rem;
     }
 }
 
+// The [blog] shortcode inside other content (the front page): no page
+// frame -- the surrounding section sets the width and the spacing.
+.dixlase-blog.dixlase-blog-embed {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
+.dixlase-blog-embed__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--dlsb-border);
+}
+
+.dixlase-blog-embed__item {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    padding: 0.875rem 0;
+    border-bottom: 1px solid var(--dlsb-border);
+}
+
+.dixlase-blog-embed__date {
+    flex: none;
+    color: var(--dlsb-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.dixlase-blog-embed__title {
+    min-width: 0;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+        color: var(--dlsb-accent);
+        text-decoration: underline;
+    }
+}
+
+.dixlase-blog-embed__more {
+    margin: 1.5rem 0 0;
+    text-align: right;
+
+    a {
+        color: var(--dlsb-accent);
+        font-weight: 600;
+        text-decoration: none;
+
+        &::after {
+            content: " \2192";
+        }
+
+        &:hover,
+        &:focus-visible {
+            text-decoration: underline;
+        }
+    }
+}
+
 :where(.dark) .dixlase-blog {
     --dlsb-text: var(--color-gray-100, #f3f4f6);
     --dlsb-muted: var(--color-gray-400, #9ca3af);

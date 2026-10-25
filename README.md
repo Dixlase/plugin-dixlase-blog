@@ -56,6 +56,19 @@ Once enabled, **Blog Management** appears in the admin sidebar with the post lis
 
 A post's public URL is `/blog/{slug}`. Use a short English slug; it is the post's permanent address. The `/blog` prefix can be changed on the settings screen.
 
+### Latest posts in other content
+
+The `[blog]` shortcode lists the latest posts wherever content goes through core's shortcode parser, such as the front page. They come in the blog top page's order (pinned posts first).
+
+| Attribute | Values | Default |
+|---|---|---|
+| `count` | 1 to 50 | `3` |
+| `layout` | `cards`, `list` (date and title), `full` (each post in full) | `cards` |
+| `category` / `tag` | a category or tag slug | all posts |
+| `link` | `true` / `false` — a link to the blog's top page under the posts | `true` |
+
+For example, `[blog count="5" layout="list" link="false"]`. With no posts to show, it renders nothing.
+
 ## Customising the templates
 
 The front pages use the plugin's own templates and stylesheet. To change a template, copy it from `resources/views/` to one of these directories, keeping its relative path (for example `front/show.blade.php`). The first directory that holds the file wins:
@@ -70,6 +83,7 @@ The templates are:
 - `front/_card` (a post in a list), `front/_pagination`, `front/_breadcrumbs`, `front/_post-nav` (previous / next), `front/_related` and `front/_share`
 - `front/_comments` (the comment list and form) and `front/_comment` (one comment and its replies)
 - `front/sidebar/*` (one file per widget)
+- `front/shortcode` (the `[blog]` shortcode)
 - `front/feed` (RSS)
 
 Colours follow the theme's Tailwind colour tokens and its dark mode; to restyle without copying a template, override the `--dlsb-*` CSS variables on `.dixlase-blog`.

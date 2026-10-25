@@ -56,6 +56,19 @@ cd plugins/DixlaseBlog && npm ci && npm run build
 
 記事の公開 URL は `/blog/{slug}` です。slug は記事の恒久的なアドレスになるので、短い英語にしてください。`/blog` の部分は設定画面で変えられます。
 
+### ほかの本文に最新記事を載せる
+
+ショートコード `[blog]` で、フロントページなど、コアのショートコードの処理を通る本文に最新記事を並べられます。並び順はブログのトップと同じです(固定表示の記事が先)。
+
+| 属性 | 値 | 既定 |
+|---|---|---|
+| `count` | 1〜50 | `3` |
+| `layout` | `cards`、`list`(日付とタイトル)、`full`(記事を全文で) | `cards` |
+| `category` / `tag` | カテゴリーまたはタグの slug | すべての記事 |
+| `link` | `true` / `false` — 記事の下にブログのトップへのリンクを出すか | `true` |
+
+例: `[blog count="5" layout="list" link="false"]`。表示する記事がないときは、何も出しません。
+
 ## テンプレートの変更
 
 表側のページは、プラグインのテンプレートとスタイルシートで表示します。テンプレートを変えるには、`resources/views/` からファイルを次のどちらかのディレクトリへ、相対パスを保ったまま(例: `front/show.blade.php`)コピーします。最初にファイルが見つかったディレクトリのものが使われます。
@@ -70,6 +83,7 @@ cd plugins/DixlaseBlog && npm ci && npm run build
 - `front/_card`(一覧の記事 1 件)、`front/_pagination`、`front/_breadcrumbs`、`front/_post-nav`(前後の記事)、`front/_related`、`front/_share`
 - `front/_comments`(コメントの一覧とフォーム)、`front/_comment`(コメント 1 件とその返信)
 - `front/sidebar/*`(ウィジェットごとに 1 ファイル)
+- `front/shortcode`(ショートコード `[blog]`)
 - `front/feed`(RSS)
 
 色はテーマの Tailwind の色とダークモードに合わせます。テンプレートをコピーせずに見た目を変えるときは、`.dixlase-blog` の `--dlsb-*` の CSS 変数を上書きします。

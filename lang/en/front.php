@@ -24,6 +24,11 @@ return [
         'feed_link' => 'RSS feed',
     ],
 
+    // The [blog] shortcode (front/shortcode.blade.php).
+    'shortcode' => [
+        'more' => 'All posts',
+    ],
+
     'archive' => [
         'category_title' => 'Category: :name',
         'tag_title' => 'Tag: :name',
