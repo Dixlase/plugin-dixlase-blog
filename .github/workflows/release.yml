@@ -19,6 +19,14 @@ jobs:
       - name: Checkout plugin at tag
         uses: actions/checkout@v5
 
+      - name: Verify the signature manifest matches this tag
+        # The gate that keeps an unsigned tree out of production. Signing is
+        # the last step before the tag, so by the time a release is published
+        # the manifest must already describe this tree exactly. A hash
+        # comparison only -- no secret, no core checkout.
+        # Dixlase/dixlase-core#520.
+        run: .github/scripts/check-manifest.sh plugin.json
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
