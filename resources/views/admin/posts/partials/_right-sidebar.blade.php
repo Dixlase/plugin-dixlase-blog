@@ -35,6 +35,11 @@ side validation continues to enforce it.
 --}}
 
 @php
+    // The publish / close fields are datetime-local: a wall clock with no
+    // offset. Dixlase stores UTC and shows the display timezone, so the
+    // fields are rendered and read in that timezone, and named with it.
+    $displayTimezone = \Plugins\DixlaseBlog\App\Support\DisplayTimezoneDatetime::zone();
+
     $statusOptions = [
         'draft' => \App\Enums\ContentStatus::DRAFT->label(),
         'published' => \App\Enums\ContentStatus::PUBLISHED->label(),
@@ -392,9 +397,9 @@ side validation continues to enforce it.
                 id="published_at"
                 name="published_at"
                 type="datetime-local"
-                :value="old('published_at', $post->published_at?->format('Y-m-d\TH:i'))"
+                :value="\Plugins\DixlaseBlog\App\Support\DisplayTimezoneDatetime::forInput(old('published_at', $post->published_at))"
             />
-            <x-form-help-text :text="__('dixlase-blog::admin.post.published_at_help')" />
+            <x-form-help-text :text="__('dixlase-blog::admin.post.published_at_help', ['timezone' => $displayTimezone])" />
             <x-form-error name="published_at" />
         </div>
 
@@ -405,9 +410,9 @@ side validation continues to enforce it.
                 id="closed_at"
                 name="closed_at"
                 type="datetime-local"
-                :value="old('closed_at', $post->closed_at?->format('Y-m-d\TH:i'))"
+                :value="\Plugins\DixlaseBlog\App\Support\DisplayTimezoneDatetime::forInput(old('closed_at', $post->closed_at))"
             />
-            <x-form-help-text :text="__('dixlase-blog::admin.post.closed_at_help')" />
+            <x-form-help-text :text="__('dixlase-blog::admin.post.closed_at_help', ['timezone' => $displayTimezone])" />
             <x-form-error name="closed_at" />
         </div>
     </div>
