@@ -134,6 +134,8 @@ class BlogShortcode
         $value = strtolower(trim((string) $value));
 
         return match ($value) {
+            // filter_var() reads an empty string as false, not as absent.
+            '' => $default,
             'show' => true,
             'hide' => false,
             default => filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? $default,
