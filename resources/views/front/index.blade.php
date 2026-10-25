@@ -18,7 +18,7 @@ themes/<theme>/plugins/DixlaseBlog/resources/views/ (one theme).
 
 @include('dixlase-blog::front._assets')
 
-{{-- In full mode, each HTML post's own CSS (never its JavaScript). --}}
+{{-- In full mode, each post's own CSS (HTML and Markdown; never JavaScript). --}}
 @foreach ($fullPosts ?? [] as $item)
     @if ($item['customCssUrl'])
         @push('styles')

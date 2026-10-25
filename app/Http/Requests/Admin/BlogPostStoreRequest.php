@@ -41,6 +41,7 @@ use App\Rules\UniqueContentSlug;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\LimitsCustomAssets;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\NullsBlankInput;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\ReadsDatetimeInDisplayTimezone;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
@@ -48,6 +49,7 @@ use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 
 class BlogPostStoreRequest extends FormRequest
 {
+    use LimitsCustomAssets;
     use NullsBlankInput;
     use ReadsDatetimeInDisplayTimezone;
 
@@ -101,10 +103,7 @@ class BlogPostStoreRequest extends FormRequest
     /**
      * The media picker submits 0 (or an empty string) for "no image".
      *
-     * Custom CSS and JavaScript are served only for HTML posts, which only
-     * members who may author scripts can write; for any other post they
-     * are dropped, so nothing script-capable is stored. A form without the
-     * fields (Simple mode hides them) leaves the stored ones alone.
+     * A post's own CSS and JavaScript: see LimitsCustomAssets.
      */
     protected function prepareForValidation(): void
     {
@@ -113,9 +112,7 @@ class BlogPostStoreRequest extends FormRequest
         // The two datetime-local fields mean the display timezone, not UTC.
         $this->readDatetimeInDisplayTimezone(['published_at', 'closed_at']);
 
-        if ($this->input('editor_type') !== ContentEditorType::HTML->slug()) {
-            $this->merge(['custom_css' => null, 'custom_js' => null]);
-        }
+        $this->limitCustomAssets(ContentEditorType::tryFromSlug((string) $this->input('editor_type')));
 
         $seoMeta = $this->input('seo_meta');
         if (is_array($seoMeta) && in_array($seoMeta['ogp_media_id'] ?? null, ['', '0', 0], true)) {
