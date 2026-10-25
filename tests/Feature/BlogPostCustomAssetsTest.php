@@ -153,14 +153,34 @@ class BlogPostCustomAssetsTest extends TestCase
         $this->actingAs($this->member(MemberRole::EDITOR), 'member');
         $assets = ['custom_css' => 'body{}', 'custom_js' => 'alert(1)'];
 
-        // Dropped from the input, so a stored file is left alone.
+        // A new post has nothing to carry over, so neither is stored.
         $store = $this->prepared(BlogPostStoreRequest::create('/blog', 'POST', $assets + ['editor_type' => 'markdown']));
-        $this->assertFalse($store->has('custom_css'));
-        $this->assertFalse($store->has('custom_js'));
+        $this->assertNull($store->input('custom_css'));
+        $this->assertNull($store->input('custom_js'));
 
-        $update = $this->prepared($this->updateRequestFor($this->makePost(ContentEditorType::MARKDOWN), $assets));
-        $this->assertFalse($update->has('custom_css'));
-        $this->assertFalse($update->has('custom_js'));
+        // On an existing post the stored CSS is carried over, so what an
+        // admin wrote for it survives an editor's save.
+        $post = $this->makePost(ContentEditorType::MARKDOWN, 'post', ['custom_css' => 'h1{}']);
+        $update = $this->prepared($this->updateRequestFor($post, $assets));
+        $this->assertSame('h1{}', $update->input('custom_css'));
+        $this->assertNull($update->input('custom_js'));
+    }
+
+    public function test_the_fields_are_decided_whatever_the_request_carries(): void
+    {
+        // Both fields are set rather than removed, so the decision holds for
+        // every shape of request, a JSON body as much as a form post.
+        $this->actingAs($this->member(MemberRole::EDITOR), 'member');
+        $post = $this->makePost(ContentEditorType::MARKDOWN, 'post', ['custom_css' => 'h1{}']);
+
+        $update = $this->prepared($this->updateRequestFor(
+            $post,
+            ['custom_css' => 'body{}', 'custom_js' => 'alert(1)'],
+            json: true,
+        ));
+
+        $this->assertSame('h1{}', $update->input('custom_css'));
+        $this->assertNull($update->input('custom_js'));
     }
 
     public function test_a_form_without_the_fields_keeps_the_stored_ones(): void
@@ -345,11 +365,21 @@ class BlogPostCustomAssetsTest extends TestCase
     /**
      * @param  array<string, mixed>  $data
      */
-    private function updateRequestFor(BlogPost $post, array $data): BlogPostUpdateRequest
+    private function updateRequestFor(BlogPost $post, array $data, bool $json = false): BlogPostUpdateRequest
     {
-        $request = BlogPostUpdateRequest::create('/blog/'.$post->id, 'PUT', $data + [
-            'editor_type' => $post->editor_type->slug(),
-        ]);
+        $input = $data + ['editor_type' => $post->editor_type->slug()];
+
+        $request = $json
+            ? BlogPostUpdateRequest::create(
+                '/blog/'.$post->id,
+                'PUT',
+                [],
+                [],
+                [],
+                ['CONTENT_TYPE' => 'application/json'],
+                (string) json_encode($input),
+            )
+            : BlogPostUpdateRequest::create('/blog/'.$post->id, 'PUT', $input);
 
         // The admin routes pass {post} as an id, not a bound model.
         $route = new RoutingRoute('PUT', 'blog/{post}', []);

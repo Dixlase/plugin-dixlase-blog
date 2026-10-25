@@ -130,7 +130,8 @@ class BlogPostUpdateRequest extends FormRequest
     {
         $this->nullBlankInput(['published_at', 'closed_at'], ['featured_media_id']);
 
-        $this->limitCustomAssets($this->postBeingUpdated()?->editor_type);
+        $post = $this->postBeingUpdated();
+        $this->limitCustomAssets($post?->editor_type, $post);
 
         $seoMeta = $this->input('seo_meta');
         if (is_array($seoMeta) && in_array($seoMeta['ogp_media_id'] ?? null, ['', '0', 0], true)) {
