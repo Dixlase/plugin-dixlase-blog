@@ -101,4 +101,22 @@ final class BlogScriptAuthoringPolicy
 
         return self::canAuthorScripts($member);
     }
+
+    /**
+     * Whether a post of this editor type carries its own CSS: HTML, and
+     * Markdown, whose id and class attributes it styles.
+     */
+    public static function carriesCustomCss(?ContentEditorType $editorType): bool
+    {
+        return $editorType === ContentEditorType::HTML || $editorType === ContentEditorType::MARKDOWN;
+    }
+
+    /**
+     * Whether a post of this editor type carries its own JavaScript: HTML
+     * alone. A Markdown post never runs a script.
+     */
+    public static function carriesCustomJs(?ContentEditorType $editorType): bool
+    {
+        return $editorType === ContentEditorType::HTML;
+    }
 }

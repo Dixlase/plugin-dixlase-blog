@@ -81,6 +81,7 @@ the CSS as it is typed and never runs the JavaScript.
     :previewUrl="route('dixlase-blog::admin.blog.preview')"
     previewRender="server"
     :assetTabs="$assetTabs"
+    :markdownCss="true"
     :customCss="old('custom_css', $post->custom_css ?? '')"
     :customJs="old('custom_js', $post->custom_js ?? '')"
     :cssPlaceholder="__('dixlase-blog::admin.post_form.css_placeholder')"

@@ -52,6 +52,7 @@ use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogPostStoreRequest;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogPostUpdateRequest;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Services\BlogPostService;
+use Plugins\DixlaseBlog\App\Support\BlogSettings;
 use Plugins\DixlaseBlog\Tests\Support\FakeTranslationResolver;
 use Tests\TestCase;
 
@@ -121,23 +122,65 @@ class BlogPostCustomAssetsTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_css_and_js_are_dropped_for_a_post_that_is_not_html(): void
+    public function test_each_editor_type_keeps_only_the_files_it_serves(): void
     {
+        $this->actingAs($this->member(MemberRole::ADMIN), 'member');
         $assets = ['custom_css' => 'body{}', 'custom_js' => 'alert(1)'];
 
+        // Markdown keeps its CSS, never JavaScript.
         $store = $this->prepared(BlogPostStoreRequest::create('/blog', 'POST', $assets + ['editor_type' => 'markdown']));
-        $this->assertNull($store->input('custom_css'));
+        $this->assertSame('body{}', $store->input('custom_css'));
         $this->assertNull($store->input('custom_js'));
 
         $html = $this->prepared(BlogPostStoreRequest::create('/blog', 'POST', $assets + ['editor_type' => 'html']));
         $this->assertSame('body{}', $html->input('custom_css'));
+        $this->assertSame('alert(1)', $html->input('custom_js'));
+
+        $gui = $this->prepared(BlogPostStoreRequest::create('/blog', 'POST', $assets + ['editor_type' => 'gui']));
+        $this->assertNull($gui->input('custom_css'));
+        $this->assertNull($gui->input('custom_js'));
 
         $update = $this->prepared($this->updateRequestFor($this->makePost(ContentEditorType::MARKDOWN), $assets));
-        $this->assertNull($update->input('custom_css'));
+        $this->assertSame('body{}', $update->input('custom_css'));
         $this->assertNull($update->input('custom_js'));
 
         $update = $this->prepared($this->updateRequestFor($this->makePost(ContentEditorType::HTML, 'html'), $assets));
         $this->assertSame('alert(1)', $update->input('custom_js'));
+    }
+
+    public function test_a_member_who_may_not_author_scripts_sets_neither(): void
+    {
+        $this->actingAs($this->member(MemberRole::EDITOR), 'member');
+        $assets = ['custom_css' => 'body{}', 'custom_js' => 'alert(1)'];
+
+        // A new post has nothing to carry over, so neither is stored.
+        $store = $this->prepared(BlogPostStoreRequest::create('/blog', 'POST', $assets + ['editor_type' => 'markdown']));
+        $this->assertNull($store->input('custom_css'));
+        $this->assertNull($store->input('custom_js'));
+
+        // On an existing post the stored CSS is carried over, so what an
+        // admin wrote for it survives an editor's save.
+        $post = $this->makePost(ContentEditorType::MARKDOWN, 'post', ['custom_css' => 'h1{}']);
+        $update = $this->prepared($this->updateRequestFor($post, $assets));
+        $this->assertSame('h1{}', $update->input('custom_css'));
+        $this->assertNull($update->input('custom_js'));
+    }
+
+    public function test_the_fields_are_decided_whatever_the_request_carries(): void
+    {
+        // Both fields are set rather than removed, so the decision holds for
+        // every shape of request, a JSON body as much as a form post.
+        $this->actingAs($this->member(MemberRole::EDITOR), 'member');
+        $post = $this->makePost(ContentEditorType::MARKDOWN, 'post', ['custom_css' => 'h1{}']);
+
+        $update = $this->prepared($this->updateRequestFor(
+            $post,
+            ['custom_css' => 'body{}', 'custom_js' => 'alert(1)'],
+            json: true,
+        ));
+
+        $this->assertSame('h1{}', $update->input('custom_css'));
+        $this->assertNull($update->input('custom_js'));
     }
 
     public function test_a_form_without_the_fields_keeps_the_stored_ones(): void
@@ -185,10 +228,33 @@ class BlogPostCustomAssetsTest extends TestCase
         $this->assertStringStartsWith('application/javascript', (string) $js->headers->get('Content-Type'));
     }
 
-    public function test_no_files_for_a_draft_a_post_that_is_not_html_or_an_empty_field(): void
+    public function test_a_markdown_post_serves_its_css_never_its_script(): void
+    {
+        $this->makePost(ContentEditorType::MARKDOWN, 'markdown', [
+            'status' => ContentStatus::PUBLISHED,
+            'published_at' => now()->subDay(),
+            'custom_css' => 'h1{color:red}',
+            // Stored before Markdown kept CSS only; never served.
+            'custom_js' => 'x()',
+        ]);
+
+        $this->get('/blog/markdown')
+            ->assertOk()
+            ->assertSee('/blog/markdown/custom-style.css?v=', false)
+            ->assertDontSee('custom-script.js', false);
+        $this->assertSame('h1{color:red}', $this->get('/blog/markdown/custom-style.css')->assertOk()->getContent());
+        $this->get('/blog/markdown/custom-script.js')->assertNotFound();
+
+        // The top page in full links it too.
+        $this->app->singleton(BlogSettings::class);
+        app(BlogSettings::class)->save(['index_layout' => 'full']);
+        $this->get('/blog')->assertOk()->assertSee('/blog/markdown/custom-style.css', false);
+    }
+
+    public function test_no_files_for_a_draft_a_gui_post_or_an_empty_field(): void
     {
         $this->makePost(ContentEditorType::HTML, 'draft', ['custom_css' => 'h1{}', 'custom_js' => 'x()']);
-        $this->makePost(ContentEditorType::MARKDOWN, 'markdown', [
+        $this->makePost(ContentEditorType::GUI, 'gui', [
             'status' => ContentStatus::PUBLISHED,
             'published_at' => now()->subDay(),
             'custom_css' => 'h1{}',
@@ -201,11 +267,11 @@ class BlogPostCustomAssetsTest extends TestCase
 
         $this->get('/blog/draft/custom-style.css')->assertNotFound();
         $this->get('/blog/draft/custom-script.js')->assertNotFound();
-        $this->get('/blog/markdown/custom-style.css')->assertNotFound();
+        $this->get('/blog/gui/custom-style.css')->assertNotFound();
         $this->get('/blog/plain/custom-style.css')->assertNotFound();
         $this->get('/blog/missing/custom-style.css')->assertNotFound();
 
-        $this->get('/blog/markdown')->assertOk()->assertDontSee('custom-style.css', false);
+        $this->get('/blog/gui')->assertOk()->assertDontSee('custom-style.css', false);
         $this->get('/blog/plain')->assertOk()->assertDontSee('custom-style.css', false);
     }
 
@@ -299,11 +365,21 @@ class BlogPostCustomAssetsTest extends TestCase
     /**
      * @param  array<string, mixed>  $data
      */
-    private function updateRequestFor(BlogPost $post, array $data): BlogPostUpdateRequest
+    private function updateRequestFor(BlogPost $post, array $data, bool $json = false): BlogPostUpdateRequest
     {
-        $request = BlogPostUpdateRequest::create('/blog/'.$post->id, 'PUT', $data + [
-            'editor_type' => $post->editor_type->slug(),
-        ]);
+        $input = $data + ['editor_type' => $post->editor_type->slug()];
+
+        $request = $json
+            ? BlogPostUpdateRequest::create(
+                '/blog/'.$post->id,
+                'PUT',
+                [],
+                [],
+                [],
+                ['CONTENT_TYPE' => 'application/json'],
+                (string) json_encode($input),
+            )
+            : BlogPostUpdateRequest::create('/blog/'.$post->id, 'PUT', $input);
 
         // The admin routes pass {post} as an id, not a bound model.
         $route = new RoutingRoute('PUT', 'blog/{post}', []);

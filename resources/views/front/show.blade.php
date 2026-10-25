@@ -43,7 +43,8 @@ BlogContentRenderer).
 
 @include('dixlase-blog::front._assets')
 
-{{-- The post's own CSS and JavaScript (HTML posts only), as files next to
+{{-- The post's own CSS (HTML and Markdown posts) and JavaScript (HTML
+     posts only), as files next to
      the post. The editors' previews may show a post the files are not
      served for (a draft, unsaved input), so they carry both in the page.
      The JavaScript runs there only for a member who may write it
