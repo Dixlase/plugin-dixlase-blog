@@ -24,6 +24,11 @@ return [
         'feed_link' => 'RSS フィード',
     ],
 
+    // The [blog] shortcode (front/shortcode.blade.php).
+    'shortcode' => [
+        'more' => 'ブログの一覧へ',
+    ],
+
     'archive' => [
         'category_title' => 'カテゴリ: :name',
         'tag_title' => 'タグ: :name',

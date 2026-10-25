@@ -36,6 +36,7 @@ use App\Contracts\Extension\ProvidesSettingsDefaultsInterface;
 use App\Contracts\Repositories\ThemeRepositoryInterface;
 use App\Contracts\RouteSlugProvider;
 use App\DTO\RouteSlug\RegisteredSlug;
+use App\Helpers\PluginHelper;
 use App\Services\RouteSlugRegistry;
 use App\Traits\PluginLoaderTrait;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -50,6 +51,7 @@ use Plugins\DixlaseBlog\App\Services\BlogLocalizedUrlProvider;
 use Plugins\DixlaseBlog\App\Services\BlogPostLinkableProvider;
 use Plugins\DixlaseBlog\App\Services\BlogSeoMeta;
 use Plugins\DixlaseBlog\App\Services\BlogSidebar;
+use Plugins\DixlaseBlog\App\Shortcodes\BlogShortcode;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 use Throwable;
 
@@ -100,6 +102,9 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
         }
 
         self::defineCommentRateLimiter();
+
+        // [blog]: the latest posts in other content, such as the front page.
+        PluginHelper::registerShortcode('blog', BlogShortcode::class);
 
         // Commenters' IP addresses are kept only for the set period.
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {

@@ -8,7 +8,8 @@ Dixlase Blog is dual-licensed. Same terms as edit.blade.php.
 
 Single-post card reused by the index and archive listings. Overridable
 like index.blade.php. The index passes showPinned, as only it lists
-pinned posts first.
+pinned posts first. $headingTag is h2 (default) or h3 (the [blog]
+shortcode, inside a section with its own heading).
 --}}
 
 @php
@@ -17,6 +18,7 @@ pinned posts first.
     $title = $post->localized('title');
     $excerpt = $post->localized('excerpt');
     $url = route('dixlase-blog::front.show', ['slug' => $post->slug]);
+    $headingTag = ($headingTag ?? 'h2') === 'h3' ? 'h3' : 'h2';
     $featuredMedia = $post->localizedFeaturedMedia();
 @endphp
 
@@ -45,9 +47,9 @@ pinned posts first.
             @endif
         </div>
 
-        <h2 class="dixlase-blog-card__title" lang="{{ $post->localizedLang('title') }}">
+        <{{ $headingTag }} class="dixlase-blog-card__title" lang="{{ $post->localizedLang('title') }}">
             <a href="{{ $url }}">{{ $title }}</a>
-        </h2>
+        </{{ $headingTag }}>
 
         @if ($excerpt)
             <p class="dixlase-blog-card__excerpt" lang="{{ $post->localizedLang('excerpt') }}">{{ $excerpt }}</p>

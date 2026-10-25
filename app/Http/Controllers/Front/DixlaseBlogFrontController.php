@@ -43,6 +43,7 @@ use Plugins\DixlaseBlog\App\Services\BlogBreadcrumbs;
 use Plugins\DixlaseBlog\App\Services\BlogCommentCaptchaFormProvider;
 use Plugins\DixlaseBlog\App\Services\BlogComments;
 use Plugins\DixlaseBlog\App\Services\BlogContentRenderer;
+use Plugins\DixlaseBlog\App\Services\BlogFullPosts;
 use Plugins\DixlaseBlog\App\Services\BlogPostNeighbours;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 use Plugins\DixlaseBlog\App\Services\BlogShareLinks;
@@ -62,6 +63,7 @@ class DixlaseBlogFrontController extends Controller
         private readonly BlogShareLinks $shareLinks,
         private readonly BlogBreadcrumbs $breadcrumbs,
         private readonly BlogComments $comments,
+        private readonly BlogFullPosts $fullPosts,
     ) {
     }
 
@@ -80,29 +82,9 @@ class DixlaseBlogFrontController extends Controller
 
         return view('dixlase-blog::front.index', [
             'posts' => $posts,
-            'fullPosts' => $full ? $posts->getCollection()->map(fn (BlogPost $post) => $this->fullPost($post))->all() : null,
+            'fullPosts' => $full ? $posts->getCollection()->map(fn (BlogPost $post) => $this->fullPosts->for($post))->all() : null,
             'breadcrumbs' => $this->breadcrumbs->forIndex(),
         ]);
-    }
-
-    /**
-     * A post as the top page shows it in full: its rendered body, and the
-     * URL of its own CSS (HTML posts). Its JavaScript is left out: a
-     * post's script assumes it is alone on the page.
-     *
-     * @return array{post: BlogPost, contentHtml: string, customCssUrl: ?string}
-     */
-    private function fullPost(BlogPost $post): array
-    {
-        $hasCss = BlogScriptAuthoringPolicy::carriesCustomCss($post->editor_type) && trim((string) $post->custom_css) !== '';
-
-        return [
-            'post' => $post,
-            'contentHtml' => $this->renderer->renderPost($post),
-            'customCssUrl' => $hasCss
-                ? route('dixlase-blog::front.custom-style', ['slug' => $post->slug]).'?v='.($post->updated_at?->timestamp ?? 0)
-                : null,
-        ];
     }
 
     /**
