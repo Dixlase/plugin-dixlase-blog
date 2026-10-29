@@ -113,9 +113,9 @@ class BlogPostUpdateRequest extends FormRequest
             'published_at' => ['nullable', 'required_if:status,scheduled', 'date'],
             'closed_at' => ['nullable', 'date', 'after:published_at'],
             'categories' => ['nullable', 'array'],
-            'categories.*' => ['integer', 'exists:plg_dixlase_blog_categories,id'],
+            'categories.*' => ['nullable', 'integer', 'exists:plg_dixlase_blog_categories,id'],
             'tags' => ['nullable', 'array', 'max:50'],
-            'tags.*' => ['string', 'max:100'],
+            'tags.*' => ['nullable', 'string', 'max:100'],
             // Stored by DixlaseSEO; only submitted when its integration is on.
             'seo_meta' => ['sometimes', 'array'],
             'seo_meta.description' => ['nullable', 'string', 'max:300'],
