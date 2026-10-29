@@ -182,7 +182,7 @@ class DixlaseBlogFrontController extends Controller
             'published_at' => ['nullable', 'date'],
             'closed_at' => ['nullable', 'date'],
             'categories' => ['nullable', 'array'],
-            'categories.*' => ['integer'],
+            'categories.*' => ['nullable', 'integer'],
             'tags' => ['nullable', 'array', 'max:50'],
             'tags.*' => ['nullable', 'string', 'max:100'],
             'custom_css' => ['nullable', 'string', 'max:500000'],
