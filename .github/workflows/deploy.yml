@@ -95,6 +95,34 @@ jobs:
             BASE="${{ steps.target.outputs.base_dir }}"
             PLUGIN_DIR="DixlaseBlog"
             EXPECTED_URL="git@github.com:${{ github.repository }}.git"
+            FAILED_SITES=""
+
+            # Which repository a remote names, not how its URL is written.
+            # `https://github.com/O/R.git` and `git@github.com:O/R.git` are
+            # the same repository reached two ways, and a checkout made along
+            # the Docker Installer path tends to carry the https form while
+            # this workflow always expects the git@ one.
+            normalize_repo_url() {
+              printf '%s' "$1" \
+                | sed -E 's#^[a-z+]+://##; s#^[^/@]+@##; s#^([^/:]+):[0-9]+/#\1/#; s#^([^/:]+):#\1/#; s#/+$##; s#\.git$##' \
+                | tr '[:upper:]' '[:lower:]'
+            }
+
+            # A renamed repository keeps its old URL working, because GitHub
+            # redirects it -- so a stale remote fetches successfully for months
+            # and only a string comparison ever notices. Normalising cannot
+            # resolve a rename, so ask both URLs for the same ref: the same
+            # repository answers with the same tip, two different repositories
+            # do not.
+            same_repo_as_expected() {
+              [ -n "$1" ] || return 1
+              if [ "$(normalize_repo_url "$1")" = "$(normalize_repo_url "$EXPECTED_URL")" ]; then
+                return 0
+              fi
+              _actual_tip=$(git ls-remote "$1" refs/heads/main 2>/dev/null | cut -f1)
+              _expected_tip=$(git ls-remote "$EXPECTED_URL" refs/heads/main 2>/dev/null | cut -f1)
+              [ -n "$_actual_tip" ] && [ "$_actual_tip" = "$_expected_tip" ]
+            }
 
             for SITE in ${{ inputs.sites || 'brand demo' }}; do
               # Resolve the site layout. A Docker Installer instance keeps the app in
@@ -169,24 +197,45 @@ jobs:
               #   (c) Directory does not exist at all
               #       -> first-time deploy, clone fresh.
               #
-              # Any other anomaly (.git exists but its origin URL points at a
-              # different repo) is treated as operator intent we shouldn't
-              # second-guess: fail loud so manual recovery is forced.
+              # A .git whose origin names a DIFFERENT repository is still
+              # refused -- fetch+reset there would overwrite someone else's tree.
+              # "Different" is decided by repository identity rather than by the
+              # text of the URL (see same_repo_as_expected above), and a refusal
+              # skips this site instead of ending the run, so the sites after it
+              # still get the update. Dixlase/dixlase-core#519.
               # ------------------------------------------------------------------
               if [ -d "$DEST/.git" ]; then
                 ACTUAL_URL=$(cd "$DEST" && git config --get remote.origin.url || echo "")
+                RECORD_CANONICAL_URL=""
                 if [ "$ACTUAL_URL" != "$EXPECTED_URL" ]; then
-                  echo "ERROR: $DEST/.git origin URL does not match this plugin." >&2
-                  echo "       Expected: $EXPECTED_URL" >&2
-                  echo "       Actual:   $ACTUAL_URL" >&2
-                  echo "       Refusing to fetch+reset against an unrelated repo." >&2
-                  echo "       Manual recovery (one-time):" >&2
-                  echo "         sudo mv $DEST ${DEST}.stale.\$(date +%Y%m%d-%H%M%S)" >&2
-                  echo "         git clone --branch main $EXPECTED_URL $DEST" >&2
-                  exit 1
+                  if same_repo_as_expected "$ACTUAL_URL"; then
+                    echo "  origin names this repository another way; recording the canonical URL."
+                    echo "    was:     $ACTUAL_URL"
+                    echo "    becomes: $EXPECTED_URL"
+                    RECORD_CANONICAL_URL=1
+                  else
+                    echo "ERROR: $DEST/.git origin names a different repository." >&2
+                    echo "       Expected: $EXPECTED_URL" >&2
+                    echo "       Actual:   $ACTUAL_URL" >&2
+                    echo "       Refusing to fetch+reset against an unrelated repo." >&2
+                    echo "       If this checkout IS this plugin, point it at the right" >&2
+                    echo "       remote and re-run the deploy -- nothing has to move:" >&2
+                    echo "         git -C $DEST remote set-url origin $EXPECTED_URL" >&2
+                    echo "       Only if it is not, park it OUTSIDE plugins/ before" >&2
+                    echo "       re-cloning. A copy left in plugins/ is registered as a" >&2
+                    echo "       second extension, and removing it later takes the whole" >&2
+                    echo "       site down, not just this plugin:" >&2
+                    echo "         sudo mv $DEST $BACKUP_ROOT/$PLUGIN_DIR.stale.\$(date +%Y%m%d-%H%M%S)" >&2
+                    echo "         git clone --branch main $EXPECTED_URL $DEST" >&2
+                    FAILED_SITES="$FAILED_SITES $SITE"
+                    continue
+                  fi
                 fi
 
                 fix_owner "$CONTAINER_DEST"
+                if [ -n "$RECORD_CANONICAL_URL" ]; then
+                  git -C "$DEST" remote set-url origin "$EXPECTED_URL"
+                fi
                 cd "$DEST"
                 git fetch origin
                 git reset --hard origin/main
@@ -295,5 +344,14 @@ jobs:
               # OPcache revalidation or a PHP-FPM reload.
               docker exec $RUN_AS "$PHP_CONTAINER" php $APP_ROOT/artisan optimize:clear
             done
+
+            # One site's bad checkout must not withhold the update from the
+            # sites after it, so the loop records the refusal and carries on.
+            # The job still fails, after every other site has been deployed.
+            if [ -n "$FAILED_SITES" ]; then
+              echo "ERROR: refused to deploy to:$FAILED_SITES" >&2
+              echo "       Every site not listed here was deployed." >&2
+              exit 1
+            fi
 
             echo "=== Plugin deploy complete ==="
