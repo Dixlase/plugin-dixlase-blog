@@ -294,6 +294,31 @@ class BlogPostLifecycleTest extends TestCase
         $this->assertSame(2, DB::table('plg_dixlase_blog_post_tag')->count());
     }
 
+    /**
+     * An empty tag or category field can arrive as null rather than '' (the
+     * framework turns empty input into null); it is skipped, not refused.
+     */
+    public function test_empty_tag_and_category_fields_sent_as_null_are_skipped(): void
+    {
+        $category = BlogCategory::create(['label' => 'News', 'slug' => 'news', 'display_order' => 10]);
+
+        $this->assertRedirectsWithoutErrors($this->post(route('dixlase-blog::admin.blog.store'), $this->postForm([
+            'title' => 'One',
+            'tags' => ['Release', null],
+            'categories' => [$category->id, null],
+        ])));
+        $post = BlogPost::query()->firstOrFail();
+
+        $this->assertRedirectsWithoutErrors($this->put(route('dixlase-blog::admin.blog.update', ['post' => $post->id]), $this->postForm([
+            'title' => 'One',
+            'tags' => [null, 'Release', 'Notes'],
+            'categories' => [null, $category->id],
+        ])));
+
+        $this->assertSame(['Notes', 'Release'], $post->tags()->orderBy('name')->pluck('name')->all());
+        $this->assertSame([$category->id], $post->categories()->pluck('plg_dixlase_blog_categories.id')->all());
+    }
+
     public function test_categories_with_the_same_label_get_numbered_slugs(): void
     {
         foreach (range(1, 2) as $ignored) {
