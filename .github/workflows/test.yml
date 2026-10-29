@@ -198,7 +198,17 @@ jobs:
           # The health score reads the stored audit, so audit first.
           php artisan dls:plugin:audit DixlaseBlog --no-ansi
           php artisan dls:plugin:lint DixlaseBlog --no-ansi | tee lint.txt
-          findings=$(grep -E '^ +(❌|⚠️|ℹ️)' lint.txt | grep -v 'signature_unsigned' || true)
+          # The plugin is signed once, on main, right before the tag, so on
+          # next and on pull requests the manifest is out of date after the
+          # first merge: an expected state, not a defect of the change. Only
+          # a push to main, which only a release makes, still refuses it;
+          # release.yml checks the manifest against the tag as well.
+          # Never re-sign to make this job green.
+          ignore='signature_unsigned|signature_invalid'
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            ignore='signature_unsigned'
+          fi
+          findings=$(grep -E '^ +(❌|⚠️|ℹ️)' lint.txt | grep -vE "$ignore" || true)
           if [ -n "$findings" ]; then
             echo "Lint findings:"
             echo "$findings"
