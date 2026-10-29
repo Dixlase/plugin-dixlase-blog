@@ -66,11 +66,11 @@ class BlogScheduledPublishTest extends TestCase
 
     public function test_only_due_scheduled_posts_are_published(): void
     {
-        $due = $this->post('due', ContentStatus::SCHEDULED, now()->subMinute());
-        $later = $this->post('later', ContentStatus::SCHEDULED, now()->addHour());
-        $undated = $this->post('undated', ContentStatus::SCHEDULED, null);
-        $draft = $this->post('draft', ContentStatus::DRAFT, now()->subDay());
-        $trashed = $this->post('trashed', ContentStatus::SCHEDULED, now()->subDay());
+        $due = $this->blogPost('due', ContentStatus::SCHEDULED, now()->subMinute());
+        $later = $this->blogPost('later', ContentStatus::SCHEDULED, now()->addHour());
+        $undated = $this->blogPost('undated', ContentStatus::SCHEDULED, null);
+        $draft = $this->blogPost('draft', ContentStatus::DRAFT, now()->subDay());
+        $trashed = $this->blogPost('trashed', ContentStatus::SCHEDULED, now()->subDay());
         $trashed->delete();
 
         $this->artisan('dls:blog:publish-scheduled')
@@ -86,7 +86,7 @@ class BlogScheduledPublishTest extends TestCase
 
     public function test_publishing_is_not_an_edit(): void
     {
-        $due = $this->post('due', ContentStatus::SCHEDULED, now()->subMinute());
+        $due = $this->blogPost('due', ContentStatus::SCHEDULED, now()->subMinute());
         $due->forceFill(['updated_at' => now()->subDays(3)])->saveQuietly();
         $updatedAt = $due->fresh()->updated_at->toDateTimeString();
         $revisions = BlogPostRevision::query()->count();
@@ -108,7 +108,7 @@ class BlogScheduledPublishTest extends TestCase
         $this->assertSame('* * * * *', $event->expression);
     }
 
-    private function post(string $slug, ContentStatus $status, mixed $publishedAt): BlogPost
+    private function blogPost(string $slug, ContentStatus $status, mixed $publishedAt): BlogPost
     {
         return BlogPost::create([
             'title' => ucfirst($slug),
