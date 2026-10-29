@@ -9,7 +9,7 @@ A blog for Dixlase: posts with categories and tags, revisions and a trash; comme
 ### Writing
 
 - **Posts** — Title, slug, excerpt, body and featured image (picked from the core media library). The editor is the core content editor, with a live preview; the HTML editor is for admins only.
-- **Publish workflow** — Draft / Published / Scheduled, with an optional end date (`closed_at`) after which the post is hidden. A post can be previewed in any status from the admin.
+- **Publish workflow** — Draft / Published / Scheduled (a scheduled post turns published once its time passes, through `dls:blog:publish-scheduled`, which runs every minute), with an optional end date (`closed_at`) after which the post is hidden. A post can be previewed in any status from the admin.
 - **Pinned posts** — Pinned posts come first in the list.
 - **Categories** — Up to three levels. Reorder them by dragging, or with the buttons on each row (up, down, into the category above, up a level), which also work from the keyboard. A post can belong to several categories.
 - **Tags** — Entered as free text on the post screen and created on save.

@@ -134,6 +134,26 @@ class BlogPostService
     }
 
     /**
+     * Mark every scheduled post whose publish datetime has passed as
+     * published, and return how many changed.
+     *
+     * The public pages already show such a post (scopeCurrentlyVisible
+     * accepts both statuses), so this only brings the stored status into
+     * line for the admin. It is not an edit: no revision is recorded and
+     * updated_at is left alone, hence the base query. Trashed posts stay
+     * out of it through the soft-delete scope.
+     */
+    public function publishDueScheduledPosts(): int
+    {
+        return BlogPost::query()
+            ->where('status', ContentStatus::SCHEDULED->value)
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->toBase()
+            ->update(['status' => ContentStatus::PUBLISHED->value]);
+    }
+
+    /**
      * Restore a post from a revision snapshot. Mirrors RevisionService::restore()
      * but extends it to re-sync the category_ids / tag_ids stored alongside the
      * column snapshot.
