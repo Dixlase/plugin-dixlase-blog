@@ -106,9 +106,13 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
         // [blog]: the latest posts in other content, such as the front page.
         PluginHelper::registerShortcode('blog', BlogShortcode::class);
 
-        // Commenters' IP addresses are kept only for the set period.
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {
+            // Commenters' IP addresses are kept only for the set period.
             $schedule->command('dls:blog:prune-comment-ips')->daily();
+            // Scheduled posts that are due read as published in the admin.
+            // Only the stored status: the public pages show a due post
+            // whether or not this has run.
+            $schedule->command('dls:blog:publish-scheduled')->everyMinute()->withoutOverlapping();
         });
 
         // The sidebar is built where the layout is rendered, so a theme or a
