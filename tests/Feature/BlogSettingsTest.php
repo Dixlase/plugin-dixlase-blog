@@ -268,6 +268,29 @@ class BlogSettingsTest extends TestCase
             ->assertSee('Card Author');
     }
 
+    public function test_the_cards_can_be_laid_out_in_one_column(): void
+    {
+        $this->bootWithoutSidebar();
+        $this->postWithEverything();
+        $this->assertSame('multi', app(BlogSettings::class)->cardColumns());
+
+        $this->get('/blog')->assertOk()
+            ->assertSee('<div class="dixlase-blog-list">', false);
+
+        $this->put(route('dixlase-blog::admin.blog.settings.update'), ['screen' => 'listing', 'card_columns' => 'single'])
+            ->assertSessionHasNoErrors();
+        app()->forgetInstance(BlogSettings::class);
+
+        // The top page and the archives alike.
+        $this->get('/blog')->assertOk()
+            ->assertSee('<div class="dixlase-blog-list dixlase-blog-list--single">', false);
+        $this->get('/blog/tag/cardtag')->assertOk()
+            ->assertSee('<div class="dixlase-blog-list dixlase-blog-list--single">', false);
+
+        $this->put(route('dixlase-blog::admin.blog.settings.update'), ['card_columns' => 'three'])
+            ->assertSessionHasErrors('card_columns');
+    }
+
     private function bootWithoutSidebar(): void
     {
         (new DixlaseBlogServiceProvider($this->app))->boot();
