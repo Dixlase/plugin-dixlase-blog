@@ -61,31 +61,7 @@ return [
                 'index' => ['heading' => 'Commenters\' personal data'],
             ],
         ],
-        // The Tags screen.
-    'tags' => [
-        'intro' => 'Tags are also created from the post form. Renaming a tag changes it on every post that has it.',
-        'create_name' => 'New tag',
-        'create_placeholder' => 'Tag name',
-        'create_slug' => 'Slug (optional)',
-        'create_submit' => 'Add',
-        'name' => 'Name',
-        'slug' => 'Slug',
-        'lang' => 'Language',
-        'posts' => 'Posts',
-        'actions' => 'Actions',
-        'posts_count' => ':count post|:count posts',
-        'empty' => 'No tags yet.',
-        'view' => 'Open the page of :name',
-        'edit_action' => 'Edit :name',
-        'edit_title' => 'Edit the tag',
-        'edit_slug_help' => 'The tag page\'s URL. Changing it breaks links to the old one.',
-        'edit_confirm' => 'Save',
-        'delete_action' => 'Delete :name',
-        'delete_title' => 'Delete the tag?',
-        'delete_message' => 'Delete the tag “:name”? It is removed from :count post(s); the posts stay. This cannot be undone.',
-    ],
-
-    'settings' => [
+        'settings' => [
             'edit' => ['heading' => 'Blog Settings'],
             'listing' => ['heading' => 'Listing settings'],
             'sidebar' => ['heading' => 'Sidebar settings'],
@@ -292,6 +268,30 @@ return [
         'pivot_heading' => 'Categories & tags',
         'pivot_added' => 'Added',
         'pivot_removed' => 'Removed',
+    ],
+
+    // The Tags screen.
+    'tags' => [
+        'intro' => 'Tags are also created from the post form. Renaming a tag changes it on every post that has it.',
+        'create_name' => 'New tag',
+        'create_placeholder' => 'Tag name',
+        'create_slug' => 'Slug (optional)',
+        'create_submit' => 'Add',
+        'name' => 'Name',
+        'slug' => 'Slug',
+        'lang' => 'Language',
+        'posts' => 'Posts',
+        'actions' => 'Actions',
+        'posts_count' => ':count post|:count posts',
+        'empty' => 'No tags yet.',
+        'view' => 'Open the page of :name',
+        'edit_action' => 'Edit :name',
+        'edit_title' => 'Edit the tag',
+        'edit_slug_help' => 'The tag page\'s URL. Changing it breaks links to the old one.',
+        'edit_confirm' => 'Save',
+        'delete_action' => 'Delete :name',
+        'delete_title' => 'Delete the tag?',
+        'delete_message' => 'Delete the tag “:name”? It is removed from :count post(s); the posts stay. This cannot be undone.',
     ],
 
     'settings' => [

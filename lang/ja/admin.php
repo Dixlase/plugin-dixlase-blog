@@ -61,31 +61,7 @@ return [
                 'index' => ['heading' => 'コメントした人の個人情報'],
             ],
         ],
-        // The Tags screen.
-    'tags' => [
-        'intro' => 'タグは記事の画面からも作られます。名前を変えると、そのタグが付いたすべての記事で変わります。',
-        'create_name' => '新しいタグ',
-        'create_placeholder' => 'タグの名前',
-        'create_slug' => 'スラッグ（省略可）',
-        'create_submit' => '追加',
-        'name' => '名前',
-        'slug' => 'スラッグ',
-        'lang' => '言語',
-        'posts' => '記事',
-        'actions' => '操作',
-        'posts_count' => ':count 件',
-        'empty' => 'タグはまだありません。',
-        'view' => ':name のページを開く',
-        'edit_action' => ':name を編集',
-        'edit_title' => 'タグを編集',
-        'edit_slug_help' => 'タグのページの URL です。変えると、古い URL へのリンクは開けなくなります。',
-        'edit_confirm' => '保存',
-        'delete_action' => ':name を削除',
-        'delete_title' => 'タグを削除しますか？',
-        'delete_message' => 'タグ「:name」を削除しますか？ :count 件の記事から外れますが、記事は残ります。元に戻せません。',
-    ],
-
-    'settings' => [
+        'settings' => [
             'edit' => ['heading' => 'ブログ設定'],
             'listing' => ['heading' => '一覧の設定'],
             'sidebar' => ['heading' => 'サイドバーの設定'],
@@ -292,6 +268,30 @@ return [
         'pivot_heading' => 'カテゴリとタグ',
         'pivot_added' => '追加',
         'pivot_removed' => '削除',
+    ],
+
+    // The Tags screen.
+    'tags' => [
+        'intro' => 'タグは記事の画面からも作られます。名前を変えると、そのタグが付いたすべての記事で変わります。',
+        'create_name' => '新しいタグ',
+        'create_placeholder' => 'タグの名前',
+        'create_slug' => 'スラッグ（省略可）',
+        'create_submit' => '追加',
+        'name' => '名前',
+        'slug' => 'スラッグ',
+        'lang' => '言語',
+        'posts' => '記事',
+        'actions' => '操作',
+        'posts_count' => ':count 件',
+        'empty' => 'タグはまだありません。',
+        'view' => ':name のページを開く',
+        'edit_action' => ':name を編集',
+        'edit_title' => 'タグを編集',
+        'edit_slug_help' => 'タグのページの URL です。変えると、古い URL へのリンクは開けなくなります。',
+        'edit_confirm' => '保存',
+        'delete_action' => ':name を削除',
+        'delete_title' => 'タグを削除しますか？',
+        'delete_message' => 'タグ「:name」を削除しますか？ :count 件の記事から外れますが、記事は残ります。元に戻せません。',
     ],
 
     'settings' => [
