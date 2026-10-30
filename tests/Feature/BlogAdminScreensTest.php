@@ -373,6 +373,10 @@ class BlogAdminScreensTest extends TestCase
             if (! str_starts_with($name, 'dixlase-blog::admin.') || ! in_array('GET', $route->methods(), true)) {
                 continue;
             }
+            // An old address that only redirects (BlogSettingsTest covers it).
+            if ($name === 'dixlase-blog::admin.blog.settings.edit') {
+                continue;
+            }
 
             $response = $this->get(route($name, $this->parametersFor($route->parameterNames())));
             $opened[] = $name;
@@ -389,6 +393,7 @@ class BlogAdminScreensTest extends TestCase
 
         $this->assertContains('dixlase-blog::admin.blog.index', $opened);
         $this->assertContains('dixlase-blog::admin.blog.revisions.show', $opened);
+        $this->assertContains('dixlase-blog::admin.blog.settings.comments', $opened);
         $this->assertSame([], $failures, implode("\n", $failures));
     }
 
