@@ -121,6 +121,11 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
             $view->with('sidebar', app(BlogSidebar::class)->build(request()));
         });
 
+        // How the card lists are laid out, wherever they are used.
+        View::composer(['dixlase-blog::front.index', 'dixlase-blog::front.archive', 'dixlase-blog::front.shortcode'], function ($view): void {
+            $view->with('cardColumns', app(BlogSettings::class)->cardColumns());
+        });
+
         // What a post card shows beside its title, wherever the card is
         // used (listings, archives, the [blog] shortcode).
         View::composer('dixlase-blog::front._card', function ($view): void {
