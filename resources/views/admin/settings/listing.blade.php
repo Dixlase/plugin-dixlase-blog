@@ -6,7 +6,8 @@ https://exc-d.com
 
 Dixlase Blog is dual-licensed. Same terms as edit.blade.php.
 
-Listing settings: the blog's URL, posts per page and the top page layout.
+Listing settings: the blog's URL, posts per page, the top page layout and
+what the post cards show.
 --}}
 
 @extends('dixlase-blog::admin.settings._screen')
@@ -65,6 +66,22 @@ Listing settings: the blog's URL, posts per page and the top page layout.
             />
             <x-form-help-text :text="__('dixlase-blog::admin.settings.index_layout_help')" />
             <x-form-error name="index_layout" />
+        </div>
+
+        <div>
+            <x-form-label :text="__('dixlase-blog::admin.settings.card_fields_label')" class="mb-2" />
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                @foreach ($cardFields as $field)
+                    <x-form-toggle
+                        :id="'card_field_'.$field['key']"
+                        :name="'card_fields['.$field['key'].']'"
+                        :label="$field['label']"
+                        :checked="(bool) old('card_fields.'.$field['key'], $field['enabled'])"
+                    />
+                @endforeach
+            </div>
+            <x-form-help-text :text="__('dixlase-blog::admin.settings.card_fields_help')" />
+            <x-form-error name="card_fields" />
         </div>
     </div>
 @endsection

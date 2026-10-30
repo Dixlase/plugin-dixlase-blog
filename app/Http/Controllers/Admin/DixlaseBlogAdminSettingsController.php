@@ -80,6 +80,14 @@ class DixlaseBlogAdminSettingsController extends Controller
                 ['value' => 'cards', 'label' => __('dixlase-blog::admin.settings.index_layout_cards'), 'icon' => 'fas fa-table-cells-large'],
                 ['value' => 'full', 'label' => __('dixlase-blog::admin.settings.index_layout_full'), 'icon' => 'fas fa-newspaper'],
             ],
+            'cardFields' => array_map(
+                fn (string $key) => [
+                    'key' => $key,
+                    'label' => __('dixlase-blog::admin.settings.card_field_'.$key),
+                    'enabled' => in_array($key, $this->blogSettings->cardFields(), true),
+                ],
+                BlogSettings::CARD_FIELDS,
+            ),
         ]);
     }
 

@@ -19,7 +19,17 @@ shortcode, inside a section with its own heading).
     $excerpt = $post->localized('excerpt');
     $url = route('dixlase-blog::front.show', ['slug' => $post->slug]);
     $headingTag = ($headingTag ?? 'h2') === 'h3' ? 'h3' : 'h2';
-    $featuredMedia = $post->localizedFeaturedMedia();
+    // What to show beside the title (the listing settings); everything
+    // when the card is rendered without them.
+    $fields = $cardFields ?? \Plugins\DixlaseBlog\App\Support\BlogSettings::CARD_FIELDS;
+    $shows = fn (string $field): bool => in_array($field, $fields, true);
+    $featuredMedia = $shows('featured_image') ? $post->localizedFeaturedMedia() : null;
+    $categories = $shows('categories') ? $post->categories : collect();
+    $tags = $shows('tags') ? $post->tags : collect();
+    $hasMeta = ($shows('date') && $post->published_at)
+        || (($showPinned ?? false) && $post->is_pinned)
+        || ($shows('author') && $post->author)
+        || ($shows('comments') && ($post->published_comments_count ?? 0) > 0);
 @endphp
 
 <article class="dixlase-blog-card">
@@ -32,37 +42,39 @@ shortcode, inside a section with its own heading).
     @endif
 
     <div class="dixlase-blog-card__body">
-        <div class="dixlase-blog-meta">
-            @if ($post->published_at)
-                <time datetime="{{ $post->published_at->toIso8601String() }}">{{ $post->published_at->format('Y-m-d') }}</time>
-            @endif
-            @if (($showPinned ?? false) && $post->is_pinned)
-                <span class="dixlase-blog-card__pinned">{{ __('dixlase-blog::front.post.pinned') }}</span>
-            @endif
-            @if ($post->author)
-                <span class="dixlase-blog-meta__author">{{ $post->author->display_name ?? $post->author->account_name }}</span>
-            @endif
-            @if (($post->published_comments_count ?? 0) > 0)
-                <span class="dixlase-blog-meta__comments">{{ trans_choice('dixlase-blog::front.comments.count', $post->published_comments_count, ['count' => $post->published_comments_count]) }}</span>
-            @endif
-        </div>
+        @if ($hasMeta)
+            <div class="dixlase-blog-meta">
+                @if ($shows('date') && $post->published_at)
+                    <time datetime="{{ $post->published_at->toIso8601String() }}">{{ $post->published_at->format('Y-m-d') }}</time>
+                @endif
+                @if (($showPinned ?? false) && $post->is_pinned)
+                    <span class="dixlase-blog-card__pinned">{{ __('dixlase-blog::front.post.pinned') }}</span>
+                @endif
+                @if ($shows('author') && $post->author)
+                    <span class="dixlase-blog-meta__author">{{ $post->author->display_name ?? $post->author->account_name }}</span>
+                @endif
+                @if ($shows('comments') && ($post->published_comments_count ?? 0) > 0)
+                    <span class="dixlase-blog-meta__comments">{{ trans_choice('dixlase-blog::front.comments.count', $post->published_comments_count, ['count' => $post->published_comments_count]) }}</span>
+                @endif
+            </div>
+        @endif
 
         <{{ $headingTag }} class="dixlase-blog-card__title" lang="{{ $post->localizedLang('title') }}">
             <a href="{{ $url }}">{{ $title }}</a>
         </{{ $headingTag }}>
 
-        @if ($excerpt)
+        @if ($shows('excerpt') && $excerpt)
             <p class="dixlase-blog-card__excerpt" lang="{{ $post->localizedLang('excerpt') }}">{{ $excerpt }}</p>
         @endif
 
-        @if ($post->categories->isNotEmpty() || $post->tags->isNotEmpty())
+        @if ($categories->isNotEmpty() || $tags->isNotEmpty())
             <div class="dixlase-blog-card__taxonomies">
-                @foreach ($post->categories as $category)
+                @foreach ($categories as $category)
                     <a class="dixlase-blog-chip"
                        href="{{ route('dixlase-blog::front.category', ['slug' => $category->slug]) }}"
                        lang="{{ $category->localizedLang('label') }}">{{ $category->localized('label') }}</a>
                 @endforeach
-                @foreach ($post->tags as $tag)
+                @foreach ($tags as $tag)
                     <a class="dixlase-blog-chip dixlase-blog-chip--tag"
                        href="{{ route('dixlase-blog::front.tag', ['slug' => $tag->slug]) }}"
                        lang="{{ $tag->localizedLang('name') }}">#{{ $tag->localized('name') }}</a>

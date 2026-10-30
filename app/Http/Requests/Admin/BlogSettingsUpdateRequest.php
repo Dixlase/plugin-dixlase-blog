@@ -87,6 +87,9 @@ class BlogSettingsUpdateRequest extends FormRequest
             // One switch per service, keyed by service.
             'share_services' => ['sometimes', 'array'],
             'share_services.*' => ['boolean'],
+            // One switch per card field, keyed by field, like the services.
+            'card_fields' => ['sometimes', 'array'],
+            'card_fields.*' => ['boolean'],
             'sidebar_recent_count' => [
                 'sometimes',
                 'required',
@@ -171,6 +174,14 @@ class BlogSettingsUpdateRequest extends FormRequest
             $switches = $data['share_services'];
             $data['share_services'] = array_values(array_filter(
                 BlogSettings::SHARE_SERVICES,
+                fn (string $key) => (bool) ($switches[$key] ?? false),
+            ));
+        }
+
+        if (isset($data['card_fields'])) {
+            $switches = $data['card_fields'];
+            $data['card_fields'] = array_values(array_filter(
+                BlogSettings::CARD_FIELDS,
                 fn (string $key) => (bool) ($switches[$key] ?? false),
             ));
         }
