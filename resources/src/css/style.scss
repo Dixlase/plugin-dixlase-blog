@@ -633,6 +633,31 @@ $bp-2xl: 96rem;
     }
 }
 
+// One column (card_columns = single): a card per row, the featured image
+// on the left at about a third of the width and the text on the right.
+// Below $bp-sm the card stacks as in the grid. A card without an image
+// keeps the full width for its text.
+.dixlase-blog-list.dixlase-blog-list--single,
+.dixlase-blog--with-sidebar .dixlase-blog-list.dixlase-blog-list--single {
+    grid-template-columns: 1fr;
+}
+
+.dixlase-blog-list--single {
+    .dixlase-blog-card {
+        @media (min-width: $bp-sm) {
+            flex-direction: row;
+        }
+    }
+
+    .dixlase-blog-card__media {
+        @media (min-width: $bp-sm) {
+            flex: 0 0 34%;
+            min-height: 9rem;
+            aspect-ratio: auto;
+        }
+    }
+}
+
 // The title link is stretched over the whole card (its ::after covers the
 // card), so a click anywhere opens the post. Wrapping the card in one <a>
 // instead would nest the chip links, which HTML does not allow; the chips

@@ -72,7 +72,7 @@ $archiveLang for the heading. Overridable like index.blade.php.
                 @endif
             </p>
         @else
-            <div class="dixlase-blog-list">
+            <div @class(['dixlase-blog-list', 'dixlase-blog-list--single' => ($cardColumns ?? 'multi') === 'single'])>
                 @foreach ($posts as $post)
                     @include('dixlase-blog::front._card', ['post' => $post])
                 @endforeach

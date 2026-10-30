@@ -91,6 +91,7 @@ class BlogSettingsUpdateRequest extends FormRequest
             'post_fields' => ['sometimes', 'array'],
             'post_fields.*' => ['boolean'],
             'card_excerpt' => ['sometimes', 'required', 'boolean'],
+            'card_columns' => ['sometimes', 'required', Rule::in(BlogSettings::CARD_COLUMNS)],
             'latest_body' => ['sometimes', 'required', Rule::in(BlogSettings::LATEST_BODIES)],
             'sidebar_recent_count' => [
                 'sometimes',
@@ -210,6 +211,7 @@ class BlogSettingsUpdateRequest extends FormRequest
             'posts_per_page' => __('dixlase-blog::admin.settings.posts_per_page_label'),
             'index_layout' => __('dixlase-blog::admin.settings.index_layout_label'),
             'latest_body' => __('dixlase-blog::admin.settings.latest_body_label'),
+            'card_columns' => __('dixlase-blog::admin.settings.card_columns_label'),
             'route_slug' => __('dixlase-blog::admin.settings.route_slug_label'),
             'sidebar_position' => __('dixlase-blog::admin.settings.sidebar_position_label'),
             'sidebar_recent_count' => __('dixlase-blog::admin.settings.sidebar_recent_count_label'),
