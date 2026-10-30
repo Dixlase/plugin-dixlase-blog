@@ -8,7 +8,8 @@ Dixlase Blog is dual-licensed. Same terms as edit.blade.php.
 
 The Tags screen, modelled on the media library's: every tag with its
 slug, language and number of posts, a form to add one, and per row a
-modal to rename it and one to delete it. The modals are core's
+modal to rename it and one to delete it. The language can be chosen
+only while the site serves several. The modals are core's
 <x-ui-modal>, opened with openModal(); each submits its row's form.
 --}}
 
@@ -51,6 +52,13 @@ modal to rename it and one to delete it. The modals are core's
                     class="font-mono"
                 />
             </div>
+            {{-- Only while the site serves several languages. --}}
+            @if ($multilingualEnabled)
+                <div class="sm:w-48">
+                    <x-form-label for="new-tag-lang" :text="__('dixlase-blog::admin.tags.lang')" />
+                    <x-form-select id="new-tag-lang" name="lang" :options="$languageOptions" :value="old('_form') === 'create' ? old('lang', $newTagLang) : $newTagLang" />
+                </div>
+            @endif
             <x-form-button type="submit" variant="primary" icon="fas fa-plus" :label="__('dixlase-blog::admin.tags.create_submit')" />
         </form>
     </section>
@@ -83,7 +91,8 @@ modal to rename it and one to delete it. The modals are core's
                                    class="break-all hover:underline">{{ $tag->name }}</a>
                             </td>
                             <td data-label="{{ __('dixlase-blog::admin.tags.slug') }}" class="font-mono break-all">{{ $tag->slug }}</td>
-                            <td data-label="{{ __('dixlase-blog::admin.tags.lang') }}">{{ $tag->lang }}</td>
+                            {{-- A tag saved without a language is in the site's. --}}
+                            <td data-label="{{ __('dixlase-blog::admin.tags.lang') }}">{{ $languageOptions[$tag->sourceLocale()] ?? $tag->sourceLocale() }}</td>
                             <td data-label="{{ __('dixlase-blog::admin.tags.posts') }}">{{ trans_choice('dixlase-blog::admin.tags.posts_count', $tag->posts_count, ['count' => $tag->posts_count]) }}</td>
                             <td data-label="{{ __('dixlase-blog::admin.tags.actions') }}">
                                 <div class="flex items-center justify-end gap-1">
@@ -108,46 +117,57 @@ modal to rename it and one to delete it. The modals are core's
                                     />
                                 </div>
 
-                                <form id="edit-tag-{{ $tag->id }}" method="POST" action="{{ route('dixlase-blog::admin.blog.tags.update', ['tag' => $tag->id]) }}" class="hidden">
+                                {{-- The modal sits inside its form, so the fields belong to it. --}}
+                                <form id="edit-tag-{{ $tag->id }}" method="POST" action="{{ route('dixlase-blog::admin.blog.tags.update', ['tag' => $tag->id]) }}">
                                     @csrf
                                     @method('PUT')
                                     <input type="hidden" name="_form" value="edit-{{ $tag->id }}">
+                                    <x-ui-modal
+                                        :id="'edit-tag-modal-'.$tag->id"
+                                        :title="__('dixlase-blog::admin.tags.edit_title')"
+                                        message=""
+                                        :confirm_label="__('dixlase-blog::admin.tags.edit_confirm')"
+                                        :cancel_label="__('common.cancel')"
+                                        icon_type="info"
+                                        :form="'edit-tag-'.$tag->id"
+                                    >
+                                        <div class="space-y-3 text-left">
+                                            <div>
+                                                <x-form-label :for="'edit-tag-name-'.$tag->id" :text="__('dixlase-blog::admin.tags.name')" :required="true" />
+                                                <x-form-text
+                                                    :id="'edit-tag-name-'.$tag->id"
+                                                    name="name"
+                                                    :value="old('_form') === 'edit-'.$tag->id ? old('name') : $tag->name"
+                                                    :maxlength="\Plugins\DixlaseBlog\App\Models\BlogTag::NAME_MAX"
+                                                    :required="true"
+                                                />
+                                            </div>
+                                            <div>
+                                                <x-form-label :for="'edit-tag-slug-'.$tag->id" :text="__('dixlase-blog::admin.tags.slug')" />
+                                                <x-form-text
+                                                    :id="'edit-tag-slug-'.$tag->id"
+                                                    name="slug"
+                                                    :value="old('_form') === 'edit-'.$tag->id ? old('slug') : $tag->slug"
+                                                    :maxlength="\Plugins\DixlaseBlog\App\Models\BlogTag::NAME_MAX"
+                                                    class="font-mono"
+                                                />
+                                                <x-form-help-text :text="__('dixlase-blog::admin.tags.edit_slug_help')" />
+                                            </div>
+                                            @if ($multilingualEnabled)
+                                                <div>
+                                                    <x-form-label :for="'edit-tag-lang-'.$tag->id" :text="__('dixlase-blog::admin.tags.lang')" />
+                                                    <x-form-select
+                                                        :id="'edit-tag-lang-'.$tag->id"
+                                                        name="lang"
+                                                            :options="$languageOptions"
+                                                        :value="old('_form') === 'edit-'.$tag->id ? old('lang') : $tag->sourceLocale()"
+                                                    />
+                                                    <x-form-help-text :text="__('dixlase-blog::admin.tags.edit_lang_help')" />
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </x-ui-modal>
                                 </form>
-                                <x-ui-modal
-                                    :id="'edit-tag-modal-'.$tag->id"
-                                    :title="__('dixlase-blog::admin.tags.edit_title')"
-                                    message=""
-                                    :confirm_label="__('dixlase-blog::admin.tags.edit_confirm')"
-                                    :cancel_label="__('common.cancel')"
-                                    icon_type="info"
-                                    :form="'edit-tag-'.$tag->id"
-                                >
-                                    <div class="space-y-3 text-left">
-                                        <div>
-                                            <x-form-label :for="'edit-tag-name-'.$tag->id" :text="__('dixlase-blog::admin.tags.name')" :required="true" />
-                                            <x-form-text
-                                                :id="'edit-tag-name-'.$tag->id"
-                                                name="name"
-                                                :form="'edit-tag-'.$tag->id"
-                                                :value="old('_form') === 'edit-'.$tag->id ? old('name') : $tag->name"
-                                                :maxlength="\Plugins\DixlaseBlog\App\Models\BlogTag::NAME_MAX"
-                                                :required="true"
-                                            />
-                                        </div>
-                                        <div>
-                                            <x-form-label :for="'edit-tag-slug-'.$tag->id" :text="__('dixlase-blog::admin.tags.slug')" />
-                                            <x-form-text
-                                                :id="'edit-tag-slug-'.$tag->id"
-                                                name="slug"
-                                                :form="'edit-tag-'.$tag->id"
-                                                :value="old('_form') === 'edit-'.$tag->id ? old('slug') : $tag->slug"
-                                                :maxlength="\Plugins\DixlaseBlog\App\Models\BlogTag::NAME_MAX"
-                                                class="font-mono"
-                                            />
-                                            <x-form-help-text :text="__('dixlase-blog::admin.tags.edit_slug_help')" />
-                                        </div>
-                                    </div>
-                                </x-ui-modal>
 
                                 <form id="delete-tag-{{ $tag->id }}" method="POST" action="{{ route('dixlase-blog::admin.blog.tags.destroy', ['tag' => $tag->id]) }}" class="hidden">
                                     @csrf

@@ -32,6 +32,7 @@
 
 namespace Plugins\DixlaseBlog\App\Http\Requests\Admin;
 
+use App\Helpers\LocaleHelper;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\NullsBlankInput;
@@ -64,6 +65,8 @@ class BlogTagRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:'.BlogTag::NAME_MAX, $unique('name')],
             'slug' => ['nullable', 'string', 'max:'.BlogTag::NAME_MAX, 'regex:'.BlogPost::SLUG_PATTERN, $unique('slug')],
+            // Used only while the site serves several languages.
+            'lang' => ['nullable', 'string', Rule::in(LocaleHelper::supportedLocales())],
         ];
     }
 
@@ -75,12 +78,13 @@ class BlogTagRequest extends FormRequest
         return [
             'name' => __('dixlase-blog::admin.tags.name'),
             'slug' => __('dixlase-blog::admin.tags.slug'),
+            'lang' => __('dixlase-blog::admin.tags.lang'),
         ];
     }
 
     protected function prepareForValidation(): void
     {
         $this->merge(['name' => trim((string) $this->input('name'))]);
-        $this->nullBlankInput(['slug']);
+        $this->nullBlankInput(['slug', 'lang']);
     }
 }

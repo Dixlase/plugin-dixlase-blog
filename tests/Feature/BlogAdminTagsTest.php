@@ -35,9 +35,11 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\Tests\Feature;
 
+use App\Contracts\I18n\LocaleUrlRouting;
 use App\Enums\ContentEditorType;
 use App\Enums\ContentStatus;
 use App\Enums\MemberRole;
+use App\Helpers\LocaleHelper;
 use App\Http\Middleware\CheckInstallationReady;
 use App\Models\Member;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -159,6 +161,51 @@ class BlogAdminTagsTest extends TestCase
         $this->post(route('dixlase-blog::admin.blog.revisions.restore', ['post' => $post->id, 'revisionId' => $revision->id]))
             ->assertSessionHasNoErrors();
         $this->assertSame(['Notes'], $post->fresh()->tags->pluck('name')->all());
+    }
+
+    public function test_a_single_language_site_keeps_tags_in_its_language(): void
+    {
+        $site = LocaleHelper::getSiteDefaultLocale();
+        $other = $site === 'ja' ? 'en' : 'ja';
+        $sample = BlogTag::create(['name' => 'Welcome', 'slug' => 'welcome']);
+        $kept = BlogTag::create(['name' => 'Kept', 'slug' => 'kept', 'lang' => $other]);
+
+        $this->get(route('dixlase-blog::admin.blog.tags.index'))->assertOk()
+            ->assertDontSee('name="lang"', false);
+
+        // A language sent anyway is not used.
+        $this->post(route('dixlase-blog::admin.blog.tags.store'), ['name' => 'New', 'lang' => $other])->assertSessionHasNoErrors();
+        $this->assertSame($site, BlogTag::query()->where('name', 'New')->value('lang'));
+
+        // A tag saved without one takes the site's; one that has one keeps it.
+        $this->put(route('dixlase-blog::admin.blog.tags.update', ['tag' => $sample->id]), ['name' => 'Welcome', 'slug' => 'welcome'])->assertSessionHasNoErrors();
+        $this->put(route('dixlase-blog::admin.blog.tags.update', ['tag' => $kept->id]), ['name' => 'Kept', 'slug' => 'kept', 'lang' => $site])->assertSessionHasNoErrors();
+        $this->assertSame($site, $sample->fresh()->lang);
+        $this->assertSame($other, $kept->fresh()->lang);
+    }
+
+    public function test_a_multilingual_site_chooses_the_language(): void
+    {
+        $this->app->instance(LocaleUrlRouting::class, new class implements LocaleUrlRouting
+        {
+            public function isEnabled(): bool
+            {
+                return true;
+            }
+        });
+        $tag = BlogTag::create(['name' => 'Release', 'slug' => 'release', 'lang' => 'en']);
+
+        $this->get(route('dixlase-blog::admin.blog.tags.index'))->assertOk()
+            ->assertSee('id="new-tag-lang"', false)
+            ->assertSee('id="edit-tag-lang-'.$tag->id.'"', false);
+
+        $this->post(route('dixlase-blog::admin.blog.tags.store'), ['name' => 'リリース', 'lang' => 'ja'])->assertSessionHasNoErrors();
+        $this->assertSame('ja', BlogTag::query()->where('name', 'リリース')->value('lang'));
+
+        $this->put(route('dixlase-blog::admin.blog.tags.update', ['tag' => $tag->id]), ['name' => 'Release', 'slug' => 'release', 'lang' => 'ja'])->assertSessionHasNoErrors();
+        $this->assertSame('ja', $tag->fresh()->lang);
+
+        $this->post(route('dixlase-blog::admin.blog.tags.store'), ['name' => 'Bad', 'lang' => 'xx'])->assertSessionHasErrors('lang');
     }
 
     private function postWith(BlogTag $tag): BlogPost

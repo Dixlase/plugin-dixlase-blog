@@ -288,6 +288,7 @@ return [
         'edit_action' => ':name を編集',
         'edit_title' => 'タグを編集',
         'edit_slug_help' => 'タグのページの URL です。変えると、古い URL へのリンクは開けなくなります。',
+        'edit_lang_help' => '名前を書いた言語です。ほかの言語は翻訳で足します。',
         'edit_confirm' => '保存',
         'delete_action' => ':name を削除',
         'delete_title' => 'タグを削除しますか？',

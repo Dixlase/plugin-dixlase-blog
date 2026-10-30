@@ -288,6 +288,7 @@ return [
         'edit_action' => 'Edit :name',
         'edit_title' => 'Edit the tag',
         'edit_slug_help' => 'The tag page\'s URL. Changing it breaks links to the old one.',
+        'edit_lang_help' => 'The language the name is written in. Other languages are added as translations.',
         'edit_confirm' => 'Save',
         'delete_action' => 'Delete :name',
         'delete_title' => 'Delete the tag?',

@@ -59,8 +59,15 @@ class DixlaseBlogAdminTagsController extends Controller
 
     public function index(): View
     {
+        $multilingual = LocaleHelper::localeUrlRoutingEnabled();
+
         return view('dixlase-blog::admin.tags.index', array_merge($this->viewParams, [
             'tags' => BlogTag::query()->withCount('posts')->orderBy('name')->get(),
+            // The language is chosen only while the site serves several;
+            // a single-language site's tags are in its language.
+            'multilingualEnabled' => $multilingual,
+            'languageOptions' => LocaleHelper::supportedLocaleOptions(),
+            'newTagLang' => (string) old('lang', $this->writersLocale()),
         ]));
     }
 
@@ -71,8 +78,7 @@ class DixlaseBlogAdminTagsController extends Controller
         BlogTag::create([
             'name' => $data['name'],
             'slug' => BlogTag::freeSlug($data['slug'] ?? null, $data['name']),
-            // In the site's language, like a category's name.
-            'lang' => LocaleHelper::getSiteDefaultLocale(),
+            'lang' => $this->chosenLang($data['lang'] ?? null) ?? LocaleHelper::getSiteDefaultLocale(),
         ]);
 
         return redirect()
@@ -92,11 +98,33 @@ class DixlaseBlogAdminTagsController extends Controller
         $tag->update([
             'name' => $data['name'],
             'slug' => BlogTag::freeSlug($data['slug'] ?? null, $data['name'], $tag->id),
+            // Kept as it is unless chosen; a tag saved without one (the
+            // sample tag) takes the site's language.
+            'lang' => $this->chosenLang($data['lang'] ?? null) ?? $tag->lang ?? LocaleHelper::getSiteDefaultLocale(),
         ]);
 
         return redirect()
             ->route('dixlase-blog::admin.blog.tags.index')
             ->with('success', __('dixlase-blog::admin.flash.tag_updated'));
+    }
+
+    /**
+     * The submitted language, honoured only while the site serves several.
+     */
+    private function chosenLang(?string $lang): ?string
+    {
+        return LocaleHelper::localeUrlRoutingEnabled() && filled($lang) ? $lang : null;
+    }
+
+    /**
+     * Where a new tag's language starts: the admin's own language when the
+     * site serves it, else the site's.
+     */
+    private function writersLocale(): string
+    {
+        $locale = app()->getLocale();
+
+        return in_array($locale, LocaleHelper::supportedLocales(), true) ? $locale : LocaleHelper::getSiteDefaultLocale();
     }
 
     /**
