@@ -101,6 +101,17 @@ what the cards and the latest posts show.
         </div>
 
         <div>
+            <x-form-toggle
+                id="card_excerpt"
+                name="card_excerpt"
+                :label="__('dixlase-blog::admin.settings.card_excerpt_label')"
+                :checked="(bool) old('card_excerpt', $blogSettings['card_excerpt'])"
+            />
+            <x-form-help-text :text="__('dixlase-blog::admin.settings.card_excerpt_help')" />
+            <x-form-error name="card_excerpt" />
+        </div>
+
+        <div>
             <x-form-label :text="__('dixlase-blog::admin.settings.card_columns_label')" :required="true" class="mb-2" />
             <x-form-radio-card-group
                 name="card_columns"
@@ -110,17 +121,6 @@ what the cards and the latest posts show.
             />
             <x-form-help-text :text="__('dixlase-blog::admin.settings.card_columns_help')" />
             <x-form-error name="card_columns" />
-        </div>
-
-        <div>
-            <x-form-toggle
-                id="card_excerpt"
-                name="card_excerpt"
-                :label="__('dixlase-blog::admin.settings.card_excerpt_label')"
-                :checked="(bool) old('card_excerpt', $blogSettings['card_excerpt'])"
-            />
-            <x-form-help-text :text="__('dixlase-blog::admin.settings.card_excerpt_help')" />
-            <x-form-error name="card_excerpt" />
         </div>
     </div>
 @endsection
