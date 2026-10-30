@@ -291,7 +291,7 @@ return [
         'post_field_tags' => 'Tags',
         'post_field_comments' => 'Comment count',
         'card_excerpt_label' => 'Excerpt',
-        'card_excerpt_help' => 'Shows the excerpt on the cards. Cards never show the full text. They are also used by the archives and the [blog] shortcode, whatever the top page shows.',
+        'card_excerpt_help' => 'Shows the excerpt on the cards. Cards never show the full text. It applies to the cards of the archives and the [blog] shortcode as well.',
         'card_columns_label' => 'Card layout',
         'card_columns_multi' => 'Several columns',
         'card_columns_single' => 'One column',

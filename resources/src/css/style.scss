@@ -649,11 +649,21 @@ $bp-2xl: 96rem;
         }
     }
 
+    // The box keeps its size beside the text; the whole image shows
+    // inside it, never cropped, on the media's own background.
     .dixlase-blog-card__media {
         @media (min-width: $bp-sm) {
+            display: flex;
             flex: 0 0 34%;
+            align-items: center;
             min-height: 9rem;
             aspect-ratio: auto;
+
+            img {
+                height: auto;
+                max-height: 100%;
+                object-fit: contain;
+            }
         }
     }
 }
