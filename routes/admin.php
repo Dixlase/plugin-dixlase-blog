@@ -138,7 +138,12 @@ Route::name('dixlase-blog::admin.')
 
         // ===== Settings =====
         // Before /blog/{post} so "settings" is not bound as a post id.
+        // One screen per area; the bare address opens the first.
         Route::get('/blog/settings', [DixlaseBlogAdminSettingsController::class, 'edit'])->name('blog.settings.edit');
+        Route::get('/blog/settings/listing', [DixlaseBlogAdminSettingsController::class, 'listing'])->name('blog.settings.listing');
+        Route::get('/blog/settings/sidebar', [DixlaseBlogAdminSettingsController::class, 'sidebar'])->name('blog.settings.sidebar');
+        Route::get('/blog/settings/share', [DixlaseBlogAdminSettingsController::class, 'share'])->name('blog.settings.share');
+        Route::get('/blog/settings/comments', [DixlaseBlogAdminSettingsController::class, 'comments'])->name('blog.settings.comments');
         Route::put('/blog/settings', [DixlaseBlogAdminSettingsController::class, 'update'])->name('blog.settings.update');
 
         // ===== Posts: item-level routes =====

@@ -120,10 +120,62 @@ class BlogSettingsTest extends TestCase
     {
         $this->put(route('dixlase-blog::admin.blog.settings.update'), ['posts_per_page' => '5'])
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('dixlase-blog::admin.blog.settings.edit'));
+            ->assertRedirect(route('dixlase-blog::admin.blog.settings.listing'));
 
         $this->assertSame('5', DB::table('plg_dixlase_blog_settings')->where('name', 'posts_per_page')->value('value'));
         $this->assertSame(5, app(BlogSettings::class)->postsPerPage());
+    }
+
+    public function test_each_screen_shows_only_its_own_fields(): void
+    {
+        $fields = [
+            'listing' => 'posts_per_page',
+            'sidebar' => 'sidebar_recent_count',
+            'share' => 'share_services[x]',
+            'comments' => 'comment_link_limit',
+        ];
+
+        foreach ($fields as $screen => $field) {
+            $response = $this->get(route('dixlase-blog::admin.blog.settings.'.$screen))
+                ->assertOk()
+                ->assertSee('name="screen" value="'.$screen.'"', false)
+                ->assertSee('name="'.$field.'"', false);
+
+            foreach (array_diff_key($fields, [$screen => true]) as $other) {
+                $response->assertDontSee('name="'.$other.'"', false);
+            }
+        }
+    }
+
+    public function test_the_old_address_opens_the_listing_screen(): void
+    {
+        $this->get(route('dixlase-blog::admin.blog.settings.edit'))
+            ->assertRedirect(route('dixlase-blog::admin.blog.settings.listing'));
+    }
+
+    public function test_saving_a_screen_returns_to_it_and_leaves_the_others_alone(): void
+    {
+        app(BlogSettings::class)->save(['posts_per_page' => 7]);
+
+        $this->put(route('dixlase-blog::admin.blog.settings.update'), [
+            'screen' => 'comments',
+            'comment_link_limit' => '4',
+        ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('dixlase-blog::admin.blog.settings.comments'));
+
+        app()->forgetInstance(BlogSettings::class);
+        $this->assertSame('4', DB::table('plg_dixlase_blog_settings')->where('name', 'comment_link_limit')->value('value'));
+        $this->assertSame(7, app(BlogSettings::class)->postsPerPage());
+        $this->assertNull(DB::table('plg_dixlase_blog_settings')->where('name', 'screen')->first());
+    }
+
+    public function test_an_unknown_screen_is_refused(): void
+    {
+        $this->put(route('dixlase-blog::admin.blog.settings.update'), ['screen' => 'theme', 'posts_per_page' => '5'])
+            ->assertSessionHasErrors('screen');
+
+        $this->assertSame(0, DB::table('plg_dixlase_blog_settings')->count());
     }
 
     public function test_posts_per_page_must_be_in_range(): void

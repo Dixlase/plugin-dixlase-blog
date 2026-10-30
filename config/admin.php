@@ -36,7 +36,7 @@ return [
     // AdminPluginsSettingsController::getPluginSettingsUrl() reads this
     // key to decide whether to render the "Settings" button on the
     // installed-plugin card.
-    'settings_route' => 'dixlase-blog::admin.blog.settings.edit',
+    'settings_route' => 'dixlase-blog::admin.blog.settings.listing',
 
     'nav' => [
         'blog' => [
@@ -83,11 +83,38 @@ return [
                     'icon' => 'fas fa-fw fa-trash-can',
                     'can' => 'admin',
                 ],
+                // One screen per area, opened from a group like the
+                // inquiry plugin's settings.
                 'settings' => [
                     'text' => 'dixlase-blog::admin.nav.blog.settings',
-                    'route' => 'dixlase-blog::admin.blog.settings.edit',
                     'icon' => 'fas fa-fw fa-gear',
                     'can' => 'admin',
+                    'children' => [
+                        'listing' => [
+                            'text' => 'dixlase-blog::admin.nav.blog.settings_listing',
+                            'route' => 'dixlase-blog::admin.blog.settings.listing',
+                            'icon' => 'fas fa-fw fa-table-list',
+                            'can' => 'admin',
+                        ],
+                        'sidebar' => [
+                            'text' => 'dixlase-blog::admin.nav.blog.settings_sidebar',
+                            'route' => 'dixlase-blog::admin.blog.settings.sidebar',
+                            'icon' => 'fas fa-fw fa-table-columns',
+                            'can' => 'admin',
+                        ],
+                        'share' => [
+                            'text' => 'dixlase-blog::admin.nav.blog.settings_share',
+                            'route' => 'dixlase-blog::admin.blog.settings.share',
+                            'icon' => 'fas fa-fw fa-share-nodes',
+                            'can' => 'admin',
+                        ],
+                        'comments' => [
+                            'text' => 'dixlase-blog::admin.nav.blog.settings_comments',
+                            'route' => 'dixlase-blog::admin.blog.settings.comments',
+                            'icon' => 'fas fa-fw fa-comment-dots',
+                            'can' => 'admin',
+                        ],
+                    ],
                 ],
             ],
         ],

@@ -134,6 +134,10 @@ return [
                     'view_roles' => MemberRole::ADMIN->value,
                     'children' => [
                         'edit' => $admin,
+                        'listing' => $admin,
+                        'sidebar' => $admin,
+                        'share' => $admin,
+                        'comments' => $admin,
                         'update' => $admin,
                     ],
                 ],
