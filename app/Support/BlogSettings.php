@@ -44,6 +44,12 @@ use Plugins\DixlaseBlog\App\Models\BlogSetting;
  */
 class BlogSettings
 {
+    /**
+     * The settings screens, one per area, in the order of the admin menu.
+     * Each has a route (blog.settings.<screen>) and a view of that name.
+     */
+    public const SCREENS = ['listing', 'sidebar', 'share', 'comments'];
+
     public const POSTS_PER_PAGE_MIN = 1;
 
     public const POSTS_PER_PAGE_MAX = 100;

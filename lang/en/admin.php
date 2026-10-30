@@ -27,6 +27,10 @@ return [
             'categories' => 'Categories',
             'trash' => 'Trash',
             'settings' => 'Blog Settings',
+            'settings_listing' => 'Listing settings',
+            'settings_sidebar' => 'Sidebar settings',
+            'settings_share' => 'Share button settings',
+            'settings_comments' => 'Comment settings',
             'comments' => 'Comments',
         ],
     ],
@@ -55,6 +59,10 @@ return [
         ],
         'settings' => [
             'edit' => ['heading' => 'Blog Settings'],
+            'listing' => ['heading' => 'Listing settings'],
+            'sidebar' => ['heading' => 'Sidebar settings'],
+            'share' => ['heading' => 'Share button settings'],
+            'comments' => ['heading' => 'Comment settings'],
         ],
     ],
 

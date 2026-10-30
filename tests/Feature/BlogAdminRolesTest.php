@@ -60,6 +60,10 @@ class BlogAdminRolesTest extends TestCase
         'dixlase-blog::admin.blog.categories.destroy',
         'dixlase-blog::admin.blog.revisions.protect',
         'dixlase-blog::admin.blog.settings.edit',
+        'dixlase-blog::admin.blog.settings.listing',
+        'dixlase-blog::admin.blog.settings.sidebar',
+        'dixlase-blog::admin.blog.settings.share',
+        'dixlase-blog::admin.blog.settings.comments',
         'dixlase-blog::admin.blog.settings.update',
         'dixlase-blog::admin.blog.comments.forceDelete',
         'dixlase-blog::admin.blog.comments.personalData.index',
@@ -163,7 +167,10 @@ class BlogAdminRolesTest extends TestCase
     public function test_the_settings_menu_is_for_admins_only(): void
     {
         $nav = (require base_path('plugins/DixlaseBlog/config/admin.php'))['nav']['blog'];
-        $this->assertSame('dixlase-blog::admin.blog.settings.edit', $nav['children']['settings']['route']);
+        $this->assertSame(
+            ['dixlase-blog::admin.blog.settings.listing', 'dixlase-blog::admin.blog.settings.sidebar', 'dixlase-blog::admin.blog.settings.share', 'dixlase-blog::admin.blog.settings.comments'],
+            array_values(array_column($nav['children']['settings']['children'], 'route')),
+        );
 
         $this->actingAs($this->member(MemberRole::EDITOR));
         $this->assertFalse(AdminHelper::canViewMenuOrPlugin('DixlaseBlog', 'blog.settings'));

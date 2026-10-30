@@ -55,7 +55,9 @@ class BlogSettingsUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Each section is checked when it is sent; the screen sends all.
+            // Each field is checked when it is sent; each settings screen
+            // sends only its own, so the others keep their stored values.
+            'screen' => ['sometimes', Rule::in(BlogSettings::SCREENS)],
             'route_slug' => [
                 'sometimes',
                 'required',
@@ -163,7 +165,7 @@ class BlogSettingsUpdateRequest extends FormRequest
                 $data['sidebar_widgets'],
             );
         }
-        unset($data['sidebar_widget_enabled']);
+        unset($data['sidebar_widget_enabled'], $data['screen']);
 
         if (isset($data['share_services'])) {
             $switches = $data['share_services'];
@@ -174,6 +176,16 @@ class BlogSettingsUpdateRequest extends FormRequest
         }
 
         return $data;
+    }
+
+    /**
+     * The settings screen the form was sent from, to return to.
+     */
+    public function screen(): ?string
+    {
+        $screen = $this->validated('screen');
+
+        return is_string($screen) ? $screen : null;
     }
 
     /**

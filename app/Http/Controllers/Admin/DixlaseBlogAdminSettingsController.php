@@ -61,10 +61,17 @@ class DixlaseBlogAdminSettingsController extends Controller
         $this->initializeAfterLogin();
     }
 
-    public function edit(): View
+    /**
+     * The address the settings used to live at, kept for old links.
+     */
+    public function edit(): RedirectResponse
     {
-        return view('dixlase-blog::admin.settings.edit', array_merge($this->viewParams, [
-            'blogSettings' => $this->blogSettings->all(),
+        return redirect()->route('dixlase-blog::admin.blog.settings.listing');
+    }
+
+    public function listing(): View
+    {
+        return $this->screen('listing', [
             'siteUrl' => rtrim(url('/'), '/'),
             'routeSlugMax' => BlogSettings::ROUTE_SLUG_MAX,
             'postsPerPageMin' => BlogSettings::POSTS_PER_PAGE_MIN,
@@ -73,12 +80,26 @@ class DixlaseBlogAdminSettingsController extends Controller
                 ['value' => 'cards', 'label' => __('dixlase-blog::admin.settings.index_layout_cards'), 'icon' => 'fas fa-table-cells-large'],
                 ['value' => 'full', 'label' => __('dixlase-blog::admin.settings.index_layout_full'), 'icon' => 'fas fa-newspaper'],
             ],
+        ]);
+    }
+
+    public function sidebar(): View
+    {
+        return $this->screen('sidebar', [
             // Labels resolved here, as admin views take no logic.
             'sidebarWidgets' => array_map(
                 fn (array $widget) => $widget + ['label' => __('dixlase-blog::admin.settings.sidebar_widget_'.$widget['key'])],
                 $this->blogSettings->sidebarWidgets(),
             ),
             'sidebarPositionOptions' => $this->sidebarPositionOptions(),
+            'recentPostsMin' => BlogSettings::RECENT_POSTS_MIN,
+            'recentPostsMax' => BlogSettings::RECENT_POSTS_MAX,
+        ]);
+    }
+
+    public function share(): View
+    {
+        return $this->screen('share', [
             'shareServices' => array_map(
                 fn (string $key) => [
                     'key' => $key,
@@ -87,8 +108,12 @@ class DixlaseBlogAdminSettingsController extends Controller
                 ],
                 BlogSettings::SHARE_SERVICES,
             ),
-            'recentPostsMin' => BlogSettings::RECENT_POSTS_MIN,
-            'recentPostsMax' => BlogSettings::RECENT_POSTS_MAX,
+        ]);
+    }
+
+    public function comments(): View
+    {
+        return $this->screen('comments', [
             'commentModerationOptions' => [
                 ['value' => 'approval', 'label' => __('dixlase-blog::admin.settings.comment_moderation_approval'), 'icon' => 'fas fa-user-check'],
                 ['value' => 'immediate', 'label' => __('dixlase-blog::admin.settings.comment_moderation_immediate'), 'icon' => 'fas fa-bolt'],
@@ -102,7 +127,18 @@ class DixlaseBlogAdminSettingsController extends Controller
             'commentIpRetentionDaysMax' => BlogSettings::COMMENT_IP_RETENTION_DAYS_MAX,
             // A plugin's privacy policy wins over the URL set here.
             'providedPrivacyUrl' => $this->comments->providedPrivacyPolicyUrl(),
-        ]));
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $params
+     */
+    private function screen(string $screen, array $params): View
+    {
+        return view('dixlase-blog::admin.settings.'.$screen, array_merge($this->viewParams, [
+            'blogSettings' => $this->blogSettings->all(),
+            'screen' => $screen,
+        ], $params));
     }
 
     /**
@@ -127,8 +163,10 @@ class DixlaseBlogAdminSettingsController extends Controller
             Artisan::call('route:clear');
         }
 
+        // Back to the screen that was saved; a form without one is the
+        // listing screen's address.
         return redirect()
-            ->route('dixlase-blog::admin.blog.settings.edit')
+            ->route('dixlase-blog::admin.blog.settings.'.($request->screen() ?? 'listing'))
             ->with('success', __('dixlase-blog::admin.flash.settings_saved'));
     }
 }

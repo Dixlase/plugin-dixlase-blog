@@ -27,6 +27,10 @@ return [
             'categories' => 'カテゴリ',
             'trash' => 'ゴミ箱',
             'settings' => 'ブログ設定',
+            'settings_listing' => '一覧設定',
+            'settings_sidebar' => 'サイドバー設定',
+            'settings_share' => '共有ボタン設定',
+            'settings_comments' => 'コメント設定',
             'comments' => 'コメント',
         ],
     ],
@@ -55,6 +59,10 @@ return [
         ],
         'settings' => [
             'edit' => ['heading' => 'ブログ設定'],
+            'listing' => ['heading' => '一覧の設定'],
+            'sidebar' => ['heading' => 'サイドバーの設定'],
+            'share' => ['heading' => '共有ボタンの設定'],
+            'comments' => ['heading' => 'コメントの設定'],
         ],
     ],
 
