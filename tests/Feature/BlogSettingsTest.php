@@ -195,6 +195,8 @@ class BlogSettingsTest extends TestCase
     public function test_the_cards_show_only_the_chosen_fields(): void
     {
         (new DixlaseBlogServiceProvider($this->app))->boot();
+        // Only the cards: the sidebar lists tags and recent posts too.
+        app(BlogSettings::class)->save(['sidebar_enabled' => false]);
         $author = Member::factory()->create(['display_name' => 'Card Author', 'status' => 1]);
         $post = BlogPost::create([
             'title' => 'Card title',
