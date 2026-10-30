@@ -25,6 +25,7 @@ return [
             'index' => 'ブログマスター',
             'create' => '新規作成',
             'categories' => 'カテゴリ',
+            'tags' => 'タグ',
             'trash' => 'ゴミ箱',
             'settings' => 'ブログ設定',
             'settings_listing' => '一覧設定',
@@ -47,6 +48,9 @@ return [
         'categories' => [
             'index' => ['heading' => 'カテゴリ'],
         ],
+        'tags' => [
+            'index' => ['heading' => 'タグ'],
+        ],
         'revisions' => [
             'index' => ['heading' => 'リビジョン履歴'],
             'show' => ['heading' => 'リビジョン差分'],
@@ -57,7 +61,31 @@ return [
                 'index' => ['heading' => 'コメントした人の個人情報'],
             ],
         ],
-        'settings' => [
+        // The Tags screen.
+    'tags' => [
+        'intro' => 'タグは記事の画面からも作られます。名前を変えると、そのタグが付いたすべての記事で変わります。',
+        'create_name' => '新しいタグ',
+        'create_placeholder' => 'タグの名前',
+        'create_slug' => 'スラッグ（省略可）',
+        'create_submit' => '追加',
+        'name' => '名前',
+        'slug' => 'スラッグ',
+        'lang' => '言語',
+        'posts' => '記事',
+        'actions' => '操作',
+        'posts_count' => ':count 件',
+        'empty' => 'タグはまだありません。',
+        'view' => ':name のページを開く',
+        'edit_action' => ':name を編集',
+        'edit_title' => 'タグを編集',
+        'edit_slug_help' => 'タグのページの URL です。変えると、古い URL へのリンクは開けなくなります。',
+        'edit_confirm' => '保存',
+        'delete_action' => ':name を削除',
+        'delete_title' => 'タグを削除しますか？',
+        'delete_message' => 'タグ「:name」を削除しますか？ :count 件の記事から外れますが、記事は残ります。元に戻せません。',
+    ],
+
+    'settings' => [
             'edit' => ['heading' => 'ブログ設定'],
             'listing' => ['heading' => '一覧の設定'],
             'sidebar' => ['heading' => 'サイドバーの設定'],
@@ -362,6 +390,9 @@ return [
         'category_created' => 'カテゴリを作成しました。',
         'category_updated' => 'カテゴリを更新しました。',
         'category_deleted' => 'カテゴリを削除しました。',
+        'tag_created' => 'タグを追加しました。',
+        'tag_updated' => 'タグを更新しました。',
+        'tag_deleted' => 'タグを削除しました。',
         'category_moved_up' => 'カテゴリを 1 つ上の階層へ移しました。',
         'category_has_children' => '子カテゴリが存在するため削除できません。先に子カテゴリを移動または削除してください。',
         'revision_restored' => 'リビジョンを復元しました。',

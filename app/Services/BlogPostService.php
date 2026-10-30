@@ -179,7 +179,9 @@ class BlogPostService
                 $this->syncCategories($post, $snapshot['category_ids']);
             }
             if (array_key_exists('tag_ids', $snapshot) && is_array($snapshot['tag_ids'])) {
-                $post->tags()->sync($snapshot['tag_ids']);
+                // Tags deleted since the revision are skipped, as with
+                // categories: syncing a missing id would break the restore.
+                $post->tags()->sync(BlogTag::query()->whereIn('id', array_map('intval', $snapshot['tag_ids']))->pluck('id')->all());
             }
 
             return $post->fresh(['categories', 'tags']) ?? $post;

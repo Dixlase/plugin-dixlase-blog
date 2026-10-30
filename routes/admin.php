@@ -37,6 +37,7 @@ use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminCommentsContr
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostRevisionsController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminPostsController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminSettingsController;
+use Plugins\DixlaseBlog\App\Http\Controllers\Admin\DixlaseBlogAdminTagsController;
 use Plugins\DixlaseBlog\App\Http\Controllers\Front\DixlaseBlogFrontController;
 
 /*
@@ -106,6 +107,17 @@ Route::name('dixlase-blog::admin.')
                 Route::put('/{category}', [DixlaseBlogAdminCategoriesController::class, 'update'])->name('update');
                 Route::post('/{category}/outdent', [DixlaseBlogAdminCategoriesController::class, 'outdent'])->name('outdent');
                 Route::delete('/{category}', [DixlaseBlogAdminCategoriesController::class, 'destroy'])->name('destroy');
+            });
+
+        // ===== Tags =====
+        // Before /blog/{post} so "tags" is not bound as a post id.
+        Route::prefix('/blog/tags')
+            ->name('blog.tags.')
+            ->group(function () {
+                Route::get('/', [DixlaseBlogAdminTagsController::class, 'index'])->name('index');
+                Route::post('/', [DixlaseBlogAdminTagsController::class, 'store'])->name('store');
+                Route::put('/{tag}', [DixlaseBlogAdminTagsController::class, 'update'])->whereNumber('tag')->name('update');
+                Route::delete('/{tag}', [DixlaseBlogAdminTagsController::class, 'destroy'])->whereNumber('tag')->name('destroy');
             });
 
         // ===== Comments =====
