@@ -47,6 +47,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
+use Plugins\DixlaseBlog\App\Models\BlogTag;
 use Plugins\DixlaseBlog\App\Providers\DixlaseBlogServiceProvider;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 use Plugins\DixlaseBlog\Tests\Support\FakeTranslationResolver;
@@ -129,7 +130,7 @@ class BlogSettingsTest extends TestCase
     public function test_each_screen_shows_only_its_own_fields(): void
     {
         $fields = [
-            'listing' => 'posts_per_page',
+            'listing' => 'card_fields[excerpt]',
             'sidebar' => 'sidebar_recent_count',
             'share' => 'share_services[x]',
             'comments' => 'comment_link_limit',
@@ -176,6 +177,54 @@ class BlogSettingsTest extends TestCase
             ->assertSessionHasErrors('screen');
 
         $this->assertSame(0, DB::table('plg_dixlase_blog_settings')->count());
+    }
+
+    public function test_the_card_fields_are_saved_in_a_fixed_order(): void
+    {
+        $this->assertSame(BlogSettings::CARD_FIELDS, app(BlogSettings::class)->cardFields());
+
+        $this->put(route('dixlase-blog::admin.blog.settings.update'), [
+            'screen' => 'listing',
+            'card_fields' => ['tags' => '1', 'excerpt' => '1', 'date' => '0', 'author' => '0', 'featured_image' => '0', 'categories' => '0', 'comments' => '0', 'title' => '0'],
+        ])->assertSessionHasNoErrors();
+
+        app()->forgetInstance(BlogSettings::class);
+        $this->assertSame(['excerpt', 'tags'], app(BlogSettings::class)->cardFields());
+    }
+
+    public function test_the_cards_show_only_the_chosen_fields(): void
+    {
+        (new DixlaseBlogServiceProvider($this->app))->boot();
+        // Only the cards: the sidebar lists tags and recent posts too.
+        app(BlogSettings::class)->save(['sidebar_enabled' => false]);
+        $author = Member::factory()->create(['display_name' => 'Card Author', 'status' => 1]);
+        $post = BlogPost::create([
+            'title' => 'Card title',
+            'slug' => 'card',
+            'content' => 'Body',
+            'excerpt' => 'Card excerpt',
+            'editor_type' => ContentEditorType::MARKDOWN,
+            'status' => ContentStatus::PUBLISHED,
+            'lang' => 'en',
+            'user_id' => $author->id,
+            'published_at' => now()->subDay(),
+        ]);
+        $post->tags()->attach(BlogTag::create(['name' => 'Cardtag', 'slug' => 'cardtag', 'lang' => 'en'])->id);
+
+        $this->get('/blog')->assertOk()
+            ->assertSee('Card excerpt')
+            ->assertSee('#Cardtag')
+            ->assertSee('Card Author')
+            ->assertSee('<time', false);
+
+        app(BlogSettings::class)->save(['card_fields' => ['excerpt']]);
+
+        $this->get('/blog')->assertOk()
+            ->assertSee('Card title')
+            ->assertSee('Card excerpt')
+            ->assertDontSee('#Cardtag')
+            ->assertDontSee('Card Author')
+            ->assertDontSee('dixlase-blog-meta', false);
     }
 
     public function test_posts_per_page_must_be_in_range(): void

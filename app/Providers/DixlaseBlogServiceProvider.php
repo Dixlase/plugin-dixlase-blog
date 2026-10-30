@@ -121,6 +121,12 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
             $view->with('sidebar', app(BlogSidebar::class)->build(request()));
         });
 
+        // What a post card shows beside its title, wherever the card is
+        // used (listings, archives, the [blog] shortcode).
+        View::composer('dixlase-blog::front._card', function ($view): void {
+            $view->with('cardFields', app(BlogSettings::class)->cardFields());
+        });
+
         // Migrations are deliberately NOT registered with Laravel's migrator.
         // Core's plugin migrator applies them (dls:plugin:migrate, install,
         // enable) and records them in the plugin migration ledger; a bare

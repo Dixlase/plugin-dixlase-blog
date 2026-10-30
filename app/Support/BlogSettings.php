@@ -76,6 +76,12 @@ class BlogSettings
     /** Share buttons on the post page, in display order. */
     public const SHARE_SERVICES = ['x', 'facebook', 'line', 'copy'];
 
+    /**
+     * What a post card can show beside its title, which it always shows,
+     * in the order of the settings screen.
+     */
+    public const CARD_FIELDS = ['featured_image', 'date', 'author', 'excerpt', 'categories', 'tags', 'comments'];
+
     /** A new comment is published at once, or held until an admin approves it. */
     public const COMMENT_MODERATION = ['approval', 'immediate'];
 
@@ -114,6 +120,9 @@ class BlogSettings
         'sidebar_recent_count' => '5',
         // JSON list of the share buttons shown; none hides the row.
         'share_services' => '["x","facebook","line","copy"]',
+        // JSON list of what the post cards show beside the title; all of
+        // them until the site turns some off.
+        'card_fields' => '["featured_image","date","author","excerpt","categories","tags","comments"]',
         // Off until the site turns them on: comments collect personal data.
         'comments_enabled' => '0',
         'comment_moderation' => 'approval',
@@ -227,6 +236,19 @@ class BlogSettings
         $stored = is_array($stored) ? $stored : [];
 
         return array_values(array_filter(self::SHARE_SERVICES, fn (string $key) => in_array($key, $stored, true)));
+    }
+
+    /**
+     * What the post cards show beside the title, in CARD_FIELDS order.
+     *
+     * @return list<string>
+     */
+    public function cardFields(): array
+    {
+        $stored = json_decode((string) $this->value('card_fields'), true);
+        $stored = is_array($stored) ? $stored : [];
+
+        return array_values(array_filter(self::CARD_FIELDS, fn (string $key) => in_array($key, $stored, true)));
     }
 
     /**
