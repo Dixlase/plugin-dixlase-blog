@@ -5,6 +5,54 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.2.0] - 2026-10-30
+
+### Added
+
+- A `[blog]` shortcode lists the latest posts wherever content goes through core's shortcode parser,
+  such as the front page (#168, fixes #167). `count` (1 to 50, default 3), `layout` (`cards`, `list`
+  or `full`), `category` / `tag` (a slug) and `link` (whether to link to the blog) choose what it
+  shows. It renders nothing when there are no posts.
+- A Markdown post carries its own CSS, as an HTML post does, so the classes it gives elements
+  (`{.class}`) have something to style them (#163, fixes #162). The post page, the previews and the
+  top page in full load it; JavaScript stays HTML-only. Only members who may author scripts (ADMIN
+  and above) set the CSS, and an editor who saves the post keeps the CSS an admin wrote. The editor
+  shows the CSS tab for Markdown with core 0.1.20 or later; on an earlier core the tab stays
+  HTML-only and nothing else changes.
+
+### Changed
+
+- A scheduled post is marked published once its publish datetime has passed (#177, fixes #176). It
+  appeared on the site on time, but the admin kept calling it scheduled.
+  `dls:blog:publish-scheduled` runs every minute from the scheduler; it records no revision and
+  leaves `updated_at` alone. A post still appears on time when the scheduler runs late.
+- `requires.dixlase` states the oldest core this works on as a floor (`>=0.1.13`) rather than a
+  caret, so a core 0.2 release does not refuse to install or update it (#180;
+  Dixlase/dixlase-core#790).
+- The plugin thumbnail is replaced with a version with an adjusted layout and colours (#171, fixes
+  #170).
+
+### Fixed
+
+- The publish and close datetimes of a post are read and saved in the site's display timezone (#165,
+  fixes #164). They were read as UTC, so on a site displaying `Asia/Tokyo` a post scheduled for
+  10:00 went live at 19:00. The help text names the timezone.
+- A post saves when an empty tag or category field arrives as `null` rather than `''` (#173, fixes
+  #169). It was refused with a validation error.
+
+### Development
+
+- Pull requests against `next`, the development branch, run the checks (#161, fixes #160).
+- The release build compares the files with the signature manifest at the tag and stops before
+  building the ZIP on a mismatch (#166; part of Dixlase/dixlase-core#520).
+- The deploy workflow recognises a checkout of this repository by its identity rather than by the
+  text of its URL, and a site it refuses no longer holds the update back from the others (#172;
+  fixes Dixlase/dixlase-core#518 and #519).
+- `Plugin Lint` lets a stale signature through on `next` and on pull requests; the plugin is signed
+  only at a release (#175, fixes #174).
+- `BlogAdminBarEditLinkTest` pins its locale, so it passes where `APP_LOCALE` is not English (#159,
+  fixes #158).
+
 ## [0.1.4] - 2026-10-24
 
 ### Added
