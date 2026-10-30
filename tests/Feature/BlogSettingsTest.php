@@ -273,6 +273,8 @@ class BlogSettingsTest extends TestCase
         (new DixlaseBlogServiceProvider($this->app))->boot();
         // Only the posts: the sidebar lists tags and recent posts too.
         app(BlogSettings::class)->save(['sidebar_enabled' => false]);
+        // A layout with the stacks, where the posts' CSS link lands.
+        File::put($this->layoutDirectory.'/layouts/app.blade.php', "<html><head>@stack('styles')</head><body>@yield('content')@stack('scripts')</body></html>");
     }
 
     private function postWithEverything(): BlogPost
