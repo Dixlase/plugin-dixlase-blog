@@ -2,7 +2,7 @@
     "name": "Dixlase Blog",
     "package_name": "dixlase/dixlase-blog",
     "slug": "dixlase-blog",
-    "version": "0.2.0",
+    "version": "0.2.1-dev",
     "description": {
         "en": "Provides a blog: posts with revisions, a trash and featured images, hierarchical categories and tags, comments with moderation, notification mail and CAPTCHA, a settings screen, a configurable sidebar, search and date archives, pinned posts, previous / next and related posts, share buttons, breadcrumbs and an RSS feed. Works with DixlaseSEO for meta tags and the sitemap.",
         "ja": "ブログ機能を提供します。リビジョン、ゴミ箱、アイキャッチ画像のある記事、階層カテゴリとタグ、承認・通知メール・CAPTCHA に対応したコメント、設定画面、設定できるサイドバー、検索と日付のアーカイブ、固定表示、前後の記事と関連記事、共有ボタン、パンくずリスト、RSS フィードを備えます。DixlaseSEO でメタタグとサイトマップに対応します。"
