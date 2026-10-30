@@ -895,6 +895,30 @@ $bp-2xl: 96rem;
     }
 }
 
+// The latest posts in excerpt mode: the excerpt, then a link to the post.
+.dixlase-blog-post__excerpt {
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.8;
+    color: var(--dlsb-text);
+}
+
+.dixlase-blog-post__more {
+    margin: 1rem 0 0;
+
+    a {
+        font-weight: 600;
+        color: var(--dlsb-accent);
+        text-decoration: none;
+
+        &:hover,
+        &:focus-visible {
+            color: var(--dlsb-accent-strong);
+            text-decoration: underline;
+        }
+    }
+}
+
 .dixlase-blog-post__featured {
     margin: 0 0 2rem;
 

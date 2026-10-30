@@ -77,10 +77,14 @@ class BlogSettings
     public const SHARE_SERVICES = ['x', 'facebook', 'line', 'copy'];
 
     /**
-     * What a post card can show beside its title, which it always shows,
-     * in the order of the settings screen.
+     * What a post can show beside its title, which it always shows, on
+     * the cards and in the latest posts; in the order of the settings
+     * screen. The text itself is set apart: card_excerpt, latest_body.
      */
-    public const CARD_FIELDS = ['featured_image', 'date', 'author', 'excerpt', 'categories', 'tags', 'comments'];
+    public const POST_FIELDS = ['featured_image', 'date', 'author', 'categories', 'tags', 'comments'];
+
+    /** How the latest posts on the top page show their text. */
+    public const LATEST_BODIES = ['full', 'excerpt'];
 
     /** A new comment is published at once, or held until an admin approves it. */
     public const COMMENT_MODERATION = ['approval', 'immediate'];
@@ -120,9 +124,12 @@ class BlogSettings
         'sidebar_recent_count' => '5',
         // JSON list of the share buttons shown; none hides the row.
         'share_services' => '["x","facebook","line","copy"]',
-        // JSON list of what the post cards show beside the title; all of
-        // them until the site turns some off.
-        'card_fields' => '["featured_image","date","author","excerpt","categories","tags","comments"]',
+        // JSON list of what posts show beside the title, on the cards and
+        // in the latest posts; all of them until the site turns some off.
+        'post_fields' => '["featured_image","date","author","categories","tags","comments"]',
+        'card_excerpt' => '1',
+        // The latest posts on the top page: the full text or the excerpt.
+        'latest_body' => 'full',
         // Off until the site turns them on: comments collect personal data.
         'comments_enabled' => '0',
         'comment_moderation' => 'approval',
@@ -239,16 +246,34 @@ class BlogSettings
     }
 
     /**
-     * What the post cards show beside the title, in CARD_FIELDS order.
+     * What posts show beside the title, in POST_FIELDS order.
      *
      * @return list<string>
      */
-    public function cardFields(): array
+    public function postFields(): array
     {
-        $stored = json_decode((string) $this->value('card_fields'), true);
+        $stored = json_decode((string) $this->value('post_fields'), true);
         $stored = is_array($stored) ? $stored : [];
 
-        return array_values(array_filter(self::CARD_FIELDS, fn (string $key) => in_array($key, $stored, true)));
+        return array_values(array_filter(self::POST_FIELDS, fn (string $key) => in_array($key, $stored, true)));
+    }
+
+    /**
+     * Whether the cards show the excerpt. They never show the full text.
+     */
+    public function cardExcerpt(): bool
+    {
+        return $this->value('card_excerpt') === '1';
+    }
+
+    /**
+     * How the latest posts show their text: full or excerpt, never both.
+     */
+    public function latestBody(): string
+    {
+        $value = (string) $this->value('latest_body');
+
+        return in_array($value, self::LATEST_BODIES, true) ? $value : 'full';
     }
 
     /**

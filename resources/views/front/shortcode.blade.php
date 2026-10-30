@@ -33,6 +33,7 @@ Titles are h3: the content around it carries the section's own heading.
                         'contentHtml' => $item['contentHtml'],
                         'headingTag' => 'h3',
                         'titleUrl' => route('dixlase-blog::front.show', ['slug' => $item['post']->slug]),
+                        'fields' => $postFields ?? null,
                     ])
                 </article>
             @endforeach

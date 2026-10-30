@@ -70,6 +70,7 @@ class DixlaseBlogFrontController extends Controller
     public function index(): View
     {
         $full = $this->settings->indexLayout() === 'full';
+        $withBody = $this->settings->latestBody() === 'full';
 
         // Pinned posts first; the archives and the feed keep date order.
         $posts = BlogPost::query()
@@ -82,7 +83,9 @@ class DixlaseBlogFrontController extends Controller
 
         return view('dixlase-blog::front.index', [
             'posts' => $posts,
-            'fullPosts' => $full ? $posts->getCollection()->map(fn (BlogPost $post) => $this->fullPosts->for($post))->all() : null,
+            // The latest posts: each with its excerpt or its full text.
+            'fullPosts' => $full ? $posts->getCollection()->map(fn (BlogPost $post) => $this->fullPosts->for($post, $withBody))->all() : null,
+            'postFields' => $this->settings->postFields(),
             'breadcrumbs' => $this->breadcrumbs->forIndex(),
         ]);
     }

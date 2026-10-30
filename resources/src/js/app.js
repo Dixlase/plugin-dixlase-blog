@@ -22,6 +22,7 @@ import blogFeaturedPreview from './blog-featured-preview.js';
 import blogPreviewTitle from './blog-preview-title.js';
 import blogSidebarWidgets from './blog-sidebar-widgets.js';
 import blogCommentBulk from './blog-comment-bulk.js';
+import blogListingLayout from './blog-listing-layout.js';
 
 document.addEventListener('alpine:init', () => {
     if (window.Alpine) {
@@ -32,5 +33,6 @@ document.addEventListener('alpine:init', () => {
         window.Alpine.data('blogPreviewTitle', blogPreviewTitle);
         window.Alpine.data('blogSidebarWidgets', blogSidebarWidgets);
         window.Alpine.data('blogCommentBulk', blogCommentBulk);
+        window.Alpine.data('blogListingLayout', blogListingLayout);
     }
 });

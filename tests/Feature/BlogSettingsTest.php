@@ -130,7 +130,7 @@ class BlogSettingsTest extends TestCase
     public function test_each_screen_shows_only_its_own_fields(): void
     {
         $fields = [
-            'listing' => 'card_fields[excerpt]',
+            'listing' => 'post_fields[author]',
             'sidebar' => 'sidebar_recent_count',
             'share' => 'share_services[x]',
             'comments' => 'comment_link_limit',
@@ -179,30 +179,113 @@ class BlogSettingsTest extends TestCase
         $this->assertSame(0, DB::table('plg_dixlase_blog_settings')->count());
     }
 
-    public function test_the_card_fields_are_saved_in_a_fixed_order(): void
+    public function test_the_post_fields_are_saved_in_a_fixed_order(): void
     {
-        $this->assertSame(BlogSettings::CARD_FIELDS, app(BlogSettings::class)->cardFields());
+        $this->assertSame(BlogSettings::POST_FIELDS, app(BlogSettings::class)->postFields());
+        $this->assertTrue(app(BlogSettings::class)->cardExcerpt());
+        $this->assertSame('full', app(BlogSettings::class)->latestBody());
 
         $this->put(route('dixlase-blog::admin.blog.settings.update'), [
             'screen' => 'listing',
-            'card_fields' => ['tags' => '1', 'excerpt' => '1', 'date' => '0', 'author' => '0', 'featured_image' => '0', 'categories' => '0', 'comments' => '0', 'title' => '0'],
+            'post_fields' => ['tags' => '1', 'date' => '1', 'author' => '0', 'featured_image' => '0', 'categories' => '0', 'comments' => '0', 'title' => '0'],
+            'card_excerpt' => '0',
+            'latest_body' => 'excerpt',
         ])->assertSessionHasNoErrors();
 
         app()->forgetInstance(BlogSettings::class);
-        $this->assertSame(['excerpt', 'tags'], app(BlogSettings::class)->cardFields());
+        $settings = app(BlogSettings::class);
+        $this->assertSame(['date', 'tags'], $settings->postFields());
+        $this->assertFalse($settings->cardExcerpt());
+        $this->assertSame('excerpt', $settings->latestBody());
+
+        $this->put(route('dixlase-blog::admin.blog.settings.update'), ['latest_body' => 'both'])
+            ->assertSessionHasErrors('latest_body');
     }
 
     public function test_the_cards_show_only_the_chosen_fields(): void
     {
+        $this->bootWithoutSidebar();
+        $this->postWithEverything();
+
+        $this->get('/blog')->assertOk()
+            ->assertSee('Card excerpt')
+            ->assertSee('#Cardtag')
+            ->assertSee('Card Author')
+            ->assertSee('<time', false);
+
+        app(BlogSettings::class)->save(['post_fields' => [], 'card_excerpt' => false]);
+
+        $this->get('/blog')->assertOk()
+            ->assertSee('Card title')
+            ->assertDontSee('Card excerpt')
+            ->assertDontSee('#Cardtag')
+            ->assertDontSee('Card Author')
+            ->assertDontSee('dixlase-blog-meta', false);
+    }
+
+    public function test_the_latest_posts_show_the_full_text_by_default(): void
+    {
+        $this->bootWithoutSidebar();
+        $this->postWithEverything();
+        app(BlogSettings::class)->save(['index_layout' => 'full']);
+
+        $this->get('/blog')->assertOk()
+            ->assertSee('<p>Card body</p>', false)
+            ->assertDontSee('Card excerpt')
+            ->assertDontSee('dixlase-blog-post__more', false)
+            ->assertSee('#Cardtag')
+            ->assertSee('Card Author')
+            ->assertSee(route('dixlase-blog::front.custom-style', ['slug' => 'card']), false);
+    }
+
+    public function test_the_latest_posts_can_show_the_excerpt_and_a_link_instead(): void
+    {
+        $this->bootWithoutSidebar();
+        $this->postWithEverything();
+        app(BlogSettings::class)->save(['index_layout' => 'full', 'latest_body' => 'excerpt', 'post_fields' => ['date']]);
+
+        $this->get('/blog')->assertOk()
+            ->assertSee('Card excerpt')
+            ->assertDontSee('<p>Card body</p>', false)
+            ->assertSee('<a href="'.route('dixlase-blog::front.show', ['slug' => 'card']).'" aria-label="'.e(__('dixlase-blog::front.post.read_more_label', ['title' => 'Card title'])).'">'.e(__('dixlase-blog::front.post.read_more')).'</a>', false)
+            // No body, so none of its CSS either.
+            ->assertDontSee(route('dixlase-blog::front.custom-style', ['slug' => 'card']), false)
+            // The switches apply here too.
+            ->assertSee('<time', false)
+            ->assertDontSee('#Cardtag')
+            ->assertDontSee('Card Author');
+    }
+
+    public function test_the_post_page_ignores_the_listing_switches(): void
+    {
+        $this->bootWithoutSidebar();
+        $this->postWithEverything();
+        app(BlogSettings::class)->save(['post_fields' => [], 'latest_body' => 'excerpt']);
+
+        $this->get('/blog/card')->assertOk()
+            ->assertSee('<p>Card body</p>', false)
+            ->assertSee('#Cardtag')
+            ->assertSee('Card Author');
+    }
+
+    private function bootWithoutSidebar(): void
+    {
         (new DixlaseBlogServiceProvider($this->app))->boot();
-        // Only the cards: the sidebar lists tags and recent posts too.
+        // Only the posts: the sidebar lists tags and recent posts too.
         app(BlogSettings::class)->save(['sidebar_enabled' => false]);
+        // A layout with the stacks, where the posts' CSS link lands.
+        File::put($this->layoutDirectory.'/layouts/app.blade.php', "<html><head>@stack('styles')</head><body>@yield('content')@stack('scripts')</body></html>");
+    }
+
+    private function postWithEverything(): BlogPost
+    {
         $author = Member::factory()->create(['display_name' => 'Card Author', 'status' => 1]);
         $post = BlogPost::create([
             'title' => 'Card title',
             'slug' => 'card',
-            'content' => 'Body',
+            'content' => 'Card body',
             'excerpt' => 'Card excerpt',
+            'custom_css' => 'p{color:red}',
             'editor_type' => ContentEditorType::MARKDOWN,
             'status' => ContentStatus::PUBLISHED,
             'lang' => 'en',
@@ -211,20 +294,7 @@ class BlogSettingsTest extends TestCase
         ]);
         $post->tags()->attach(BlogTag::create(['name' => 'Cardtag', 'slug' => 'cardtag', 'lang' => 'en'])->id);
 
-        $this->get('/blog')->assertOk()
-            ->assertSee('Card excerpt')
-            ->assertSee('#Cardtag')
-            ->assertSee('Card Author')
-            ->assertSee('<time', false);
-
-        app(BlogSettings::class)->save(['card_fields' => ['excerpt']]);
-
-        $this->get('/blog')->assertOk()
-            ->assertSee('Card title')
-            ->assertSee('Card excerpt')
-            ->assertDontSee('#Cardtag')
-            ->assertDontSee('Card Author')
-            ->assertDontSee('dixlase-blog-meta', false);
+        return $post;
     }
 
     public function test_posts_per_page_must_be_in_range(): void

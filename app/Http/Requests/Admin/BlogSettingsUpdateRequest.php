@@ -87,9 +87,11 @@ class BlogSettingsUpdateRequest extends FormRequest
             // One switch per service, keyed by service.
             'share_services' => ['sometimes', 'array'],
             'share_services.*' => ['boolean'],
-            // One switch per card field, keyed by field, like the services.
-            'card_fields' => ['sometimes', 'array'],
-            'card_fields.*' => ['boolean'],
+            // One switch per field, keyed by field, like the services.
+            'post_fields' => ['sometimes', 'array'],
+            'post_fields.*' => ['boolean'],
+            'card_excerpt' => ['sometimes', 'required', 'boolean'],
+            'latest_body' => ['sometimes', 'required', Rule::in(BlogSettings::LATEST_BODIES)],
             'sidebar_recent_count' => [
                 'sometimes',
                 'required',
@@ -178,10 +180,10 @@ class BlogSettingsUpdateRequest extends FormRequest
             ));
         }
 
-        if (isset($data['card_fields'])) {
-            $switches = $data['card_fields'];
-            $data['card_fields'] = array_values(array_filter(
-                BlogSettings::CARD_FIELDS,
+        if (isset($data['post_fields'])) {
+            $switches = $data['post_fields'];
+            $data['post_fields'] = array_values(array_filter(
+                BlogSettings::POST_FIELDS,
                 fn (string $key) => (bool) ($switches[$key] ?? false),
             ));
         }
@@ -207,6 +209,7 @@ class BlogSettingsUpdateRequest extends FormRequest
         return [
             'posts_per_page' => __('dixlase-blog::admin.settings.posts_per_page_label'),
             'index_layout' => __('dixlase-blog::admin.settings.index_layout_label'),
+            'latest_body' => __('dixlase-blog::admin.settings.latest_body_label'),
             'route_slug' => __('dixlase-blog::admin.settings.route_slug_label'),
             'sidebar_position' => __('dixlase-blog::admin.settings.sidebar_position_label'),
             'sidebar_recent_count' => __('dixlase-blog::admin.settings.sidebar_recent_count_label'),
