@@ -20,8 +20,9 @@ shortcode, inside a section with its own heading).
     $url = route('dixlase-blog::front.show', ['slug' => $post->slug]);
     $headingTag = ($headingTag ?? 'h2') === 'h3' ? 'h3' : 'h2';
     // What to show beside the title (the listing settings); everything
-    // when the card is rendered without them.
-    $fields = $cardFields ?? \Plugins\DixlaseBlog\App\Support\BlogSettings::CARD_FIELDS;
+    // when the card is rendered without them. Cards never show the full
+    // text, only the excerpt.
+    $fields = $postFields ?? \Plugins\DixlaseBlog\App\Support\BlogSettings::POST_FIELDS;
     $shows = fn (string $field): bool => in_array($field, $fields, true);
     $featuredMedia = $shows('featured_image') ? $post->localizedFeaturedMedia() : null;
     $categories = $shows('categories') ? $post->categories : collect();
@@ -63,7 +64,7 @@ shortcode, inside a section with its own heading).
             <a href="{{ $url }}">{{ $title }}</a>
         </{{ $headingTag }}>
 
-        @if ($shows('excerpt') && $excerpt)
+        @if (($cardExcerpt ?? true) && $excerpt)
             <p class="dixlase-blog-card__excerpt" lang="{{ $post->localizedLang('excerpt') }}">{{ $excerpt }}</p>
         @endif
 

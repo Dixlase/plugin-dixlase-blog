@@ -100,6 +100,9 @@ return [
         'back_to_index' => '← 記事一覧へ戻る',
         // The edit link in the admin bar, for members who may edit posts.
         'admin_bar_edit' => 'この記事を編集',
+        // Below the excerpt in the latest posts; the label names the post.
+        'read_more' => '続きを読む',
+        'read_more_label' => ':title の続きを読む',
         'pinned' => '固定',
     ],
 

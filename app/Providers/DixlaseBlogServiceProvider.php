@@ -124,7 +124,9 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
         // What a post card shows beside its title, wherever the card is
         // used (listings, archives, the [blog] shortcode).
         View::composer('dixlase-blog::front._card', function ($view): void {
-            $view->with('cardFields', app(BlogSettings::class)->cardFields());
+            $settings = app(BlogSettings::class);
+            $view->with('postFields', $settings->postFields());
+            $view->with('cardExcerpt', $settings->cardExcerpt());
         });
 
         // Migrations are deliberately NOT registered with Laravel's migrator.

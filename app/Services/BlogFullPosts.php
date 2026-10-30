@@ -50,10 +50,18 @@ class BlogFullPosts
      * The rendered body, and the URL of the post's own CSS. Its JavaScript
      * is left out: a post's script assumes it is alone on the page.
      *
-     * @return array{post: BlogPost, contentHtml: string, customCssUrl: ?string}
+     * With $withBody false (the latest posts showing excerpts) neither is
+     * produced: the excerpt is shown instead, and nothing of the body's own
+     * styling is needed for it.
+     *
+     * @return array{post: BlogPost, contentHtml: ?string, customCssUrl: ?string}
      */
-    public function for(BlogPost $post): array
+    public function for(BlogPost $post, bool $withBody = true): array
     {
+        if (! $withBody) {
+            return ['post' => $post, 'contentHtml' => null, 'customCssUrl' => null];
+        }
+
         $hasCss = BlogScriptAuthoringPolicy::carriesCustomCss($post->editor_type) && trim((string) $post->custom_css) !== '';
 
         return [

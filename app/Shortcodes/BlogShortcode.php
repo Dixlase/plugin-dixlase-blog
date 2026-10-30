@@ -37,6 +37,7 @@ namespace Plugins\DixlaseBlog\App\Shortcodes;
 use Illuminate\Database\Eloquent\Builder;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Services\BlogFullPosts;
+use Plugins\DixlaseBlog\App\Support\BlogSettings;
 use Throwable;
 
 /**
@@ -57,8 +58,10 @@ class BlogShortcode
     /** cards: the blog's cards; list: date and title; full: each post in full. */
     public const LAYOUTS = ['cards', 'list', 'full'];
 
-    public function __construct(private readonly BlogFullPosts $fullPosts)
-    {
+    public function __construct(
+        private readonly BlogFullPosts $fullPosts,
+        private readonly BlogSettings $settings,
+    ) {
     }
 
     /**
@@ -78,6 +81,8 @@ class BlogShortcode
                 'posts' => $posts,
                 'layout' => $layout,
                 'fullPosts' => $layout === 'full' ? $posts->map(fn (BlogPost $post) => $this->fullPosts->for($post))->all() : [],
+                // What posts show beside the title, as on the blog's own pages.
+                'postFields' => $this->settings->postFields(),
                 'showLink' => $this->flag($attributes['link'] ?? null, true),
             ])->render();
         } catch (Throwable $e) {

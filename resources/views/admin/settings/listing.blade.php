@@ -7,7 +7,7 @@ https://exc-d.com
 Dixlase Blog is dual-licensed. Same terms as edit.blade.php.
 
 Listing settings: the blog's URL, posts per page, the top page layout and
-what the post cards show.
+what the cards and the latest posts show.
 --}}
 
 @extends('dixlase-blog::admin.settings._screen')
@@ -56,32 +56,59 @@ what the post cards show.
             <x-form-error name="posts_per_page" />
         </div>
 
-        <div>
-            <x-form-label :text="__('dixlase-blog::admin.settings.index_layout_label')" :required="true" class="mb-2" />
-            <x-form-radio-card-group
-                name="index_layout"
-                :options="$indexLayoutOptions"
-                :value="old('index_layout', $blogSettings['index_layout'])"
-                :columns="2"
-            />
-            <x-form-help-text :text="__('dixlase-blog::admin.settings.index_layout_help')" />
-            <x-form-error name="index_layout" />
+        {{-- The text choice belongs to the latest posts only (blogListingLayout). --}}
+        <div x-data="blogListingLayout" data-layout="{{ old('index_layout', $blogSettings['index_layout']) }}" class="grid grid-cols-1 gap-6">
+            <div>
+                <x-form-label :text="__('dixlase-blog::admin.settings.index_layout_label')" :required="true" class="mb-2" />
+                <x-form-radio-card-group
+                    name="index_layout"
+                    :options="$indexLayoutOptions"
+                    :value="old('index_layout', $blogSettings['index_layout'])"
+                    xModel="layout"
+                    :columns="2"
+                />
+                <x-form-help-text :text="__('dixlase-blog::admin.settings.index_layout_help')" />
+                <x-form-error name="index_layout" />
+            </div>
+
+            <div x-show="latest" x-cloak>
+                <x-form-label :text="__('dixlase-blog::admin.settings.latest_body_label')" :required="true" class="mb-2" />
+                <x-form-radio-card-group
+                    name="latest_body"
+                    :options="$latestBodyOptions"
+                    :value="old('latest_body', $blogSettings['latest_body'])"
+                    :columns="2"
+                />
+                <x-form-help-text :text="__('dixlase-blog::admin.settings.latest_body_help')" />
+                <x-form-error name="latest_body" />
+            </div>
         </div>
 
         <div>
-            <x-form-label :text="__('dixlase-blog::admin.settings.card_fields_label')" class="mb-2" />
+            <x-form-label :text="__('dixlase-blog::admin.settings.post_fields_label')" class="mb-2" />
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                @foreach ($cardFields as $field)
+                @foreach ($postFields as $field)
                     <x-form-toggle
-                        :id="'card_field_'.$field['key']"
-                        :name="'card_fields['.$field['key'].']'"
+                        :id="'post_field_'.$field['key']"
+                        :name="'post_fields['.$field['key'].']'"
                         :label="$field['label']"
-                        :checked="(bool) old('card_fields.'.$field['key'], $field['enabled'])"
+                        :checked="(bool) old('post_fields.'.$field['key'], $field['enabled'])"
                     />
                 @endforeach
             </div>
-            <x-form-help-text :text="__('dixlase-blog::admin.settings.card_fields_help')" />
-            <x-form-error name="card_fields" />
+            <x-form-help-text :text="__('dixlase-blog::admin.settings.post_fields_help')" />
+            <x-form-error name="post_fields" />
+        </div>
+
+        <div>
+            <x-form-toggle
+                id="card_excerpt"
+                name="card_excerpt"
+                :label="__('dixlase-blog::admin.settings.card_excerpt_label')"
+                :checked="(bool) old('card_excerpt', $blogSettings['card_excerpt'])"
+            />
+            <x-form-help-text :text="__('dixlase-blog::admin.settings.card_excerpt_help')" />
+            <x-form-error name="card_excerpt" />
         </div>
     </div>
 @endsection

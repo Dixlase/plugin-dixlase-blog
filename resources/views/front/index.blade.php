@@ -18,7 +18,7 @@ themes/<theme>/plugins/DixlaseBlog/resources/views/ (one theme).
 
 @include('dixlase-blog::front._assets')
 
-{{-- In full mode, each post's own CSS (HTML and Markdown; never JavaScript). --}}
+{{-- With the full text, each post's own CSS (HTML and Markdown; never JavaScript). --}}
 @foreach ($fullPosts ?? [] as $item)
     @if ($item['customCssUrl'])
         @push('styles')
@@ -41,7 +41,8 @@ themes/<theme>/plugins/DixlaseBlog/resources/views/ (one theme).
             <p class="dixlase-blog-index__empty">{{ __('dixlase-blog::front.index.no_posts') }}</p>
         @else
             @if (($fullPosts ?? null) !== null)
-                {{-- The latest posts in full (index_layout = full). --}}
+                {{-- The latest posts (index_layout = full): each with its full
+                     text, or its excerpt and a link to the post. --}}
                 <div class="dixlase-blog-full-list">
                     @foreach ($fullPosts as $item)
                         <article class="dixlase-blog-post dixlase-blog-full-list__post">
@@ -50,6 +51,7 @@ themes/<theme>/plugins/DixlaseBlog/resources/views/ (one theme).
                                 'contentHtml' => $item['contentHtml'],
                                 'headingTag' => 'h2',
                                 'titleUrl' => route('dixlase-blog::front.show', ['slug' => $item['post']->slug]),
+                                'fields' => $postFields ?? null,
                             ])
                         </article>
                     @endforeach
