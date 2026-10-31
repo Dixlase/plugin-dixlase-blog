@@ -59,6 +59,7 @@ use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Services\BlogContentRenderer;
 use Plugins\DixlaseBlog\App\Services\BlogPostFiles;
 use Plugins\DixlaseBlog\App\Services\BlogPostService;
+use Plugins\DixlaseBlog\App\Services\BlogPostSourceLanguage;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 use Plugins\DixlaseBlog\App\Services\BlogSeoMeta;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
@@ -349,18 +350,37 @@ class DixlaseBlogAdminPostsController extends Controller
      *
      * The picker shows only while locale URLs are on; a single-language
      * site has nothing to choose and the post takes the site's default
-     * locale. The translate button comes from the translation plugin
-     * itself (see the post form's right sidebar).
+     * locale. A new post starts in the admin's own language when the site
+     * serves it. A saved post can change it; the languages it has a
+     * translation in tell the form when the change needs confirming (#133).
+     * The translate button comes from the translation plugin itself (see
+     * the post form's right sidebar).
      *
-     * @return array{multilingualEnabled: bool, languageOptions: array<string, string>, langValue: string}
+     * @return array{multilingualEnabled: bool, languageOptions: array<string, string>, langValue: string, translatedLocales: list<string>}
      */
     private function languageParams(BlogPost $post): array
     {
+        $multilingual = (bool) config('dixlase_multilingual.locale_url_routing_enabled', false);
+
         return [
-            'multilingualEnabled' => (bool) config('dixlase_multilingual.locale_url_routing_enabled', false),
+            'multilingualEnabled' => $multilingual,
             'languageOptions' => LocaleHelper::supportedLocaleOptions(),
-            'langValue' => (string) old('lang', $post->exists ? $post->sourceLocale() : LocaleHelper::getSiteDefaultLocale()),
+            'langValue' => (string) old('lang', $post->exists ? $post->sourceLocale() : $this->writersLocale()),
+            'translatedLocales' => $multilingual && $post->exists
+                ? app(BlogPostSourceLanguage::class)->translatedLocales($post, LocaleHelper::supportedLocales())
+                : [],
         ];
+    }
+
+    /**
+     * The admin's own language when the site serves it, else the site's
+     * default locale.
+     */
+    private function writersLocale(): string
+    {
+        $locale = app()->getLocale();
+
+        return in_array($locale, LocaleHelper::supportedLocales(), true) ? $locale : LocaleHelper::getSiteDefaultLocale();
     }
 
     /**
