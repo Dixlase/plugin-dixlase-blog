@@ -66,7 +66,19 @@ final class FakeTranslationResolver implements TranslationResolver
 
     public function all(Model $model, string $field): array
     {
-        return [];
+        $values = [];
+        $prefix = $model::class.'|'.$model->getKey().'|';
+        foreach ($this->values as $key => $value) {
+            if (! str_starts_with($key, $prefix)) {
+                continue;
+            }
+            [$locale, $keyField] = explode('|', substr($key, strlen($prefix)), 2);
+            if ($keyField === $field) {
+                $values[$locale] = $value;
+            }
+        }
+
+        return $values;
     }
 
     public function exists(Model $model, string $field, string $locale): bool
@@ -76,6 +88,11 @@ final class FakeTranslationResolver implements TranslationResolver
 
     public function delete(Model $model, string $field, ?string $locale = null): void
     {
+        foreach (array_keys($this->all($model, $field)) as $stored) {
+            if ($locale === null || $locale === $stored) {
+                unset($this->values[$this->key($model, $field, $stored)]);
+            }
+        }
     }
 
     public function getAvailableLocales(Model $model): array

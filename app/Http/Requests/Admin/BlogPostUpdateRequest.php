@@ -36,15 +36,18 @@ namespace Plugins\DixlaseBlog\App\Http\Requests\Admin;
 
 use App\Enums\ContentEditorType;
 use App\Enums\ContentStatus;
+use App\Helpers\LocaleHelper;
 use App\Rules\UniqueContentSlug;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Validator;
 use Illuminate\Validation\Rule;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\ChoosesStorageType;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\LimitsCustomAssets;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\NullsBlankInput;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\ReadsDatetimeInDisplayTimezone;
+use Plugins\DixlaseBlog\App\Services\BlogPostSourceLanguage;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
@@ -117,6 +120,9 @@ class BlogPostUpdateRequest extends FormRequest
             // A scheduled post appears at published_at, so it needs one.
             'published_at' => ['nullable', 'required_if:status,scheduled', 'date'],
             'closed_at' => ['nullable', 'date', 'after:published_at'],
+            // The source language; see withValidator() for the change.
+            'lang' => ['sometimes', 'nullable', 'string', Rule::in(LocaleHelper::supportedLocales())],
+            'confirm_lang_change' => ['sometimes', 'boolean'],
             'categories' => ['nullable', 'array'],
             'categories.*' => ['nullable', 'integer', 'exists:plg_dixlase_blog_categories,id'],
             'tags' => ['nullable', 'array', 'max:50'],
@@ -149,6 +155,32 @@ class BlogPostUpdateRequest extends FormRequest
             $seoMeta['ogp_media_id'] = null;
             $this->merge(['seo_meta' => $seoMeta]);
         }
+    }
+
+    /**
+     * Changing the source language to one the post has no translation in
+     * leaves the old language with no text of its own, so it needs the
+     * editor's confirmation (#133).
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $post = $this->postBeingUpdated();
+            $lang = $this->input('lang');
+            if ($post === null || ! is_string($lang) || $lang === '' || $validator->errors()->has('lang')) {
+                return;
+            }
+
+            if ($lang === $post->sourceLocale()
+                || $this->boolean('confirm_lang_change')
+                || app(BlogPostSourceLanguage::class)->hasTranslation($post, $lang)) {
+                return;
+            }
+
+            $validator->errors()->add('lang', __('dixlase-blog::admin.post.lang_change_unconfirmed', [
+                'old' => LocaleHelper::getLocaleName($post->sourceLocale(), false),
+            ]));
+        });
     }
 
     /**

@@ -66,6 +66,7 @@ class BlogPostService
         private readonly RevisionService $revisionService,
         private readonly BlogPostFiles $files,
         private readonly FileContentPublisher $publisher,
+        private readonly BlogPostSourceLanguage $sourceLanguage,
     ) {
     }
 
@@ -109,9 +110,16 @@ class BlogPostService
                 $payload['lang'] = $data['lang'] ?: $post->lang;
             }
 
+            $previousLocale = $post->sourceLocale();
             $previousStorage = $post->storage_type;
             $post->update($payload);
             $this->saveFiles($post, $previousStorage);
+
+            // The text stays; a translation filed under the new language
+            // moves to the old one (#133).
+            if ($post->sourceLocale() !== $previousLocale) {
+                $this->sourceLanguage->move($post, $previousLocale, $post->sourceLocale());
+            }
 
             if (array_key_exists('categories', $data)) {
                 $this->syncCategories($post, $data['categories'] ?? []);

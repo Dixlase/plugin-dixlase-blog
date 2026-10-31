@@ -161,11 +161,21 @@ side validation continues to enforce it.
             {{ __('dixlase-blog::admin.post_form.meta_section') }}
         </h3>
 
-        {{-- Source language: chosen once, on create, while the site serves
-             more than one locale. A saved post shows it in the meta info
-             above; other languages are added as translations. --}}
-        @if (! $isEditMode && ! empty($multilingualEnabled))
-            <div class="mb-4">
+        {{-- Source language, while the site serves more than one locale.
+             A saved post can change it: its text stays, and a translation
+             filed under the new language moves to the old one. Choosing a
+             language the post has no translation in leaves the old one with
+             no text of its own, so blogSourceLanguage asks to confirm it,
+             and the update request refuses it unconfirmed (#133). --}}
+        @if (! empty($multilingualEnabled))
+            <div class="mb-4"
+                 @if ($isEditMode)
+                     x-data="blogSourceLanguage"
+                     data-current="{{ $post->sourceLocale() }}"
+                     data-translated="{{ implode(',', $translatedLocales ?? []) }}"
+                     @change="pick($event)"
+                 @endif
+            >
                 <x-form-label :for="'lang'" :text="__('dixlase-blog::admin.post.lang_label')" />
                 <x-form-select
                     id="lang"
@@ -173,8 +183,18 @@ side validation continues to enforce it.
                     :options="$languageOptions"
                     :value="$langValue"
                 />
-                <x-form-help-text :text="__('dixlase-blog::admin.post.lang_help')" />
+                <x-form-help-text :text="__($isEditMode ? 'dixlase-blog::admin.post.lang_change_help' : 'dixlase-blog::admin.post.lang_help')" />
                 <x-form-error name="lang" />
+                @if ($isEditMode)
+                    <div class="mt-2" x-show="needsConfirmation" x-cloak>
+                        <x-form-toggle
+                            id="confirm_lang_change"
+                            name="confirm_lang_change"
+                            :label="__('dixlase-blog::admin.post.lang_change_confirm', ['old' => \App\Helpers\LocaleHelper::getLocaleName($post->sourceLocale(), false)])"
+                            :checked="(bool) old('confirm_lang_change', false)"
+                        />
+                    </div>
+                @endif
             </div>
         @endif
 
