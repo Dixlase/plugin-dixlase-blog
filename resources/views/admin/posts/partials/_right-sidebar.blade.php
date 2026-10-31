@@ -315,6 +315,19 @@ side validation continues to enforce it.
         <x-form-error name="featured_media_id" />
     </div>
 
+    {{-- ===== 6a. Storage (advanced admin mode only, #193) =====
+         Sends the choice to the content editor, which carries it in the
+         form and shows the file paths. --}}
+    @if (! empty($showStorageChoice))
+    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <x-content-editor.storage-info
+            :storageOptions="$storageOptions"
+            :storageType="$storageTypeValue"
+            :showJsCss="true"
+        />
+    </div>
+    @endif
+
     {{-- ===== 6b. SEO (DixlaseSEO enabled, blog integration on) =====
          x-dynamic-component keeps this view compiling without DixlaseSEO. --}}
     @if (! empty($seoMetaEnabled))

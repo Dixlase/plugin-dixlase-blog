@@ -36,7 +36,9 @@ namespace Plugins\DixlaseBlog\App\Services;
 
 use App\Enums\ContentEditorType;
 use App\Enums\ContentStatus;
+use App\Enums\ContentStorageType;
 use App\Helpers\LocaleHelper;
+use App\Services\Content\FileContentPublisher;
 use App\Services\RevisionService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -60,8 +62,11 @@ use Plugins\DixlaseBlog\App\Support\BlogExcerpt;
  */
 class BlogPostService
 {
-    public function __construct(private readonly RevisionService $revisionService)
-    {
+    public function __construct(
+        private readonly RevisionService $revisionService,
+        private readonly BlogPostFiles $files,
+        private readonly FileContentPublisher $publisher,
+    ) {
     }
 
     /**
@@ -77,6 +82,7 @@ class BlogPostService
             $payload['lang'] = filled($data['lang'] ?? null) ? $data['lang'] : LocaleHelper::getSiteDefaultLocale();
 
             $post = BlogPost::create($payload);
+            $this->saveFiles($post, ContentStorageType::DATABASE);
 
             $this->syncCategories($post, $data['categories'] ?? []);
             $this->syncTagsByNames($post, $data['tags'] ?? []);
@@ -103,7 +109,9 @@ class BlogPostService
                 $payload['lang'] = $data['lang'] ?: $post->lang;
             }
 
+            $previousStorage = $post->storage_type;
             $post->update($payload);
+            $this->saveFiles($post, $previousStorage);
 
             if (array_key_exists('categories', $data)) {
                 $this->syncCategories($post, $data['categories'] ?? []);
@@ -184,6 +192,10 @@ class BlogPostService
                 $post->tags()->sync(BlogTag::query()->whereIn('id', array_map('intval', $snapshot['tag_ids']))->pluck('id')->all());
             }
 
+            // The restore changed the published copy only; the files follow
+            // it, and a change waiting in them is replaced.
+            $this->publisher->writeBack($post);
+
             return $post->fresh(['categories', 'tags']) ?? $post;
         });
     }
@@ -205,6 +217,7 @@ class BlogPostService
                 'custom_js',
                 'featured_media_id',
                 'editor_type',
+                'storage_type',
                 'status',
                 'is_pinned',
                 'comment_status',
@@ -216,6 +229,9 @@ class BlogPostService
 
         if (isset($payload['editor_type']) && is_string($payload['editor_type'])) {
             $payload['editor_type'] = ContentEditorType::tryFromSlug($payload['editor_type']) ?? ContentEditorType::GUI;
+        }
+        if (isset($payload['storage_type']) && is_string($payload['storage_type'])) {
+            $payload['storage_type'] = ContentStorageType::tryFromSlug($payload['storage_type']) ?? ContentStorageType::DATABASE;
         }
         if (isset($payload['status']) && is_string($payload['status'])) {
             $payload['status'] = ContentStatus::tryFromSlug($payload['status']) ?? ContentStatus::DRAFT;
@@ -230,6 +246,22 @@ class BlogPostService
         }
 
         return $payload;
+    }
+
+    /**
+     * Write what was just saved to the post's files, or remove them when
+     * the post has moved to the database. The columns hold the same copy, so
+     * nothing is left waiting to be published.
+     */
+    private function saveFiles(BlogPost $post, ?ContentStorageType $previous): void
+    {
+        if ($post->usesFileStorage()) {
+            $this->files->write($post, $this->publisher->publishedParts($post));
+        } elseif ($previous === ContentStorageType::FILE) {
+            $this->files->delete($post);
+        }
+
+        $this->publisher->markSaved($post);
     }
 
     private function resolveSlug(?string $candidate, string $title, ?int $excludeId): string

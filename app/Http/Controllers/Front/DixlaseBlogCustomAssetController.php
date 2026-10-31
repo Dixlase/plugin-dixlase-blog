@@ -74,6 +74,8 @@ class DixlaseBlogCustomAssetController extends Controller
             ->currentlyVisible()
             ->where('slug', (string) $request->route('slug'))
             ->first();
+        // Served apart from the post page, so its files are checked here too.
+        $post?->checkFiles();
 
         $content = $post !== null && $carries($post->editor_type)
             ? (string) $post->getAttribute($column)

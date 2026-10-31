@@ -41,14 +41,17 @@ use App\Rules\UniqueContentSlug;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\ChoosesStorageType;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\LimitsCustomAssets;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\NullsBlankInput;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\ReadsDatetimeInDisplayTimezone;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
+use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
 class BlogPostStoreRequest extends FormRequest
 {
+    use ChoosesStorageType;
     use LimitsCustomAssets;
     use NullsBlankInput;
     use ReadsDatetimeInDisplayTimezone;
@@ -79,6 +82,8 @@ class BlogPostStoreRequest extends FormRequest
             'featured_media_id' => ['nullable', 'integer', 'exists:media,id'],
             // HTML is accepted only from members who may author scripts, and
             // not in Simple mode; Blade never. See BlogScriptAuthoringPolicy.
+            // Always set by prepareForValidation(); see ChoosesStorageType.
+            'storage_type' => ['sometimes', 'string', Rule::in(BlogSettings::STORAGE_TYPES)],
             'editor_type' => ['required', 'string', Rule::in(
                 BlogScriptAuthoringPolicy::creatableEditorSlugs(Auth::guard('member')->user())
             )],
@@ -113,6 +118,7 @@ class BlogPostStoreRequest extends FormRequest
         $this->readDatetimeInDisplayTimezone(['published_at', 'closed_at']);
 
         $this->limitCustomAssets(ContentEditorType::tryFromSlug((string) $this->input('editor_type')));
+        $this->chooseStorageType();
 
         $seoMeta = $this->input('seo_meta');
         if (is_array($seoMeta) && in_array($seoMeta['ogp_media_id'] ?? null, ['', '0', 0], true)) {

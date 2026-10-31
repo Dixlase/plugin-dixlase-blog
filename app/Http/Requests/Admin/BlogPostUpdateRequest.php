@@ -41,13 +41,16 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
+use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\ChoosesStorageType;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\LimitsCustomAssets;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\NullsBlankInput;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\ReadsDatetimeInDisplayTimezone;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
+use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
 class BlogPostUpdateRequest extends FormRequest
 {
+    use ChoosesStorageType;
     use LimitsCustomAssets;
     use NullsBlankInput;
     use ReadsDatetimeInDisplayTimezone;
@@ -103,6 +106,8 @@ class BlogPostUpdateRequest extends FormRequest
             'excerpt' => ['nullable', 'string', 'max:500'],
             'featured_media_id' => ['nullable', 'integer', 'exists:media,id'],
             // The editor type is fixed once a post is saved.
+            // Always set by prepareForValidation(); see ChoosesStorageType.
+            'storage_type' => ['sometimes', 'string', Rule::in(BlogSettings::STORAGE_TYPES)],
             'editor_type' => ['required', 'string', Rule::in($post !== null
                 ? [$post->editor_type->slug()]
                 : array_map(fn ($case) => $case->slug(), ContentEditorType::cases()))],
@@ -137,6 +142,7 @@ class BlogPostUpdateRequest extends FormRequest
 
         $post = $this->postBeingUpdated();
         $this->limitCustomAssets($post?->editor_type, $post);
+        $this->chooseStorageType($post);
 
         $seoMeta = $this->input('seo_meta');
         if (is_array($seoMeta) && in_array($seoMeta['ogp_media_id'] ?? null, ['', '0', 0], true)) {

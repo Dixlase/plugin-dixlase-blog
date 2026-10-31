@@ -156,11 +156,14 @@ Route::name('dixlase-blog::admin.')
         Route::get('/blog/settings/sidebar', [DixlaseBlogAdminSettingsController::class, 'sidebar'])->name('blog.settings.sidebar');
         Route::get('/blog/settings/share', [DixlaseBlogAdminSettingsController::class, 'share'])->name('blog.settings.share');
         Route::get('/blog/settings/comments', [DixlaseBlogAdminSettingsController::class, 'comments'])->name('blog.settings.comments');
+        Route::get('/blog/settings/storage', [DixlaseBlogAdminSettingsController::class, 'storage'])->name('blog.settings.storage');
         Route::put('/blog/settings', [DixlaseBlogAdminSettingsController::class, 'update'])->name('blog.settings.update');
 
         // ===== Posts: item-level routes =====
         Route::get('/blog/{post}/edit', [DixlaseBlogAdminPostsController::class, 'edit'])->name('blog.edit');
         Route::put('/blog/{post}', [DixlaseBlogAdminPostsController::class, 'update'])->name('blog.update');
+        // Publishes changes made to a post's files outside the admin.
+        Route::post('/blog/{post}/publish-file', [DixlaseBlogAdminPostsController::class, 'publishFile'])->name('blog.publishFile');
         Route::delete('/blog/{post}', [DixlaseBlogAdminPostsController::class, 'destroy'])->name('blog.destroy');
 
         // ===== Revisions =====

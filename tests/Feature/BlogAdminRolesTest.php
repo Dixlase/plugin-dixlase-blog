@@ -65,6 +65,7 @@ class BlogAdminRolesTest extends TestCase
         'dixlase-blog::admin.blog.settings.sidebar',
         'dixlase-blog::admin.blog.settings.share',
         'dixlase-blog::admin.blog.settings.comments',
+        'dixlase-blog::admin.blog.settings.storage',
         'dixlase-blog::admin.blog.settings.update',
         'dixlase-blog::admin.blog.comments.forceDelete',
         'dixlase-blog::admin.blog.comments.personalData.index',
@@ -107,6 +108,7 @@ class BlogAdminRolesTest extends TestCase
             'dixlase-blog::admin.blog.create',
             'dixlase-blog::admin.blog.store',
             'dixlase-blog::admin.blog.update',
+            'dixlase-blog::admin.blog.publishFile',
             'dixlase-blog::admin.blog.preview',
             'dixlase-blog::admin.blog.destroy',
             'dixlase-blog::admin.blog.restore',
@@ -172,7 +174,7 @@ class BlogAdminRolesTest extends TestCase
     {
         $nav = (require base_path('plugins/DixlaseBlog/config/admin.php'))['nav']['blog'];
         $this->assertSame(
-            ['dixlase-blog::admin.blog.settings.listing', 'dixlase-blog::admin.blog.settings.sidebar', 'dixlase-blog::admin.blog.settings.share', 'dixlase-blog::admin.blog.settings.comments'],
+            ['dixlase-blog::admin.blog.settings.listing', 'dixlase-blog::admin.blog.settings.sidebar', 'dixlase-blog::admin.blog.settings.share', 'dixlase-blog::admin.blog.settings.comments', 'dixlase-blog::admin.blog.settings.storage'],
             array_values(array_column($nav['children']['settings']['children'], 'route')),
         );
 

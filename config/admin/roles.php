@@ -76,6 +76,10 @@ return [
                 'store' => $editor,
                 'edit' => $editor,
                 'update' => $editor,
+                // Publishing changes made to a post's files outside the
+                // admin is the same authoring as saving the post; the
+                // controller checks the editor type as the save does.
+                'publishFile' => $editor,
                 'preview' => $editor,
                 'previewFrame' => $editor,
                 'previewPage' => $editor,
@@ -150,6 +154,7 @@ return [
                         'sidebar' => $admin,
                         'share' => $admin,
                         'comments' => $admin,
+                        'storage' => $admin,
                         'update' => $admin,
                     ],
                 ],
