@@ -162,9 +162,10 @@ class BlogPostSourceLanguageTest extends TestCase
         $this->update($post, ['lang' => 'ja'])->assertSessionHasErrors('lang');
         $this->assertSame('en', $post->refresh()->lang);
 
-        // The refusal's errors are flashed; start the next request clean.
-        $this->flushSession();
-        $this->update($post, ['lang' => 'ja', 'confirm_lang_change' => '1'])->assertSessionHasNoErrors();
+        // The refusal's flashed errors outlive the next request in the test
+        // session, so the confirmed change is judged by what was saved.
+        $this->update($post, ['lang' => 'ja', 'confirm_lang_change' => '1'])
+            ->assertRedirect(route('dixlase-blog::admin.blog.edit', ['post' => $post->id]));
         $this->assertSame('ja', $post->refresh()->lang);
         $this->assertSame('Title', $post->title);
     }
