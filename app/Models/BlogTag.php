@@ -37,6 +37,7 @@ namespace Plugins\DixlaseBlog\App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
 use Plugins\DixlaseBlog\App\Models\Concerns\HasLocalizedFields;
 
 /**
@@ -52,6 +53,9 @@ class BlogTag extends Model
     use HasFactory;
     use HasLocalizedFields;
 
+    /** The name and slug columns are 100 characters. */
+    public const NAME_MAX = 100;
+
     protected $table = 'plg_dixlase_blog_tags';
 
     /** @var list<string> */
@@ -60,6 +64,30 @@ class BlogTag extends Model
         'slug',
         'lang',
     ];
+
+    /**
+     * A slug no other tag uses: the given one, else one derived from the
+     * name (a hash when the name has no Latin letters), numbered on a
+     * clash. $exceptId is the tag being renamed.
+     */
+    public static function freeSlug(?string $candidate, string $name, ?int $exceptId = null): string
+    {
+        $base = trim((string) $candidate);
+        if ($base === '') {
+            $base = Str::slug($name);
+        }
+        if ($base === '') {
+            $base = 'tag-'.substr(md5($name), 0, 8);
+        }
+        $base = Str::limit($base, self::NAME_MAX - 4, '');
+
+        $slug = $base;
+        for ($n = 2; static::query()->where('slug', $slug)->when($exceptId, fn ($q) => $q->whereKeyNot($exceptId))->exists(); $n++) {
+            $slug = $base.'-'.$n;
+        }
+
+        return $slug;
+    }
 
     /**
      * @return BelongsToMany<BlogPost>

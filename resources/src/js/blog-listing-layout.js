@@ -18,8 +18,9 @@
 
 /**
  * Alpine.js component for the top page layout on the blog's Listing
- * settings screen. The choice of excerpt or full text applies only to the
- * latest posts, so it shows only while that layout is picked.
+ * settings screen. What follows the layout depends on it: the cards'
+ * columns and excerpt, or the latest posts' text. The hidden fields are
+ * still sent, so their saved values stay.
  *
  * The radio group binds to `layout` (xModel); the saved value comes in on
  * data-layout, so the right card starts checked.
@@ -34,6 +35,10 @@ export default function blogListingLayout() {
 
         get latest() {
             return this.layout === 'full';
+        },
+
+        get cards() {
+            return ! this.latest;
         },
     };
 }

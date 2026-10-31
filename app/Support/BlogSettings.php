@@ -83,6 +83,9 @@ class BlogSettings
      */
     public const POST_FIELDS = ['featured_image', 'date', 'author', 'categories', 'tags', 'comments'];
 
+    /** How the cards are laid out: several per row, or one per row with the image beside the text. */
+    public const CARD_COLUMNS = ['multi', 'single'];
+
     /** How the latest posts on the top page show their text. */
     public const LATEST_BODIES = ['full', 'excerpt'];
 
@@ -128,6 +131,7 @@ class BlogSettings
         // in the latest posts; all of them until the site turns some off.
         'post_fields' => '["featured_image","date","author","categories","tags","comments"]',
         'card_excerpt' => '1',
+        'card_columns' => 'multi',
         // The latest posts on the top page: the full text or the excerpt.
         'latest_body' => 'full',
         // Off until the site turns them on: comments collect personal data.
@@ -264,6 +268,16 @@ class BlogSettings
     public function cardExcerpt(): bool
     {
         return $this->value('card_excerpt') === '1';
+    }
+
+    /**
+     * How the cards are laid out: multi (several per row) or single.
+     */
+    public function cardColumns(): string
+    {
+        $value = (string) $this->value('card_columns');
+
+        return in_array($value, self::CARD_COLUMNS, true) ? $value : 'multi';
     }
 
     /**

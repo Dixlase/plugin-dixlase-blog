@@ -84,6 +84,10 @@ class DixlaseBlogAdminSettingsController extends Controller
                 ['value' => 'full', 'label' => __('dixlase-blog::admin.settings.latest_body_full'), 'icon' => 'fas fa-align-left'],
                 ['value' => 'excerpt', 'label' => __('dixlase-blog::admin.settings.latest_body_excerpt'), 'icon' => 'fas fa-paragraph'],
             ],
+            'cardColumnsOptions' => [
+                ['value' => 'multi', 'label' => __('dixlase-blog::admin.settings.card_columns_multi'), 'icon' => 'fas fa-table-cells-large'],
+                ['value' => 'single', 'label' => __('dixlase-blog::admin.settings.card_columns_single'), 'icon' => 'fas fa-list'],
+            ],
             'postFields' => array_map(
                 fn (string $key) => [
                     'key' => $key,

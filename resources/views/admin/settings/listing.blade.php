@@ -56,7 +56,8 @@ what the cards and the latest posts show.
             <x-form-error name="posts_per_page" />
         </div>
 
-        {{-- The text choice belongs to the latest posts only (blogListingLayout). --}}
+        {{-- Part of what follows the layout depends on it (blogListingLayout):
+             the cards' columns and excerpt, or the latest posts' text. --}}
         <div x-data="blogListingLayout" data-layout="{{ old('index_layout', $blogSettings['index_layout']) }}" class="grid grid-cols-1 gap-6">
             <div>
                 <x-form-label :text="__('dixlase-blog::admin.settings.index_layout_label')" :required="true" class="mb-2" />
@@ -71,6 +72,20 @@ what the cards and the latest posts show.
                 <x-form-error name="index_layout" />
             </div>
 
+            {{-- Only for the cards; hidden fields still send their values,
+                 which the archives and the [blog] shortcode keep using. --}}
+            <div x-show="cards" x-cloak>
+                <x-form-label :text="__('dixlase-blog::admin.settings.card_columns_label')" :required="true" class="mb-2" />
+                <x-form-radio-card-group
+                    name="card_columns"
+                    :options="$cardColumnsOptions"
+                    :value="old('card_columns', $blogSettings['card_columns'])"
+                    :columns="2"
+                />
+                <x-form-help-text :text="__('dixlase-blog::admin.settings.card_columns_help')" />
+                <x-form-error name="card_columns" />
+            </div>
+
             <div x-show="latest" x-cloak>
                 <x-form-label :text="__('dixlase-blog::admin.settings.latest_body_label')" :required="true" class="mb-2" />
                 <x-form-radio-card-group
@@ -82,33 +97,34 @@ what the cards and the latest posts show.
                 <x-form-help-text :text="__('dixlase-blog::admin.settings.latest_body_help')" />
                 <x-form-error name="latest_body" />
             </div>
-        </div>
 
-        <div>
-            <x-form-label :text="__('dixlase-blog::admin.settings.post_fields_label')" class="mb-2" />
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                @foreach ($postFields as $field)
-                    <x-form-toggle
-                        :id="'post_field_'.$field['key']"
-                        :name="'post_fields['.$field['key'].']'"
-                        :label="$field['label']"
-                        :checked="(bool) old('post_fields.'.$field['key'], $field['enabled'])"
-                    />
-                @endforeach
+            <div>
+                <x-form-label :text="__('dixlase-blog::admin.settings.post_fields_label')" class="mb-2" />
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    @foreach ($postFields as $field)
+                        <x-form-toggle
+                            :id="'post_field_'.$field['key']"
+                            :name="'post_fields['.$field['key'].']'"
+                            :label="$field['label']"
+                            :checked="(bool) old('post_fields.'.$field['key'], $field['enabled'])"
+                        />
+                    @endforeach
+                </div>
+                <x-form-help-text :text="__('dixlase-blog::admin.settings.post_fields_help')" />
+                <x-form-error name="post_fields" />
             </div>
-            <x-form-help-text :text="__('dixlase-blog::admin.settings.post_fields_help')" />
-            <x-form-error name="post_fields" />
-        </div>
 
-        <div>
-            <x-form-toggle
-                id="card_excerpt"
-                name="card_excerpt"
-                :label="__('dixlase-blog::admin.settings.card_excerpt_label')"
-                :checked="(bool) old('card_excerpt', $blogSettings['card_excerpt'])"
-            />
-            <x-form-help-text :text="__('dixlase-blog::admin.settings.card_excerpt_help')" />
-            <x-form-error name="card_excerpt" />
+            {{-- Cards only, like the columns above. --}}
+            <div x-show="cards" x-cloak>
+                <x-form-toggle
+                    id="card_excerpt"
+                    name="card_excerpt"
+                    :label="__('dixlase-blog::admin.settings.card_excerpt_label')"
+                    :checked="(bool) old('card_excerpt', $blogSettings['card_excerpt'])"
+                />
+                <x-form-help-text :text="__('dixlase-blog::admin.settings.card_excerpt_help')" />
+                <x-form-error name="card_excerpt" />
+            </div>
         </div>
     </div>
 @endsection

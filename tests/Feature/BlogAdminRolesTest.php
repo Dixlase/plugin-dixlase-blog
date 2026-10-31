@@ -58,6 +58,7 @@ class BlogAdminRolesTest extends TestCase
     private const ADMIN_ONLY = [
         'dixlase-blog::admin.blog.forceDelete',
         'dixlase-blog::admin.blog.categories.destroy',
+        'dixlase-blog::admin.blog.tags.destroy',
         'dixlase-blog::admin.blog.revisions.protect',
         'dixlase-blog::admin.blog.settings.edit',
         'dixlase-blog::admin.blog.settings.listing',
@@ -110,6 +111,9 @@ class BlogAdminRolesTest extends TestCase
             'dixlase-blog::admin.blog.destroy',
             'dixlase-blog::admin.blog.restore',
             'dixlase-blog::admin.blog.categories.store',
+            'dixlase-blog::admin.blog.tags.index',
+            'dixlase-blog::admin.blog.tags.store',
+            'dixlase-blog::admin.blog.tags.update',
             'dixlase-blog::admin.blog.previewPage',
             'dixlase-blog::admin.blog.previewForm',
             'dixlase-blog::admin.blog.categories.outdent',
@@ -158,7 +162,7 @@ class BlogAdminRolesTest extends TestCase
 
         $this->actingAs($this->member(MemberRole::EDITOR));
 
-        foreach (['index', 'create', 'categories', 'trash'] as $child) {
+        foreach (['index', 'create', 'categories', 'tags', 'trash'] as $child) {
             $this->assertArrayHasKey($child, $nav['children']);
             $this->assertTrue(AdminHelper::canViewMenuOrPlugin('DixlaseBlog', "blog.{$child}"), "blog.{$child}");
         }
