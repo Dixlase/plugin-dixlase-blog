@@ -195,7 +195,9 @@ class BlogSidebarTest extends TestCase
         $this->get('/blog/2025/01')->assertOk()
             ->assertSee('Recent 4')
             ->assertSee('Recent 3')
-            ->assertDontSee('Recent 2');
+            ->assertDontSee('Recent 2')
+            // Each date comes before its title.
+            ->assertSeeInOrder(['2026-10-04', 'Recent 4', '2026-10-03', 'Recent 3']);
     }
 
     public function test_the_calendar_links_days_with_posts_and_neighbouring_months(): void
