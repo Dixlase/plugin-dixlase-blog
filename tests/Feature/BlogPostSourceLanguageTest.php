@@ -162,6 +162,8 @@ class BlogPostSourceLanguageTest extends TestCase
         $this->update($post, ['lang' => 'ja'])->assertSessionHasErrors('lang');
         $this->assertSame('en', $post->refresh()->lang);
 
+        // The refusal's errors are flashed; start the next request clean.
+        $this->flushSession();
         $this->update($post, ['lang' => 'ja', 'confirm_lang_change' => '1'])->assertSessionHasNoErrors();
         $this->assertSame('ja', $post->refresh()->lang);
         $this->assertSame('Title', $post->title);
