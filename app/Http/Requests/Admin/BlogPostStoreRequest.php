@@ -82,8 +82,8 @@ class BlogPostStoreRequest extends FormRequest
             'featured_media_id' => ['nullable', 'integer', 'exists:media,id'],
             // HTML is accepted only from members who may author scripts, and
             // not in Simple mode; Blade never. See BlogScriptAuthoringPolicy.
-            // Settled in prepareForValidation(); see ChoosesStorageType.
-            'storage_type' => ['required', 'string', Rule::in(BlogSettings::STORAGE_TYPES)],
+            // Always set by prepareForValidation(); see ChoosesStorageType.
+            'storage_type' => ['sometimes', 'string', Rule::in(BlogSettings::STORAGE_TYPES)],
             'editor_type' => ['required', 'string', Rule::in(
                 BlogScriptAuthoringPolicy::creatableEditorSlugs(Auth::guard('member')->user())
             )],

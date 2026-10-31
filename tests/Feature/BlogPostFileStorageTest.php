@@ -182,7 +182,8 @@ class BlogPostFileStorageTest extends TestCase
             ->assertSee(__('common.file_changes.title'))
             ->assertSee(route('dixlase-blog::admin.blog.publishFile', ['post' => $post->id]), false)
             ->assertSee('Edited on disk')
-            ->assertSee('storage/app/private/'.self::DIR.'/'.$post->id, false);
+            // The editor's settings travel as JSON, which escapes the slashes.
+            ->assertSee(str_replace('/', '\\/', 'storage/app/private/'.self::DIR.'/'.$post->id), false);
     }
 
     public function test_publishing_takes_the_file_in_and_records_it(): void

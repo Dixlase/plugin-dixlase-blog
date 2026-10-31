@@ -106,8 +106,8 @@ class BlogPostUpdateRequest extends FormRequest
             'excerpt' => ['nullable', 'string', 'max:500'],
             'featured_media_id' => ['nullable', 'integer', 'exists:media,id'],
             // The editor type is fixed once a post is saved.
-            // Settled in prepareForValidation(); see ChoosesStorageType.
-            'storage_type' => ['required', 'string', Rule::in(BlogSettings::STORAGE_TYPES)],
+            // Always set by prepareForValidation(); see ChoosesStorageType.
+            'storage_type' => ['sometimes', 'string', Rule::in(BlogSettings::STORAGE_TYPES)],
             'editor_type' => ['required', 'string', Rule::in($post !== null
                 ? [$post->editor_type->slug()]
                 : array_map(fn ($case) => $case->slug(), ContentEditorType::cases()))],
