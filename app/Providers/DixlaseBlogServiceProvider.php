@@ -37,6 +37,7 @@ use App\Contracts\Repositories\ThemeRepositoryInterface;
 use App\Contracts\RouteSlugProvider;
 use App\DTO\RouteSlug\RegisteredSlug;
 use App\Helpers\PluginHelper;
+use App\Services\Content\FileContentRegistry;
 use App\Services\RouteSlugRegistry;
 use App\Traits\PluginLoaderTrait;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -45,6 +46,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Services\BlogCommentCaptchaFormProvider;
 use Plugins\DixlaseBlog\App\Services\BlogCommentDashboardProvider;
 use Plugins\DixlaseBlog\App\Services\BlogLocalizedUrlProvider;
@@ -102,6 +104,11 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
         }
 
         self::defineCommentRateLimiter();
+
+        // Posts stored as files are published through core's shared layer,
+        // so the scheduled scan checks their files and the admin counts the
+        // changes waiting to be published (#193).
+        $this->app->make(FileContentRegistry::class)->register(BlogPost::class);
 
         // [blog]: the latest posts in other content, such as the front page.
         PluginHelper::registerShortcode('blog', BlogShortcode::class);

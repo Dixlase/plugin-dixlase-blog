@@ -17,6 +17,7 @@ A blog for Dixlase: posts with categories and tags, revisions and a trash; comme
 - **Pinned posts** — Pinned posts come first in the list.
 - **Categories** — Up to three levels. Reorder them by dragging, or with the buttons on each row (up, down, into the category above, up a level), which also work from the keyboard. A post can belong to several categories.
 - **Tags** — Entered as free text on the post screen and created on save.
+- **File storage** — In the advanced admin mode a post can keep its body, CSS and JavaScript as files under `storage/app/private/dixlase-blog/posts/`, to be edited locally and deployed. A change made to the files outside the admin waits on the edit screen until it is published, and is recorded in the audit log; only in a development environment (`APP_ENV=local`) can the settings take it in at once.
 - **Revisions** — A snapshot on every save, restorable at any time, with notes and protection against pruning.
 - **Trash** — Deleted posts can be restored or deleted permanently.
 - **Roles** — Editors write and manage posts. Permanent deletion, the settings screen and personal-data requests are for admins.

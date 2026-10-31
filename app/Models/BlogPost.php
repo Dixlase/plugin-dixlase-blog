@@ -34,11 +34,17 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\App\Models;
 
+use App\Contracts\Content\DeclaresScriptCapableParts;
+use App\Contracts\Content\ProvidesFileContentEditLink;
+use App\Contracts\Content\PublishesFileContent;
 use App\Contracts\Revisionable;
 use App\Enums\ContentEditorType;
+use App\Enums\ContentPublishMode;
 use App\Enums\ContentStatus;
+use App\Enums\ContentStorageType;
 use App\Models\Media;
 use App\Models\Member;
+use App\Services\Content\FileContentPublisher;
 use App\Traits\HasRevisions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -48,8 +54,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Plugins\DixlaseBlog\App\Models\Concerns\HasLocalizedFields;
+use Plugins\DixlaseBlog\App\Services\BlogPostFiles;
+use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 use Plugins\DixlaseBlog\App\Services\BlogSeoMeta;
 use Plugins\DixlaseBlog\App\Support\BlogExcerpt;
+use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
 /**
  * @property int $id
@@ -61,6 +70,7 @@ use Plugins\DixlaseBlog\App\Support\BlogExcerpt;
  * @property string|null $excerpt
  * @property int|null $featured_media_id
  * @property ContentEditorType $editor_type
+ * @property ContentStorageType $storage_type Files hold a working copy; the columns hold what is published
  * @property ContentStatus $status
  * @property bool $is_pinned
  * @property string $comment_status inherit, open or closed (COMMENT_STATUSES)
@@ -72,7 +82,7 @@ use Plugins\DixlaseBlog\App\Support\BlogExcerpt;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
  */
-class BlogPost extends Model implements Revisionable
+class BlogPost extends Model implements DeclaresScriptCapableParts, ProvidesFileContentEditLink, PublishesFileContent, Revisionable
 {
     use HasFactory;
     use HasLocalizedFields;
@@ -102,6 +112,7 @@ class BlogPost extends Model implements Revisionable
         'excerpt',
         'featured_media_id',
         'editor_type',
+        'storage_type',
         'status',
         'is_pinned',
         'comment_status',
@@ -121,6 +132,7 @@ class BlogPost extends Model implements Revisionable
     protected $attributes = [
         'is_pinned' => false,
         'comment_status' => 'inherit',
+        'storage_type' => 0,
     ];
 
     protected static function booted(): void
@@ -129,6 +141,20 @@ class BlogPost extends Model implements Revisionable
         // restored post gets it back.
         static::forceDeleted(function (BlogPost $post): void {
             app(BlogSeoMeta::class)->delete((int) $post->id);
+            app(BlogPostFiles::class)->delete($post);
+        });
+
+        // A body published from its files, rather than saved from the form,
+        // keeps an excerpt that was made from it in step with it. One the
+        // author wrote is left alone.
+        static::saving(function (BlogPost $post): void {
+            if (! $post->exists || ! $post->isDirty('content') || $post->isDirty('excerpt')) {
+                return;
+            }
+            $previous = BlogExcerpt::fromContent($post->getOriginal('content'));
+            if ((string) $post->getOriginal('excerpt') === (string) $previous) {
+                $post->excerpt = BlogExcerpt::fromContent($post->getAttributes()['content'] ?? null);
+            }
         });
     }
 
@@ -139,6 +165,7 @@ class BlogPost extends Model implements Revisionable
     {
         return [
             'editor_type' => ContentEditorType::class,
+            'storage_type' => ContentStorageType::class,
             'status' => ContentStatus::class,
             'is_pinned' => 'boolean',
             'published_at' => 'datetime',
@@ -377,6 +404,109 @@ class BlogPost extends Model implements Revisionable
             ContentStatus::SCHEDULED => $this->published_at !== null && $this->published_at->isPast(),
             default => false,
         };
+    }
+
+    /**
+     * Take in, or record, a change made to the post's files outside the
+     * admin, before the post is shown. Core's FileContentPublisher decides
+     * which: the columns keep the published copy, and a change waits there
+     * until someone publishes it, except under the file save mode in a
+     * local environment.
+     */
+    public function checkFiles(): void
+    {
+        if ($this->usesFileStorage()) {
+            app(FileContentPublisher::class)->check($this);
+        }
+    }
+
+    public function usesFileStorage(): bool
+    {
+        return $this->storage_type === ContentStorageType::FILE;
+    }
+
+    /**
+     * The mode chosen in the blog settings
+     *
+     * Core decides where it takes effect: the file save mode applies only in
+     * a local environment, and anywhere else every change to the files waits
+     * to be published (FileContentPublisher::effectivePublishMode()).
+     */
+    public function fileContentPublishMode(): ContentPublishMode
+    {
+        return app(BlogSettings::class)->publishMode();
+    }
+
+    /**
+     * The body, plus the CSS (HTML and Markdown) and the JavaScript (HTML
+     * alone), as BlogScriptAuthoringPolicy keeps them
+     *
+     * @return array<string, string>
+     */
+    public function fileContentParts(): array
+    {
+        $parts = ['content' => 'content'];
+
+        if (BlogScriptAuthoringPolicy::carriesCustomCss($this->editor_type)) {
+            $parts['custom_css'] = 'custom_css';
+        }
+        if (BlogScriptAuthoringPolicy::carriesCustomJs($this->editor_type)) {
+            $parts['custom_js'] = 'custom_js';
+        }
+
+        return $parts;
+    }
+
+    /**
+     * The parts of a post that may carry a script
+     *
+     * The CSS and the JavaScript, and the body under the HTML editor, where
+     * `<script>` is part of what the author writes.
+     *
+     * @return list<string>
+     */
+    public function scriptCapableFileContentParts(): array
+    {
+        $parts = FileContentPublisher::DEFAULT_SCRIPT_CAPABLE_PARTS;
+
+        if ($this->editor_type === ContentEditorType::HTML) {
+            $parts[] = 'content';
+        }
+
+        return $parts;
+    }
+
+    public function fileContentPath(string $part): string
+    {
+        return app(BlogPostFiles::class)->path($this, $part);
+    }
+
+    public function fileContentDisk(): string
+    {
+        return BlogPostFiles::DISK;
+    }
+
+    public function fileContentAuditPrefix(): string
+    {
+        return 'dixlase_blog.post';
+    }
+
+    /**
+     * @return Builder<static>
+     */
+    public static function fileStoredQuery(): Builder
+    {
+        return static::query()->where('storage_type', ContentStorageType::FILE->value);
+    }
+
+    public function fileContentLabel(): string
+    {
+        return (string) $this->title;
+    }
+
+    public function fileContentEditUrl(): ?string
+    {
+        return route('dixlase-blog::admin.blog.edit', ['post' => $this->getKey()]);
     }
 
     public function revisionModel(): string

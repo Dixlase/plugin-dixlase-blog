@@ -35,6 +35,8 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\App\Support;
 
+use App\Enums\ContentPublishMode;
+use App\Enums\ContentStorageType;
 use App\Helpers\ConfigHelper;
 use Plugins\DixlaseBlog\App\Models\BlogSetting;
 
@@ -48,7 +50,7 @@ class BlogSettings
      * The settings screens, one per area, in the order of the admin menu.
      * Each has a route (blog.settings.<screen>) and a view of that name.
      */
-    public const SCREENS = ['listing', 'sidebar', 'share', 'comments'];
+    public const SCREENS = ['listing', 'sidebar', 'share', 'comments', 'storage'];
 
     public const POSTS_PER_PAGE_MIN = 1;
 
@@ -107,6 +109,9 @@ class BlogSettings
     /** The rate limit period, in minutes (one day at most). */
     public const COMMENT_RATE_DECAY_MINUTES_MAX = 1440;
 
+    /** Where a new post keeps its body, CSS and JavaScript (ContentStorageType slugs). */
+    public const STORAGE_TYPES = ['database', 'file'];
+
     /**
      * Every setting and its default, as stored (strings). Core inserts the
      * missing rows on install and update; see DixlaseBlogServiceProvider.
@@ -152,6 +157,13 @@ class BlogSettings
         // Linked from the comment form when no plugin provides a privacy
         // policy.
         'privacy_policy_url' => '',
+        // Where a new post is stored; file storage needs the advanced
+        // admin mode (#193).
+        'default_storage_type' => 'database',
+        // How a change made to a post's files outside the admin is
+        // published (ContentPublishMode). Core applies the file save mode
+        // only in a local environment.
+        'publish_mode' => 'admin',
     ];
 
     /** @var array<string, string|null>|null */
@@ -288,6 +300,23 @@ class BlogSettings
         $value = (string) $this->value('latest_body');
 
         return in_array($value, self::LATEST_BODIES, true) ? $value : 'full';
+    }
+
+    /**
+     * Where a new post is stored, unless the form says otherwise.
+     */
+    public function defaultStorageType(): ContentStorageType
+    {
+        return ContentStorageType::tryFromSlug((string) $this->value('default_storage_type')) ?? ContentStorageType::DATABASE;
+    }
+
+    /**
+     * How the changes made to a post's files outside the admin are
+     * published, as chosen. Core decides where it takes effect.
+     */
+    public function publishMode(): ContentPublishMode
+    {
+        return ContentPublishMode::fromSetting($this->value('publish_mode'));
     }
 
     /**

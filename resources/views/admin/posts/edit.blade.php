@@ -26,6 +26,14 @@ Dixlase Blog is dual-licensed. You may use this file under either:
         </a>
     </div>
 
+    {{-- Changes made to the post's files outside the admin, waiting to be
+         published (#193). Outside the post form: it posts its own form. --}}
+    <x-content.file-changes
+        id="post-file-changes"
+        :changes="$fileChanges"
+        :publishUrl="route('dixlase-blog::admin.blog.publishFile', ['post' => $post->id])"
+    />
+
     {{-- The form's x-data dispatches "right-sidebar-active" so the admin
          layout knows to apply lg:mr-80 to #admin-main-content (which is
          what stops the centre column from drawing under the right

@@ -120,6 +120,12 @@ return [
                             'icon' => 'fas fa-fw fa-comment-dots',
                             'can' => 'admin',
                         ],
+                        'storage' => [
+                            'text' => 'dixlase-blog::admin.nav.blog.settings_storage',
+                            'route' => 'dixlase-blog::admin.blog.settings.storage',
+                            'icon' => 'fas fa-fw fa-hard-drive',
+                            'can' => 'admin',
+                        ],
                     ],
                 ],
             ],

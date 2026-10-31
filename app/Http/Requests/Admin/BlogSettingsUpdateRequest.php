@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace Plugins\DixlaseBlog\App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Enums\ContentPublishMode;
 use App\Helpers\LocaleHelper;
 use App\Rules\UniqueRouteSlug;
 use Illuminate\Validation\Rule;
@@ -140,6 +141,8 @@ class BlogSettingsUpdateRequest extends FormRequest
                 'max:'.BlogSettings::COMMENT_IP_RETENTION_DAYS_MAX,
             ],
             'privacy_policy_url' => ['sometimes', 'nullable', 'string', 'url:http,https', 'max:2048'],
+            'default_storage_type' => ['sometimes', 'required', Rule::in(BlogSettings::STORAGE_TYPES)],
+            'publish_mode' => ['sometimes', 'required', Rule::enum(ContentPublishMode::class)],
         ];
     }
 
@@ -223,6 +226,8 @@ class BlogSettingsUpdateRequest extends FormRequest
             'comment_notify_email' => __('dixlase-blog::admin.settings.comment_notify_email_label'),
             'comment_ip_retention_days' => __('dixlase-blog::admin.settings.comment_ip_retention_days_label'),
             'privacy_policy_url' => __('dixlase-blog::admin.settings.privacy_policy_url_label'),
+            'default_storage_type' => __('dixlase-blog::admin.settings.default_storage_type_label'),
+            'publish_mode' => __('common.content_publish_mode.label'),
         ];
     }
 }

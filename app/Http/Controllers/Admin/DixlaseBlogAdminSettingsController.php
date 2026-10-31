@@ -35,7 +35,12 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\App\Http\Controllers\Admin;
 
+use App\Enums\ContentPublishMode;
+use App\Enums\ContentStorageType;
+use App\Facades\Audit;
 use App\Helpers\ConfigHelper;
+use App\Helpers\AdminHelper;
+use App\Services\Content\FileContentPublisher;
 use App\Traits\AdminInterfaceTrait;
 use App\Traits\AdminLoggedInTrait;
 use Illuminate\Http\RedirectResponse;
@@ -44,12 +49,19 @@ use Illuminate\Routing\Controller;
 use Illuminate\View\View;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogSettingsUpdateRequest;
 use Plugins\DixlaseBlog\App\Services\BlogComments;
+use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
 class DixlaseBlogAdminSettingsController extends Controller
 {
     use AdminInterfaceTrait;
     use AdminLoggedInTrait;
+
+    /**
+     * Settings whose changes are written to the audit log: how a change to
+     * a post's files goes live is a security setting (#193).
+     */
+    private const AUDITED_SETTINGS = ['default_storage_type', 'publish_mode'];
 
     // Not $settings: AdminInterfaceTrait owns that property (the site's
     // settings) and the view variable of the same name.
@@ -147,6 +159,37 @@ class DixlaseBlogAdminSettingsController extends Controller
     }
 
     /**
+     * Where new posts are stored, and how changes made to the files of a
+     * post stored as files are published (#193). File storage is offered
+     * only in the advanced admin mode; core decides where the file save
+     * mode takes effect.
+     */
+    public function storage(): View
+    {
+        return $this->screen('storage', [
+            'isSimpleMode' => BlogScriptAuthoringPolicy::isSimpleMode(),
+            'storageTypeOptions' => [
+                [
+                    'value' => ContentStorageType::DATABASE->slug(),
+                    'label' => __('common.content_storage.database'),
+                    'description' => __('common.content_storage.database_description'),
+                    'icon' => 'fas fa-database',
+                ],
+                [
+                    'value' => ContentStorageType::FILE->slug(),
+                    'label' => __('common.content_storage.file'),
+                    'description' => __('common.content_storage.file_description'),
+                    'icon' => 'fas fa-file-lines',
+                ],
+            ],
+            'publishMode' => $this->blogSettings->publishMode()->value,
+            'publishModeOptions' => ContentPublishMode::options(),
+            'fileSaveModeAvailable' => FileContentPublisher::fileSaveModeAvailable(),
+            'schedulerRunning' => app(FileContentPublisher::class)->schedulerRunning(),
+        ]);
+    }
+
+    /**
      * @param  array<string, mixed>  $params
      */
     private function screen(string $screen, array $params): View
@@ -171,7 +214,19 @@ class DixlaseBlogAdminSettingsController extends Controller
     public function update(BlogSettingsUpdateRequest $request): RedirectResponse
     {
         $previousSlug = $this->blogSettings->routeSlug();
-        $this->blogSettings->save($request->settingsValues());
+        $values = $request->settingsValues();
+        $audited = array_intersect_key($values, array_flip(self::AUDITED_SETTINGS));
+        $before = array_intersect_key($this->blogSettings->all(), $audited);
+        $this->blogSettings->save($values);
+
+        if ($audited !== []) {
+            Audit::logBulkSettingsChange(
+                'dixlase_blog.settings',
+                $before,
+                array_intersect_key($this->blogSettings->all(), $audited),
+                AdminHelper::getMember(),
+            );
+        }
 
         // The prefix is baked into the routes when they are registered, so
         // a cached route table would keep serving the old one.

@@ -27,6 +27,9 @@ admin uses.
 With the HTML editor, members who may author scripts also get the CSS and
 JavaScript tabs, as for pages (not in Simple mode). The preview applies
 the CSS as it is typed and never runs the JavaScript.
+
+A post stored as files (#193) is edited from its files ($workingCopy),
+which may hold changes made outside the admin; saving publishes them.
 --}}
 
 @php
@@ -44,6 +47,8 @@ the CSS as it is typed and never runs the JavaScript.
     $previewFrameUrl = $isEditMode
         ? route('dixlase-blog::admin.blog.previewFrame', ['post' => $post->id])
         : route('dixlase-blog::admin.blog.previewFrame');
+
+    $workingCopy ??= [];
 
     $assetTabs = \Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy::canAuthorScripts(auth('member')->user())
         && ! \Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy::isSimpleMode();
@@ -67,10 +72,11 @@ the CSS as it is typed and never runs the JavaScript.
 
 <x-form-content-editor
     class="dixlase-blog-editor"
-    storageType="database"
+    :storageType="$storageTypeValue"
     :editorType="$editorTypeSlug"
-    :content="old('content', $post->content ?? '')"
+    :content="old('content', $workingCopy['content'] ?? $post->content ?? '')"
     :showStorageSelector="false"
+    :fileStorageBasePath="$fileStorageBasePath"
     :showEditorSelector="!$isEditMode"
     contentFieldName="content"
     editorFieldName="editor_type"
@@ -82,8 +88,8 @@ the CSS as it is typed and never runs the JavaScript.
     previewRender="server"
     :assetTabs="$assetTabs"
     :markdownCss="true"
-    :customCss="old('custom_css', $post->custom_css ?? '')"
-    :customJs="old('custom_js', $post->custom_js ?? '')"
+    :customCss="old('custom_css', $workingCopy['custom_css'] ?? $post->custom_css ?? '')"
+    :customJs="old('custom_js', $workingCopy['custom_js'] ?? $post->custom_js ?? '')"
     :cssPlaceholder="__('dixlase-blog::admin.post_form.css_placeholder')"
     :jsPlaceholder="__('dixlase-blog::admin.post_form.js_placeholder')"
 />

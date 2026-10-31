@@ -394,6 +394,7 @@ class BlogAdminScreensTest extends TestCase
         $this->assertContains('dixlase-blog::admin.blog.index', $opened);
         $this->assertContains('dixlase-blog::admin.blog.revisions.show', $opened);
         $this->assertContains('dixlase-blog::admin.blog.settings.comments', $opened);
+        $this->assertContains('dixlase-blog::admin.blog.settings.storage', $opened);
         $this->assertSame([], $failures, implode("\n", $failures));
     }
 

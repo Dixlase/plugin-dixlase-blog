@@ -34,9 +34,14 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\App\Http\Controllers\Admin;
 
+use App\Actions\Content\PublishFileContentAction;
+use App\Actors\MemberActor;
 use App\Enums\ContentEditorType;
+use App\Enums\ContentStorageType;
 use App\Helpers\AdminHelper;
 use App\Helpers\LocaleHelper;
+use App\Presenters\Admin\RevisionDiffPresenter;
+use App\Services\Content\FileContentPublisher;
 use App\Traits\AdminInterfaceTrait;
 use App\Traits\AdminLoggedInTrait;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -52,6 +57,7 @@ use Plugins\DixlaseBlog\App\Models\BlogCategory;
 use Plugins\DixlaseBlog\App\Models\BlogComment;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Services\BlogContentRenderer;
+use Plugins\DixlaseBlog\App\Services\BlogPostFiles;
 use Plugins\DixlaseBlog\App\Services\BlogPostService;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 use Plugins\DixlaseBlog\App\Services\BlogSeoMeta;
@@ -96,7 +102,7 @@ class DixlaseBlogAdminPostsController extends Controller
     {
         $post = new BlogPost();
 
-        return view('dixlase-blog::admin.posts.create', array_merge($this->viewParams, $this->languageParams($post), $this->seoMeta->formData($post), [
+        return view('dixlase-blog::admin.posts.create', array_merge($this->viewParams, $this->languageParams($post), $this->storageParams($post), $this->seoMeta->formData($post), [
             'post' => $post,
             'categoryTree' => $this->loadCategoryTree(),
             'selectedCategoryIds' => [],
@@ -139,13 +145,47 @@ class DixlaseBlogAdminPostsController extends Controller
         // An HTML body is script-capable; see BlogScriptAuthoringPolicy.
         abort_unless(BlogScriptAuthoringPolicy::canEditEditorType(AdminHelper::getMember(), $post->editor_type), 403);
 
-        return view('dixlase-blog::admin.posts.edit', array_merge($this->viewParams, $this->languageParams($post), $this->seoMeta->formData($post), [
+        // A post stored as files is edited from its files: the working
+        // copy, which may hold changes made outside the admin that are not
+        // published yet. Those are listed above the form.
+        $publisher = app(FileContentPublisher::class);
+        $publisher->check($post);
+        $diffPresenter = new RevisionDiffPresenter();
+        $fileChanges = [];
+        foreach ($publisher->pendingChanges($post) as $part => $change) {
+            $fileChanges[$part] = $diffPresenter->buildSideBySide($change['published'], $change['file']);
+        }
+
+        return view('dixlase-blog::admin.posts.edit', array_merge($this->viewParams, $this->languageParams($post), $this->storageParams($post), $this->seoMeta->formData($post), [
             'post' => $post,
+            'workingCopy' => $post->usesFileStorage() ? $publisher->readFiles($post) : [],
+            'fileChanges' => $fileChanges,
             'categoryTree' => $this->loadCategoryTree(),
             'selectedCategoryIds' => $post->categories->pluck('id')->all(),
             'tagNames' => $post->tags->pluck('name')->all(),
             'commentStatusOptions' => $this->commentStatusOptions(),
         ]));
+    }
+
+    /**
+     * Publish the changes made to a post's files outside the admin. The
+     * members who may edit the post may publish them: saving it from the
+     * form would publish the same.
+     */
+    public function publishFile(Request $request): RedirectResponse
+    {
+        $post = BlogPost::query()->findOrFail((int) $request->route('post'));
+        $member = AdminHelper::getMember();
+        abort_unless(BlogScriptAuthoringPolicy::canEditEditorType($member, $post->editor_type), 403);
+
+        $result = (new PublishFileContentAction($post, null, app(FileContentPublisher::class)))
+            ->execute(new MemberActor($member), []);
+
+        return redirect()
+            ->route('dixlase-blog::admin.blog.edit', ['post' => $post->id])
+            ->with($result->success ? 'success' : 'error', $result->success
+                ? __('dixlase-blog::admin.flash.post_file_published')
+                : $result->message);
     }
 
     public function update(BlogPostUpdateRequest $request): RedirectResponse
@@ -320,6 +360,25 @@ class DixlaseBlogAdminPostsController extends Controller
             'multilingualEnabled' => (bool) config('dixlase_multilingual.locale_url_routing_enabled', false),
             'languageOptions' => LocaleHelper::supportedLocaleOptions(),
             'langValue' => (string) old('lang', $post->exists ? $post->sourceLocale() : LocaleHelper::getSiteDefaultLocale()),
+        ];
+    }
+
+    /**
+     * Where the post keeps its content (#193). The choice is offered only in
+     * the advanced admin mode; see ChoosesStorageType. A new post has no id
+     * yet, so its directory is shown with a placeholder.
+     *
+     * @return array{showStorageChoice: bool, storageOptions: array<string, array{label: string, description: string}>, storageTypeValue: string, fileStorageBasePath: string}
+     */
+    private function storageParams(BlogPost $post): array
+    {
+        return [
+            'showStorageChoice' => ! BlogScriptAuthoringPolicy::isSimpleMode(),
+            'storageOptions' => ContentStorageType::optionsWithDescription(),
+            'storageTypeValue' => (string) old('storage_type', $post->exists
+                ? $post->storage_type->slug()
+                : app(BlogSettings::class)->defaultStorageType()->slug()),
+            'fileStorageBasePath' => 'storage/app/private/'.BlogPostFiles::baseDirectory().'/'.($post->exists ? $post->id : '{id}'),
         ];
     }
 

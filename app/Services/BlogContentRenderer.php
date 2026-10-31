@@ -67,10 +67,13 @@ final class BlogContentRenderer
 
     /**
      * The post's body in the current locale (the source text when there is
-     * no translation), rendered.
+     * no translation), rendered. A post stored as files has its files
+     * checked first, so the published copy is up to date (#193).
      */
     public function renderPost(BlogPost $post): string
     {
+        $post->checkFiles();
+
         return $this->render($post->localized('content'), $post->editor_type);
     }
 }
