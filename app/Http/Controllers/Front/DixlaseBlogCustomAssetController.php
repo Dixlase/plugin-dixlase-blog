@@ -78,7 +78,7 @@ class DixlaseBlogCustomAssetController extends Controller
         $post?->checkFiles();
 
         $content = $post !== null && $carries($post->editor_type)
-            ? (string) $post->getAttribute($column)
+            ? (string) $post->resolvedPart($column)
             : '';
         abort_if(trim($content) === '', 404);
 

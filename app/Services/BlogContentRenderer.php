@@ -30,7 +30,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\App\Services;
@@ -50,9 +49,7 @@ use Plugins\DixlaseBlog\App\Models\BlogPost;
  */
 final class BlogContentRenderer
 {
-    public function __construct(private readonly ContentPreviewService $previewService)
-    {
-    }
+    public function __construct(private readonly ContentPreviewService $previewService) {}
 
     public function render(?string $content, ?ContentEditorType $editorType): string
     {
@@ -74,6 +71,10 @@ final class BlogContentRenderer
     {
         $post->checkFiles();
 
-        return $this->render($post->localized('content'), $post->editor_type);
+        // A published translation wins; otherwise core's resolver decides
+        // between the working copy on disk and the published column (#197).
+        $body = $post->translationFor('content') ?? $post->resolvedPart('content');
+
+        return $this->render($body, $post->editor_type);
     }
 }

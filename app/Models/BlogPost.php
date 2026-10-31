@@ -426,6 +426,29 @@ class BlogPost extends Model implements DeclaresScriptCapableParts, ProvidesFile
     }
 
     /**
+     * What the front should show for a part the post stores as files
+     *
+     * The columns hold the published copy; the files hold the working one.
+     * Core's resolver decides which the visitor sees, and it answers the
+     * same on every core: the files while a change is waiting under a mode
+     * that shows it, the column otherwise.
+     *
+     * Reading the column directly was right only by accident. Up to core
+     * 0.1.20 a local environment took each change into the column as it was
+     * seen, so the column already held the edit. Core holds it from
+     * dixlase-core#808 on, and a post read from the column would then stop
+     * showing a local edit until someone published it (#197).
+     */
+    public function resolvedPart(string $part): ?string
+    {
+        if ($this->usesFileStorage() && array_key_exists($part, $this->fileContentParts())) {
+            return app(FileContentPublisher::class)->resolve($this, $part);
+        }
+
+        return $this->getAttribute($part);
+    }
+
+    /**
      * The mode chosen in the blog settings
      *
      * Core decides where it takes effect: the file save mode applies only in
