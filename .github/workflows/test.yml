@@ -9,6 +9,15 @@ on:
     branches:
       - next
       - main
+  # Run by hand against another core ref, e.g. `next` while a pull request
+  # waits for a core release (#194). Pull requests and pushes always test
+  # against `main`, the latest release.
+  workflow_dispatch:
+    inputs:
+      core_ref:
+        description: Core ref to test against
+        type: string
+        default: main
 
 jobs:
   test:
@@ -48,7 +57,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: Dixlase/dixlase-core
-          ref: main
+          ref: ${{ inputs.core_ref || 'main' }}
           path: core
 
       - name: Setup PHP
@@ -142,7 +151,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: Dixlase/dixlase-core
-          ref: main
+          ref: ${{ inputs.core_ref || 'main' }}
           path: core
 
       - name: Setup PHP
