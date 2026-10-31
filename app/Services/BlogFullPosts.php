@@ -42,9 +42,7 @@ use Plugins\DixlaseBlog\App\Models\BlogPost;
  */
 class BlogFullPosts
 {
-    public function __construct(private readonly BlogContentRenderer $renderer)
-    {
-    }
+    public function __construct(private readonly BlogContentRenderer $renderer) {}
 
     /**
      * The rendered body, and the URL of the post's own CSS. Its JavaScript
@@ -62,7 +60,10 @@ class BlogFullPosts
             return ['post' => $post, 'contentHtml' => null, 'customCssUrl' => null];
         }
 
-        $hasCss = BlogScriptAuthoringPolicy::carriesCustomCss($post->editor_type) && trim((string) $post->custom_css) !== '';
+        // Through the resolver, so a CSS file edited on disk is linked
+        // before it is published, exactly as the asset route serves it.
+        $hasCss = BlogScriptAuthoringPolicy::carriesCustomCss($post->editor_type)
+            && trim((string) $post->resolvedPart('custom_css')) !== '';
 
         return [
             'post' => $post,

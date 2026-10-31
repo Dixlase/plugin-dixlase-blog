@@ -241,31 +241,36 @@ class BlogPostFileStorageTest extends TestCase
         $this->assertSame('<p>Saved</p>', $post->refresh()->getAttributes()['content']);
     }
 
-    public function test_the_file_save_mode_takes_every_part_of_an_html_post_in_locally(): void
+    public function test_the_file_save_mode_shows_every_part_of_an_html_post_locally(): void
     {
         app(BlogSettings::class)->save(['publish_mode' => ContentPublishMode::FILE_SAVE->value]);
         $post = $this->createPost('<p>Body</p>', 'html', [
             'custom_css' => 'p { color: red; }',
             'custom_js' => 'console.log(1);',
         ]);
-        $revisions = BlogPostRevision::query()->where('post_id', $post->id)->count();
         $this->useLocalEnvironment();
 
         $this->putFile($post, 'content.html', '<p>Edited</p><script>console.log(2);</script>');
         $this->putFile($post, 'style.css', 'p { color: blue; }');
         $this->putFile($post, 'script.js', 'console.log(3);');
 
+        // What this plugin owes: the post shows the edit at once, and the
+        // change is recorded with every part that moved. Whether core also
+        // takes the files in as the published copy is core's policy, and it
+        // differs between releases -- core took them in up to 0.1.20 and
+        // holds them from dixlase-core#808 on. Reading through core's
+        // resolver answers the same either way; reading the stored columns
+        // pinned this plugin to one core.
+        $post = $post->refresh();
+        $publisher = app(FileContentPublisher::class);
+
         $this->assertStringContainsString('<p>Edited</p>', $this->render($post));
-        $attributes = $post->refresh()->getAttributes();
-        $this->assertSame('p { color: blue; }', $attributes['custom_css']);
-        $this->assertSame('console.log(3);', $attributes['custom_js']);
-        $this->assertSame($revisions + 1, BlogPostRevision::query()->where('post_id', $post->id)->count());
+        $this->assertSame('p { color: blue; }', $publisher->resolve($post, 'custom_css'));
+        $this->assertSame('console.log(3);', $publisher->resolve($post, 'custom_js'));
 
         $log = $this->logs('dixlase_blog.post.file_changed')->first();
         $this->assertNotNull($log);
-        $this->assertTrue($log->context['published'] ?? null);
         $this->assertEqualsCanonicalizing(['content', 'custom_css', 'custom_js'], $log->context['parts'] ?? null);
-        $this->assertSame(0, app(FileContentRegistry::class)->pendingCount());
     }
 
     /**
