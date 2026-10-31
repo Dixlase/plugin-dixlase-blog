@@ -71,6 +71,12 @@ return [
                     'icon' => 'fas fa-fw fa-folder-tree',
                     'can' => 'admin',
                 ],
+                'tags' => [
+                    'text' => 'dixlase-blog::admin.nav.blog.tags',
+                    'route' => 'dixlase-blog::admin.blog.tags.index',
+                    'icon' => 'fas fa-fw fa-tags',
+                    'can' => 'admin',
+                ],
                 'comments' => [
                     'text' => 'dixlase-blog::admin.nav.blog.comments',
                     'route' => 'dixlase-blog::admin.blog.comments.index',

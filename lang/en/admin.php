@@ -25,6 +25,7 @@ return [
             'index' => 'Blog Master',
             'create' => 'Create New',
             'categories' => 'Categories',
+            'tags' => 'Tags',
             'trash' => 'Trash',
             'settings' => 'Blog Settings',
             'settings_listing' => 'Listing settings',
@@ -46,6 +47,9 @@ return [
         'trash' => ['heading' => 'Trash'],
         'categories' => [
             'index' => ['heading' => 'Categories'],
+        ],
+        'tags' => [
+            'index' => ['heading' => 'Tags'],
         ],
         'revisions' => [
             'index' => ['heading' => 'Revisions'],
@@ -266,6 +270,31 @@ return [
         'pivot_removed' => 'Removed',
     ],
 
+    // The Tags screen.
+    'tags' => [
+        'intro' => 'Tags are also created from the post form. Renaming a tag changes it on every post that has it.',
+        'create_name' => 'New tag',
+        'create_placeholder' => 'Tag name',
+        'create_slug' => 'Slug (optional)',
+        'create_submit' => 'Add',
+        'name' => 'Name',
+        'slug' => 'Slug',
+        'lang' => 'Language',
+        'posts' => 'Posts',
+        'actions' => 'Actions',
+        'posts_count' => ':count post|:count posts',
+        'empty' => 'No tags yet.',
+        'view' => 'Open the page of :name',
+        'edit_action' => 'Edit :name',
+        'edit_title' => 'Edit the tag',
+        'edit_slug_help' => 'The tag page\'s URL. Changing it breaks links to the old one.',
+        'edit_lang_help' => 'The language the name is written in. Other languages are added as translations.',
+        'edit_confirm' => 'Save',
+        'delete_action' => 'Delete :name',
+        'delete_title' => 'Delete the tag?',
+        'delete_message' => 'Delete the tag “:name”? It is removed from :count post(s); the posts stay. This cannot be undone.',
+    ],
+
     'settings' => [
         'listing_heading' => 'Listings',
         'route_slug_label' => 'Blog URL',
@@ -366,6 +395,9 @@ return [
         'category_created' => 'Category created.',
         'category_updated' => 'Category updated.',
         'category_deleted' => 'Category deleted.',
+        'tag_created' => 'The tag was added.',
+        'tag_updated' => 'The tag was updated.',
+        'tag_deleted' => 'The tag was deleted.',
         'category_moved_up' => 'Category moved up a level.',
         'category_has_children' => 'This category cannot be deleted because it has child categories. Move or delete them first.',
         'revision_restored' => 'Revision restored.',

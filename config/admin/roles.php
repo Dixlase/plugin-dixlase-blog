@@ -104,6 +104,18 @@ return [
                     ],
                 ],
 
+                // Tags, like categories: editors add and rename, ADMIN deletes.
+                'tags' => [
+                    'access_roles' => MemberRole::EDITOR->value,
+                    'view_roles' => MemberRole::EDITOR->value,
+                    'children' => [
+                        'index' => $editor,
+                        'store' => $editor,
+                        'update' => $editor,
+                        'destroy' => $admin,
+                    ],
+                ],
+
                 // Comments. Editors moderate; deleting one for good is ADMIN.
                 'comments' => [
                     'access_roles' => MemberRole::EDITOR->value,
