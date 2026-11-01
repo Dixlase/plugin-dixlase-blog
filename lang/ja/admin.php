@@ -51,6 +51,8 @@ return [
         ],
         'tags' => [
             'index' => ['heading' => 'タグ'],
+            // The post form's tag suggestions (JSON); named like the screen.
+            'list' => ['heading' => 'タグ'],
         ],
         'revisions' => [
             'index' => ['heading' => 'リビジョン履歴'],

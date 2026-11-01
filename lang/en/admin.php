@@ -51,6 +51,8 @@ return [
         ],
         'tags' => [
             'index' => ['heading' => 'Tags'],
+            // The post form's tag suggestions (JSON); named like the screen.
+            'list' => ['heading' => 'Tags'],
         ],
         'revisions' => [
             'index' => ['heading' => 'Revisions'],
