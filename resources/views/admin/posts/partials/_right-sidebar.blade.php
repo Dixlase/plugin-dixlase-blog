@@ -6,30 +6,31 @@ https://exc-d.com
 
 Dixlase Blog is dual-licensed. Same terms as edit.blade.php.
 
-Right-sidebar partial for the post form. Section order matches the
-operator-requested layout:
+Right-sidebar partial for the post form. Every section but the preview
+button is a core <x-content-editor.sidebar-section>, which opens and
+closes, shows a summary while closed, opens when one of its fields has
+an error and remembers the viewer's choice (#201):
 
-  1. Preview         (button — opens saved public URL in a new tab;
-                      the live in-page preview lives in the centre)
-  2. Author info     (edit only) author / created / updated —
-                      moved here per operator request so the
-                      provenance fields sit close to the Preview
-                      action they relate to
-  3. Meta info       (edit only) editor type badge + language code —
-                      mirrors FrontPage's locked-meta panel
-  4. Title / Slug / Excerpt
-  5. Categories      (multi) / Tags (#tag space-confirmed)
-  6. Featured image  via core <x-media.picker aspectRatio="ogp">
-  7. Revisions       (edit only) link to history
-  8. Publish         (Status / Publish at / Close at — bottom)
+  -  Preview          (always shown; opens the form in a new tab)
+  1. Title / slug / excerpt              open
+  2. Classification   categories, tags   closed
+  3. Featured image                      closed
+  4. SEO              (SEO integration)  closed
+  5. Language and translation
+                      (multilingual, or a translate button)    closed
+  6. Post info        author, dates, URL, editor type, storage,
+                      revisions link    closed
+  7. Publish settings (bottom, per operator request)            open
+
+Read-only facts (editor type) sit in post info and the language
+actions in their own section, so no section mixes the two.
 
 Editor type rationale: once a post is saved, switching the editor type
-loses content fidelity (Markdown ↔ HTML round-trip is lossy), so the
+loses content fidelity (Markdown <-> HTML round-trip is lossy), so the
 editor selector is hidden in edit mode (see _form.blade.php). The
-locked badge in section 3 surfaces "what editor this post is in" so
-the operator does not lose track.
+locked badge in post info surfaces "what editor this post is in".
 
-Title moved out of the centre column on operator request — the centre
+Title moved out of the centre column on operator request -- the centre
 is now the body editor only. The Title field stays required so server-
 side validation continues to enforce it.
 --}}
@@ -64,6 +65,45 @@ side validation continues to enforce it.
     // Named in the admin's language, as the translate button names it.
     $langCode = $post->exists ? $post->sourceLocale() : ($langValue ?? config('app.locale'));
     $langName = \App\Helpers\LocaleHelper::getLocaleName($langCode, false);
+
+    // The translation plugin's button; it renders nothing for an unsaved
+    // post. <x-dynamic-component> keeps this view compiling without the
+    // plugin, and the view check keeps it rendering: a missing component
+    // throws instead of rendering empty.
+    $hasTranslateButton = $isEditMode && view()->exists('dixlase-multilingual::components.translate-button');
+    $showLanguageSection = ! empty($multilingualEnabled) || $hasTranslateButton;
+    $showPostInfo = $isEditMode || ! empty($showStorageChoice);
+
+    // Summaries shown next to a closed section's title. They describe the
+    // form as it was loaded (or as it came back from validation).
+    $currentStatus = (string) old('status', $statusSlug ?? 'draft');
+    $publishedAtValue = old('published_at', $post->published_at);
+    $publishSummary = $statusOptions[$currentStatus] ?? '';
+    if ($currentStatus === 'scheduled' && filled($publishedAtValue)) {
+        $publishSummary = __('dixlase-blog::admin.post_form.summary_scheduled', [
+            'date' => str_replace('T', ' ', (string) \Plugins\DixlaseBlog\App\Support\DisplayTimezoneDatetime::forInput($publishedAtValue)),
+        ]);
+    }
+
+    $summaryCategoryIds = old('categories', $selectedCategoryIds ?? []);
+    $summaryTags = old('tags', $tagNames ?? []);
+    $classificationSummary = __('dixlase-blog::admin.post_form.summary_classification', [
+        'categories' => is_array($summaryCategoryIds) ? count($summaryCategoryIds) : 0,
+        'tags' => is_array($summaryTags) ? count(array_filter($summaryTags, 'filled')) : 0,
+    ]);
+
+    $featuredSummary = filled(old('featured_media_id', $post->featured_media_id))
+        ? __('dixlase-blog::admin.post_form.summary_set')
+        : __('dixlase-blog::admin.post_form.summary_none');
+
+    $seoSummary = filled(old('seo_meta.description', $seoMeta?->description ?? null))
+        ? __('dixlase-blog::admin.post_form.summary_set')
+        : __('dixlase-blog::admin.post_form.summary_none');
+
+    $postInfoSummary = collect([
+        $isEditMode && $editorTypeEnum ? __($editorTypeEnum->translationKey()) : null,
+        ! empty($showStorageChoice) ? ($storageOptions[$storageTypeValue]['label'] ?? null) : null,
+    ])->filter()->implode(' · ');
 @endphp
 
 <x-admin.right-sidebar
@@ -71,7 +111,7 @@ side validation continues to enforce it.
     :closeLabel="__('dixlase-blog::admin.post_form.sidebar_close')"
 >
 
-    {{-- ===== 1. Preview ===== --}}
+    {{-- Preview: always shown, outside the sections --}}
     <x-content-editor.new-tab-preview
         :url="$formPreviewUrl"
         icon="fas fa-eye"
@@ -79,125 +119,15 @@ side validation continues to enforce it.
         :help="__('dixlase-blog::admin.post_form.preview_help')"
     />
 
-    {{-- ===== 2. Author info (edit only — sits between Preview and Meta info per operator request) ===== --}}
-    @if ($isEditMode)
-        <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                {{ __('dixlase-blog::admin.post_form.author_info_section') }}
-            </h3>
-            <dl class="space-y-1 text-xs">
-                <div class="flex gap-2">
-                    <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.author') }}:</dt>
-                    <dd class="text-gray-700 dark:text-gray-300">
-                        {{ $post->author?->display_name ?? $post->author?->account_name ?? __('dixlase-blog::admin.post.author_unknown') }}
-                    </dd>
-                </div>
-                <div class="flex gap-2">
-                    <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.created_at') }}:</dt>
-                    <dd class="text-gray-700 dark:text-gray-300">{{ $post->created_at?->format('Y-m-d H:i') }}</dd>
-                </div>
-                <div class="flex gap-2">
-                    <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.updated_at') }}:</dt>
-                    <dd class="text-gray-700 dark:text-gray-300">{{ $post->updated_at?->format('Y-m-d H:i') }}</dd>
-                </div>
-                {{-- The saved post's address. Readers get a 404 there until
-                     the post is visible, so until then it opens the preview. --}}
-                <div class="flex gap-2">
-                    <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.url') }}:</dt>
-                    <dd class="min-w-0 text-gray-700 dark:text-gray-300">
-                        @if ($post->isCurrentlyVisible())
-                            <a href="{{ $postPublicUrl }}" target="_blank" rel="noopener"
-                               class="break-all text-blue-600 hover:underline dark:text-blue-400">{{ $postPublicUrl }}</a>
-                        @else
-                            <a href="{{ route('dixlase-blog::admin.blog.previewPage', ['post' => $post->id]) }}" target="_blank" rel="noopener"
-                               class="break-all text-blue-600 hover:underline dark:text-blue-400">{{ $postPublicUrl }}</a>
-                            <span class="block text-gray-500 dark:text-gray-400">{{ __('dixlase-blog::admin.post.url_not_public') }}</span>
-                        @endif
-                    </dd>
-                </div>
-            </dl>
-        </div>
-    @endif
-
-    {{-- ===== 3. Meta info (edit mode only) ===== --}}
-    @if ($isEditMode && $editorTypeEnum)
-        <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                {{ __('dixlase-blog::admin.post_form.meta_info_section') }}
-            </h3>
-            <div class="flex flex-wrap items-center gap-2 text-xs">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600"
-                      title="{{ __('dixlase-blog::admin.post_form.meta_editor_locked_help') }}">
-                    <i class="{{ $editorTypeEnum->iconClass() }}"></i>
-                    {{ __($editorTypeEnum->translationKey()) }}
-                </span>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
-                    <i class="fas fa-globe text-gray-500 dark:text-gray-400"></i>
-                    {{ $langName }}
-                </span>
-            </div>
-            <x-form-help-text :text="__('dixlase-blog::admin.post_form.meta_editor_locked_help')" />
-
-            {{-- The translation plugin's button; it renders nothing for an unsaved
-                 post. <x-dynamic-component> keeps this view compiling without
-                 the plugin, and the view check keeps it rendering: a missing
-                 component throws instead of rendering empty. --}}
-            @if (view()->exists('dixlase-multilingual::components.translate-button'))
-                <div class="mt-4">
-                    <x-dynamic-component
-                        component="dixlase-multilingual::translate-button"
-                        type="dixlase-blog:post"
-                        :id="$post->id"
-                        :sourceLocale="$post->sourceLocale()"
-                    />
-                </div>
-            @endif
-        </div>
-    @endif
-
-    {{-- ===== 4. Title / Slug / Excerpt ===== --}}
-    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-            {{ __('dixlase-blog::admin.post_form.meta_section') }}
-        </h3>
-
-        {{-- Source language, while the site serves more than one locale.
-             A saved post can change it: its text stays, and a translation
-             filed under the new language moves to the old one. Choosing a
-             language the post has no translation in leaves the old one with
-             no text of its own, so blogSourceLanguage asks to confirm it,
-             and the update request refuses it unconfirmed (#133). --}}
-        @if (! empty($multilingualEnabled))
-            <div class="mb-4"
-                 @if ($isEditMode)
-                     x-data="blogSourceLanguage"
-                     data-current="{{ $post->sourceLocale() }}"
-                     data-translated="{{ implode(',', $translatedLocales ?? []) }}"
-                     @change="pick($event)"
-                 @endif
-            >
-                <x-form-label :for="'lang'" :text="__('dixlase-blog::admin.post.lang_label')" />
-                <x-form-select
-                    id="lang"
-                    name="lang"
-                    :options="$languageOptions"
-                    :value="$langValue"
-                />
-                <x-form-help-text :text="__($isEditMode ? 'dixlase-blog::admin.post.lang_change_help' : 'dixlase-blog::admin.post.lang_help')" />
-                <x-form-error name="lang" />
-                @if ($isEditMode)
-                    <div class="mt-2" x-show="needsConfirmation" x-cloak>
-                        <x-form-toggle
-                            id="confirm_lang_change"
-                            name="confirm_lang_change"
-                            :label="__('dixlase-blog::admin.post.lang_change_confirm', ['old' => \App\Helpers\LocaleHelper::getLocaleName($post->sourceLocale(), false)])"
-                            :checked="(bool) old('confirm_lang_change', false)"
-                        />
-                    </div>
-                @endif
-            </div>
-        @endif
-
+    {{-- ===== 1. Title / Slug / Excerpt ===== --}}
+    <x-content-editor.sidebar-section
+        :title="__('dixlase-blog::admin.post_form.meta_section')"
+        icon="fas fa-heading"
+        :open="true"
+        :summary="\Illuminate\Support\Str::limit((string) old('title', $post->title), 40)"
+        :errorFields="['title', 'slug', 'excerpt']"
+        rememberKey="dixlase-blog.post.title"
+    >
         {{-- Title --}}
         {{-- blogPreviewTitle sends the title to the live preview. --}}
         <div x-data="blogPreviewTitle" data-input-id="title">
@@ -238,14 +168,16 @@ side validation continues to enforce it.
             <x-form-help-text :text="__('dixlase-blog::admin.post.excerpt_help')" />
             <x-form-error name="excerpt" />
         </div>
-    </div>
+    </x-content-editor.sidebar-section>
 
-    {{-- ===== 5. Classification: categories + tags ===== --}}
-    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-            {{ __('dixlase-blog::admin.post_form.classification_section') }}
-        </h3>
-
+    {{-- ===== 2. Classification: categories + tags ===== --}}
+    <x-content-editor.sidebar-section
+        :title="__('dixlase-blog::admin.post_form.classification_section')"
+        icon="fas fa-folder-tree"
+        :summary="$classificationSummary"
+        :errorFields="['categories', 'categories.*', 'tags', 'tags.*']"
+        rememberKey="dixlase-blog.post.classification"
+    >
         {{-- Categories (multi-select) --}}
         <div>
             <x-form-label :text="__('dixlase-blog::admin.post.categories_label')" />
@@ -315,78 +247,201 @@ side validation continues to enforce it.
             <x-form-help-text :text="__('dixlase-blog::admin.post.tags_help')" />
             <x-form-error name="tags" />
         </div>
-    </div>
+    </x-content-editor.sidebar-section>
 
-    {{-- ===== 6. Featured image ===== --}}
-    {{-- blogFeaturedPreview sends the chosen image to the live preview. --}}
-    <div class="border-t border-gray-200 dark:border-gray-700 pt-6"
-         x-data="blogFeaturedPreview"
-         data-input-id="featured_media_id">
-        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-            {{ __('dixlase-blog::admin.post_form.media_section') }}
-        </h3>
-        <x-media.picker
-            name="featured_media_id"
-            :value="old('featured_media_id', $post->featured_media_id)"
-            :media="$post->featuredMedia ?? null"
-            aspectRatio="ogp"
-            :help="__('dixlase-blog::admin.post.featured_image_help')"
-        />
-        <x-form-error name="featured_media_id" />
-    </div>
+    {{-- ===== 3. Featured image ===== --}}
+    <x-content-editor.sidebar-section
+        :title="__('dixlase-blog::admin.post_form.media_section')"
+        icon="fas fa-image"
+        :summary="$featuredSummary"
+        :errorFields="['featured_media_id']"
+        rememberKey="dixlase-blog.post.featured"
+    >
+        {{-- blogFeaturedPreview sends the chosen image to the live preview. --}}
+        <div x-data="blogFeaturedPreview" data-input-id="featured_media_id">
+            <x-media.picker
+                name="featured_media_id"
+                :value="old('featured_media_id', $post->featured_media_id)"
+                :media="$post->featuredMedia ?? null"
+                aspectRatio="ogp"
+                :help="__('dixlase-blog::admin.post.featured_image_help')"
+            />
+            <x-form-error name="featured_media_id" />
+        </div>
+    </x-content-editor.sidebar-section>
 
-    {{-- ===== 6a. Storage (advanced admin mode only, #193) =====
-         Sends the choice to the content editor, which carries it in the
-         form and shows the file paths. --}}
-    @if (! empty($showStorageChoice))
-    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-        <x-content-editor.storage-info
-            :storageOptions="$storageOptions"
-            :storageType="$storageTypeValue"
-            :showJsCss="true"
-        />
-    </div>
-    @endif
-
-    {{-- ===== 6b. SEO (DixlaseSEO enabled, blog integration on) =====
+    {{-- ===== 4. SEO (DixlaseSEO enabled, blog integration on) =====
          x-dynamic-component keeps this view compiling without DixlaseSEO. --}}
     @if (! empty($seoMetaEnabled))
-        <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <x-content-editor.sidebar-section
+            :title="__('dixlase-blog::admin.post_form.seo_section')"
+            icon="fas fa-magnifying-glass"
+            :summary="$seoSummary"
+            :errorFields="['seo_meta', 'seo_meta.*']"
+            rememberKey="dixlase-blog.post.seo"
+        >
             <x-dynamic-component
                 component="dixlase-seo::meta-fields"
                 :description="old('seo_meta.description', $seoMeta?->description)"
                 :ogpMediaId="old('seo_meta.ogp_media_id', $seoMeta?->ogpMediaId)"
                 :ogpMedia="$seoOgpMedia"
             />
-        </div>
+        </x-content-editor.sidebar-section>
     @endif
 
-    {{-- ===== 7. Revisions (edit only — sits just above Publish per operator request) ===== --}}
-    @if ($isEditMode)
-        <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                {{ __('dixlase-blog::admin.post_form.revision_section') }}
-            </h3>
-            <x-form-button
-                type="link"
-                :href="route('dixlase-blog::admin.blog.revisions.index', ['post' => $post->id])"
-                icon="fas fa-clock-rotate-left"
-                size="sm"
-                variant="secondary"
-                class="w-full"
-            >
-                {{ __('dixlase-blog::admin.post_form.revision_link') }}
-            </x-form-button>
-            <x-form-help-text :text="__('dixlase-blog::admin.post_form.revision_help')" />
-        </div>
+    {{-- ===== 5. Language and translation ===== --}}
+    @if ($showLanguageSection)
+        <x-content-editor.sidebar-section
+            :title="__('dixlase-blog::admin.post_form.language_section')"
+            icon="fas fa-language"
+            :summary="$langName"
+            :errorFields="['lang', 'confirm_lang_change']"
+            rememberKey="dixlase-blog.post.language"
+        >
+            {{-- Source language, while the site serves more than one locale.
+                 A saved post can change it: its text stays, and a translation
+                 filed under the new language moves to the old one. Choosing a
+                 language the post has no translation in leaves the old one with
+                 no text of its own, so blogSourceLanguage asks to confirm it,
+                 and the update request refuses it unconfirmed (#133). --}}
+            @if (! empty($multilingualEnabled))
+                <div class="mb-4"
+                     @if ($isEditMode)
+                         x-data="blogSourceLanguage"
+                         data-current="{{ $post->sourceLocale() }}"
+                         data-translated="{{ implode(',', $translatedLocales ?? []) }}"
+                         @change="pick($event)"
+                     @endif
+                >
+                    <x-form-label :for="'lang'" :text="__('dixlase-blog::admin.post.lang_label')" />
+                    <x-form-select
+                        id="lang"
+                        name="lang"
+                        :options="$languageOptions"
+                        :value="$langValue"
+                    />
+                    <x-form-help-text :text="__($isEditMode ? 'dixlase-blog::admin.post.lang_change_help' : 'dixlase-blog::admin.post.lang_help')" />
+                    <x-form-error name="lang" />
+                    @if ($isEditMode)
+                        <div class="mt-2" x-show="needsConfirmation" x-cloak>
+                            <x-form-toggle
+                                id="confirm_lang_change"
+                                name="confirm_lang_change"
+                                :label="__('dixlase-blog::admin.post.lang_change_confirm', ['old' => \App\Helpers\LocaleHelper::getLocaleName($post->sourceLocale(), false)])"
+                                :checked="(bool) old('confirm_lang_change', false)"
+                            />
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            @if ($hasTranslateButton)
+                <div class="mt-4">
+                    <x-dynamic-component
+                        component="dixlase-multilingual::translate-button"
+                        type="dixlase-blog:post"
+                        :id="$post->id"
+                        :sourceLocale="$post->sourceLocale()"
+                    />
+                </div>
+            @endif
+        </x-content-editor.sidebar-section>
     @endif
 
-    {{-- ===== 8. Publish settings (bottom of the editable controls per operator request) ===== --}}
-    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-            {{ __('dixlase-blog::admin.post_form.publish_section') }}
-        </h3>
+    {{-- ===== 6. Post info: what the post is, and its history ===== --}}
+    @if ($showPostInfo)
+        <x-content-editor.sidebar-section
+            :title="__('dixlase-blog::admin.post_form.post_info_section')"
+            icon="fas fa-circle-info"
+            :summary="$postInfoSummary"
+            :errorFields="['storage_type']"
+            rememberKey="dixlase-blog.post.info"
+        >
+            @if ($isEditMode)
+                <dl class="space-y-1 text-xs">
+                    <div class="flex gap-2">
+                        <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.author') }}:</dt>
+                        <dd class="text-gray-700 dark:text-gray-300">
+                            {{ $post->author?->display_name ?? $post->author?->account_name ?? __('dixlase-blog::admin.post.author_unknown') }}
+                        </dd>
+                    </div>
+                    <div class="flex gap-2">
+                        <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.created_at') }}:</dt>
+                        <dd class="text-gray-700 dark:text-gray-300">{{ $post->created_at?->format('Y-m-d H:i') }}</dd>
+                    </div>
+                    <div class="flex gap-2">
+                        <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.updated_at') }}:</dt>
+                        <dd class="text-gray-700 dark:text-gray-300">{{ $post->updated_at?->format('Y-m-d H:i') }}</dd>
+                    </div>
+                    {{-- The saved post's address. Readers get a 404 there until
+                         the post is visible, so until then it opens the preview. --}}
+                    <div class="flex gap-2">
+                        <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ __('dixlase-blog::admin.post.url') }}:</dt>
+                        <dd class="min-w-0 text-gray-700 dark:text-gray-300">
+                            @if ($post->isCurrentlyVisible())
+                                <a href="{{ $postPublicUrl }}" target="_blank" rel="noopener"
+                                   class="break-all text-blue-600 hover:underline dark:text-blue-400">{{ $postPublicUrl }}</a>
+                            @else
+                                <a href="{{ route('dixlase-blog::admin.blog.previewPage', ['post' => $post->id]) }}" target="_blank" rel="noopener"
+                                   class="break-all text-blue-600 hover:underline dark:text-blue-400">{{ $postPublicUrl }}</a>
+                                <span class="block text-gray-500 dark:text-gray-400">{{ __('dixlase-blog::admin.post.url_not_public') }}</span>
+                            @endif
+                        </dd>
+                    </div>
+                </dl>
 
+                @if ($editorTypeEnum)
+                    <div class="mt-3">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 text-xs"
+                              title="{{ __('dixlase-blog::admin.post_form.meta_editor_locked_help') }}">
+                            <i class="{{ $editorTypeEnum->iconClass() }}"></i>
+                            {{ __($editorTypeEnum->translationKey()) }}
+                        </span>
+                        <x-form-help-text :text="__('dixlase-blog::admin.post_form.meta_editor_locked_help')" />
+                    </div>
+                @endif
+            @endif
+
+            {{-- Storage (advanced admin mode only, #193). Sends the choice to
+                 the content editor, which carries it in the form and shows
+                 the file paths. --}}
+            @if (! empty($showStorageChoice))
+                <div class="{{ $isEditMode ? 'mt-4' : '' }}">
+                    <x-content-editor.storage-info
+                        :storageOptions="$storageOptions"
+                        :storageType="$storageTypeValue"
+                        :showJsCss="true"
+                    />
+                </div>
+            @endif
+
+            @if ($isEditMode)
+                <div class="mt-4">
+                    <x-form-button
+                        type="link"
+                        :href="route('dixlase-blog::admin.blog.revisions.index', ['post' => $post->id])"
+                        icon="fas fa-clock-rotate-left"
+                        size="sm"
+                        variant="secondary"
+                        class="w-full"
+                    >
+                        {{ __('dixlase-blog::admin.post_form.revision_link') }}
+                    </x-form-button>
+                    <x-form-help-text :text="__('dixlase-blog::admin.post_form.revision_help')" />
+                </div>
+            @endif
+        </x-content-editor.sidebar-section>
+    @endif
+
+    {{-- ===== 7. Publish settings (bottom, per operator request) ===== --}}
+    <x-content-editor.sidebar-section
+        :title="__('dixlase-blog::admin.post_form.publish_section')"
+        icon="fas fa-calendar-check"
+        :open="true"
+        :summary="$publishSummary"
+        :errorFields="['status', 'is_pinned', 'comment_status', 'published_at', 'closed_at']"
+        rememberKey="dixlase-blog.post.publish"
+    >
         {{-- Status --}}
         <div>
             <x-form-label :for="'status'" :text="__('dixlase-blog::admin.post.status_label')" :required="true" />
@@ -448,7 +503,6 @@ side validation continues to enforce it.
             <x-form-help-text :text="__('dixlase-blog::admin.post.closed_at_help', ['timezone' => $displayTimezone])" />
             <x-form-error name="closed_at" />
         </div>
-    </div>
-
+    </x-content-editor.sidebar-section>
 
 </x-admin.right-sidebar>

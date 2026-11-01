@@ -44,6 +44,8 @@ use App\Models\Member;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\MessageBag;
+use Illuminate\Support\ViewErrorBag;
 use Plugins\DixlaseBlog\App\Models\BlogCategory;
 use Plugins\DixlaseBlog\App\Models\BlogComment;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
@@ -196,6 +198,54 @@ class BlogAdminScreensTest extends TestCase
         // A new post has no address yet.
         $this->get(route('dixlase-blog::admin.blog.create'))->assertOk()
             ->assertDontSee(__('dixlase-blog::admin.post.url_not_public'));
+    }
+
+    public function test_the_post_sidebar_is_grouped_into_collapsible_sections(): void
+    {
+        $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
+
+        $response = $this->get(route('dixlase-blog::admin.blog.edit', ['post' => $this->post->id]))->assertOk();
+
+        // The sections, in order; the preview button stays outside them.
+        $response->assertSeeInOrder([
+            __('dixlase-blog::admin.post_form.preview_button'),
+            __('dixlase-blog::admin.post_form.meta_section'),
+            __('dixlase-blog::admin.post_form.classification_section'),
+            __('dixlase-blog::admin.post_form.media_section'),
+            __('dixlase-blog::admin.post_form.post_info_section'),
+            __('dixlase-blog::admin.post_form.publish_section'),
+        ]);
+
+        // Title and publish settings start open, the rest closed.
+        $html = $response->getContent();
+        foreach (['title' => '1', 'classification' => '0', 'featured' => '0', 'info' => '0', 'publish' => '1'] as $key => $open) {
+            $this->assertMatchesRegularExpression(
+                '/data-open="'.$open.'"\s+data-force-open="0"\s+data-remember-key="dixlase-blog\.post\.'.$key.'"/',
+                $html,
+            );
+        }
+
+        // A closed section reads its state from the summary.
+        $response->assertSee(__('dixlase-blog::admin.post_form.summary_classification', ['categories' => 1, 'tags' => 2]));
+        $response->assertSee(__('dixlase-blog::admin.post_form.revision_link'));
+
+        // A new post has no post info to show.
+        $this->get(route('dixlase-blog::admin.blog.create'))->assertOk()
+            ->assertDontSee('dixlase-blog.post.info', false);
+    }
+
+    public function test_a_section_with_an_error_opens(): void
+    {
+        $this->actingAs(Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1]));
+        $errors = (new ViewErrorBag())->put('default', new MessageBag(['tags.0' => ['Too long.']]));
+
+        $html = $this->withSession(['errors' => $errors])
+            ->get(route('dixlase-blog::admin.blog.edit', ['post' => $this->post->id]))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertMatchesRegularExpression('/data-open="1"\s+data-force-open="1"\s+data-remember-key="dixlase-blog\.post\.classification"/', $html);
+        $this->assertMatchesRegularExpression('/data-open="0"\s+data-force-open="0"\s+data-remember-key="dixlase-blog\.post\.featured"/', $html);
     }
 
     public function test_the_trash_lists_posts_in_the_post_list_table(): void
