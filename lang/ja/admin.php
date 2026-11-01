@@ -51,6 +51,8 @@ return [
         ],
         'tags' => [
             'index' => ['heading' => 'タグ'],
+            // The post form's tag suggestions (JSON); named like the screen.
+            'list' => ['heading' => 'タグ'],
         ],
         'revisions' => [
             'index' => ['heading' => 'リビジョン履歴'],
@@ -113,8 +115,8 @@ return [
         'categories_help' => '1記事に複数カテゴリを設定できます。',
         'no_categories' => 'カテゴリが未作成です — 先にカテゴリを作成してください。',
         'tags_label' => 'タグ',
-        'tags_placeholder' => 'タグを入力してスペースで確定',
-        'tags_help' => 'スペース (または Enter) で確定。空欄状態の Backspace で末尾のタグを削除。先頭の # は省略可。',
+        'tags_placeholder' => 'タグを入力',
+        'tags_help' => '入力すると既存のタグが候補に出ます。矢印キーと Enter で選べます。スペースで入力したとおりに追加し、なければ新しいタグになります。空欄状態の Backspace で末尾のタグを削除。先頭の # は省略可。',
         'created_at' => '作成日時',
         'updated_at' => '更新日時',
         'url' => 'URL',

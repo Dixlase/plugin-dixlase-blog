@@ -35,6 +35,7 @@ namespace Plugins\DixlaseBlog\App\Http\Controllers\Admin;
 use App\Helpers\LocaleHelper;
 use App\Traits\AdminInterfaceTrait;
 use App\Traits\AdminLoggedInTrait;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -69,6 +70,27 @@ class DixlaseBlogAdminTagsController extends Controller
             'languageOptions' => LocaleHelper::supportedLocaleOptions(),
             'newTagLang' => (string) old('lang', $this->writersLocale()),
         ]));
+    }
+
+    /**
+     * Every tag of the blog in name order, with the number of posts that
+     * carry it, for the post form's suggestions (#205). Tags of every
+     * language are listed: a name is unique across them, and the form
+     * finds an existing tag by its name. Only these three fields leave the
+     * server.
+     */
+    public function list(): JsonResponse
+    {
+        $tags = BlogTag::query()->withCount('posts')->orderBy('name')->get()
+            ->map(fn (BlogTag $tag): array => [
+                'id' => $tag->id,
+                'name' => $tag->name,
+                'count' => (int) $tag->posts_count,
+            ])
+            ->values()
+            ->all();
+
+        return response()->json(['tags' => $tags]);
     }
 
     public function store(BlogTagRequest $request): RedirectResponse
