@@ -117,8 +117,10 @@ class BlogTranslateButtonTest extends TestCase
             ->assertDontSee('translate-button-stub', false);
     }
 
-    public function test_the_language_badge_names_the_language_in_the_admin_language(): void
+    public function test_the_language_section_names_the_language_in_the_admin_language(): void
     {
+        // The language has its own section, shown with the translate button.
+        $this->fakeMultilingualButton();
         $member = auth()->user();
         $member->forceFill(['locale' => 'ja'])->save();
         $post = $this->makePost('ja');
