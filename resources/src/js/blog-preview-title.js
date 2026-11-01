@@ -25,6 +25,13 @@
  */
 export default function blogPreviewTitle() {
     return {
+        // Declared here so they stay on this component. Alpine stores a
+        // property assigned without a declaration on the outermost x-data,
+        // where another component (blogFeaturedPreview) overwrote it (#203).
+        _input: null,
+        _onInput: null,
+        _onMessage: null,
+
         init() {
             this._input = document.getElementById(this.$el.dataset.inputId || '');
             this._onInput = () => this.send();
