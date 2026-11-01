@@ -5,6 +5,59 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.3.0] — 2026-11-01
+
+### Added
+
+- **A post can be stored as files** (#196, fixes #193). In the advanced admin mode its body, CSS and
+  JavaScript can live under `storage/app/private/dixlase-blog/posts/<id>/`, to be edited locally and
+  deployed. A post stored this way takes part in core's file-stored content layer: a change made to
+  its files outside the admin waits on the edit screen until someone publishes it, is audited, and
+  counts towards the admin's banner of pending changes. A Storage settings screen chooses where new
+  posts go and the publish mode. Existing posts stay in the database. **This adds a migration** (a
+  `storage_type` column and two content hashes on the posts table); see *Upgrade notes*.
+- The blog settings open from a group in the admin sidebar, one screen per area: Listing, Sidebar,
+  Share buttons and Comments (#184, fixes #181). `/blog/settings` still opens the Listing screen.
+- Blog tags have a screen of their own under the blog menu, to list, add, rename and delete them
+  (#192, fixes #191). Deleting a tag leaves its posts; editors may list, add and rename, and
+  deleting is for administrators.
+- The Listing screen chooses which fields the posts show — featured image, date, author, categories,
+  tags, comment count — for the cards, the latest posts and the `[blog]` shortcode's full layout,
+  and whether the cards show the excerpt (#185, fixes #182; #187, fixes #186).
+- The top page's latest posts can show each post's excerpt, followed by a *Read more* link, instead
+  of its full text (#187, fixes #186).
+- The post cards can be laid out in one column, with the featured image beside the text (#188, fixes
+  #183).
+- A new post starts in the admin's own language when the site serves it, and on a site with several
+  languages a saved post's language can be changed; the text stays and the translations move with it
+  (#200, fixes #133).
+- The post editor's right sidebar is grouped into sections that open and close, built on core's
+  sidebar-section part (#202, fixes #201).
+
+### Changed
+
+- **This release needs core 0.2.0** (`requires.dixlase` is `>=0.2.0`).
+- The recent posts widget shows each date above its title, as the cards and the post page do (#190,
+  fixes #189).
+- Both READMEs open with the social preview image (#179, fixes #178).
+
+### Fixed
+
+- A post kept as files is rendered through core's file-content resolver, so the page shows what core
+  decides a visitor should see rather than the stored column (#198, fixes #197).
+
+### Development
+
+- The tests can be run by hand against another core ref (#195, fixes #194).
+
+### Upgrade notes
+
+- This release adds the migration
+  `0001_01_01_000013_add_storage_type_and_content_hashes_to_dixlase_blog_posts`. An update from the
+  admin panel runs it. A site that receives the plugin by a git deploy runs `php artisan
+  dls:plugin:migrate DixlaseBlog --force` right after the files arrive; until then the blog pages
+  cannot read the new columns.
+
 ## [0.2.0] - 2026-10-30
 
 ### Added
