@@ -115,6 +115,8 @@ Route::name('dixlase-blog::admin.')
             ->name('blog.tags.')
             ->group(function () {
                 Route::get('/', [DixlaseBlogAdminTagsController::class, 'index'])->name('index');
+                // The post form's tag suggestions (#205).
+                Route::get('/list', [DixlaseBlogAdminTagsController::class, 'list'])->name('list');
                 Route::post('/', [DixlaseBlogAdminTagsController::class, 'store'])->name('store');
                 Route::put('/{tag}', [DixlaseBlogAdminTagsController::class, 'update'])->whereNumber('tag')->name('update');
                 Route::delete('/{tag}', [DixlaseBlogAdminTagsController::class, 'destroy'])->whereNumber('tag')->name('destroy');

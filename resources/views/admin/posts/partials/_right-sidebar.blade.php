@@ -220,30 +220,21 @@ side validation continues to enforce it.
             <x-form-error name="categories" />
         </div>
 
-        {{-- Tags (#tag space-confirmed) --}}
+        {{-- Tags: core's tag input suggests the blog's tags as they are
+             typed (#205). Space or Enter adds what was typed, a leading
+             "#" is dropped, and each tag posts as tags[], as before. --}}
         <div class="mt-4">
-            <x-form-label :text="__('dixlase-blog::admin.post.tags_label')" />
-            <div x-data="blogTagInput"
-                 data-tags="{{ json_encode(array_values((array) old('tags', $tagNames))) }}"
-                 class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2 flex flex-wrap gap-1 items-center min-h-10">
-                <template x-for="(tag, index) in tags" :key="index">
-                    <span class="inline-flex items-center gap-1 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-0.5 text-xs">
-                        <span x-text="'#' + tag"></span>
-                        <input type="hidden" name="tags[]" :value="tag">
-                        <button type="button"
-                                class="text-blue-600 hover:text-blue-800 dark:text-blue-400"
-                                @click="removeTag(index)">
-                            <i class="fas fa-times text-xs"></i>
-                        </button>
-                    </span>
-                </template>
-                <input type="text"
-                       x-model="currentInput"
-                       @keydown="onKeydown($event)"
-                       @blur="onBlur()"
-                       :placeholder="tags.length === 0 ? '{{ __('dixlase-blog::admin.post.tags_placeholder') }}' : ''"
-                       class="flex-1 min-w-32 border-none focus:ring-0 bg-transparent text-sm">
-            </div>
+            <x-form-label :for="'postTags-field'" :text="__('dixlase-blog::admin.post.tags_label')" />
+            <x-form-tag-input
+                id="postTags"
+                name="tags[]"
+                :tagsUrl="route('dixlase-blog::admin.blog.tags.list')"
+                :selected="array_values((array) old('tags', $tagNames))"
+                :maxlength="100"
+                :commitTyped="true"
+                :stripHash="true"
+                :placeholder="__('dixlase-blog::admin.post.tags_placeholder')"
+            />
             <x-form-help-text :text="__('dixlase-blog::admin.post.tags_help')" />
             <x-form-error name="tags" />
         </div>

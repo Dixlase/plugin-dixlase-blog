@@ -94,6 +94,35 @@ class BlogAdminTagsTest extends TestCase
             ->assertDontSee('<b>Bold</b>', false);
     }
 
+    public function test_the_tag_list_gives_each_tag_with_its_posts(): void
+    {
+        $release = BlogTag::create(['name' => 'Release', 'slug' => 'release', 'lang' => 'en']);
+        $this->postWith($release);
+        $notes = BlogTag::create(['name' => 'リリース', 'slug' => 'release-ja', 'lang' => 'ja']);
+
+        $this->getJson(route('dixlase-blog::admin.blog.tags.list'))->assertOk()
+            ->assertExactJson(['tags' => [
+                ['id' => $release->id, 'name' => 'Release', 'count' => 1],
+                ['id' => $notes->id, 'name' => 'リリース', 'count' => 0],
+            ]]);
+    }
+
+    public function test_an_editor_gets_the_tag_list(): void
+    {
+        $this->actingAs(Member::factory()->create(['role' => MemberRole::EDITOR, 'status' => 1]));
+
+        $this->getJson(route('dixlase-blog::admin.blog.tags.list'))->assertOk()->assertJson(['tags' => []]);
+    }
+
+    public function test_the_post_form_suggests_the_blog_tags(): void
+    {
+        $this->get(route('dixlase-blog::admin.blog.create'))->assertOk()
+            ->assertSee('x-data="tagInput"', false)
+            ->assertSee('data-tags-url="'.route('dixlase-blog::admin.blog.tags.list').'"', false)
+            ->assertSee('data-commit-typed="1"', false)
+            ->assertSee('data-strip-hash="1"', false);
+    }
+
     public function test_a_tag_is_added_with_a_slug_from_its_name(): void
     {
         $this->post(route('dixlase-blog::admin.blog.tags.store'), ['name' => '  Release notes '])

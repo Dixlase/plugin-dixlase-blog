@@ -15,7 +15,6 @@
  * file is governed by the GPL terms below.
  */
 
-import blogTagInput from './blog-tag-input.js';
 import blogCategoryReorder from './blog-category-reorder.js';
 import blogPostForm from './blog-post-form.js';
 import blogFeaturedPreview from './blog-featured-preview.js';
@@ -27,7 +26,6 @@ import blogSourceLanguage from './blog-source-language.js';
 
 document.addEventListener('alpine:init', () => {
     if (window.Alpine) {
-        window.Alpine.data('blogTagInput', blogTagInput);
         window.Alpine.data('blogCategoryReorder', blogCategoryReorder);
         window.Alpine.data('blogPostForm', blogPostForm);
         window.Alpine.data('blogFeaturedPreview', blogFeaturedPreview);

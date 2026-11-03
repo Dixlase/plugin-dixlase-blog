@@ -114,6 +114,8 @@ return [
                     'view_roles' => MemberRole::EDITOR->value,
                     'children' => [
                         'index' => $editor,
+                        // The post form's suggestions: whoever writes posts.
+                        'list' => $editor,
                         'store' => $editor,
                         'update' => $editor,
                         'destroy' => $admin,

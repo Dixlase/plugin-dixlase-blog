@@ -51,6 +51,8 @@ return [
         ],
         'tags' => [
             'index' => ['heading' => 'Tags'],
+            // The post form's tag suggestions (JSON); named like the screen.
+            'list' => ['heading' => 'Tags'],
         ],
         'revisions' => [
             'index' => ['heading' => 'Revisions'],
@@ -113,8 +115,8 @@ return [
         'categories_help' => 'A post can belong to multiple categories.',
         'no_categories' => 'No categories yet — create one first.',
         'tags_label' => 'Tags',
-        'tags_placeholder' => 'Type a tag, press space',
-        'tags_help' => 'Press Space (or Enter) to confirm a tag. Backspace on empty input removes the last tag. Leading # is optional.',
+        'tags_placeholder' => 'Type a tag',
+        'tags_help' => 'Existing tags are suggested as you type; choose one with the arrow keys and Enter. Space adds what you typed, as a new tag if there is none. Backspace on an empty field removes the last tag. A leading # is optional.',
         'created_at' => 'Created',
         'updated_at' => 'Updated',
         'url' => 'URL',
