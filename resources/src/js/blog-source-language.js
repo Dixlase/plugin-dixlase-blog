@@ -25,6 +25,10 @@
 export default function blogSourceLanguage() {
     return {
         needsConfirmation: false,
+        // Declared so they stay on this component rather than the
+        // outermost x-data (#203).
+        _current: '',
+        _translated: [],
 
         init() {
             this._current = this.$el.dataset.current || '';

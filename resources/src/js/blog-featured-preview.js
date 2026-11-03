@@ -32,6 +32,13 @@ export default function blogFeaturedPreview() {
         inputId: '',
         url: null,
         alt: '',
+        // Declared here so they stay on this component. Alpine stores a
+        // property assigned without a declaration on the outermost x-data,
+        // where it overwrote blogPreviewTitle's (#203).
+        _input: null,
+        _onSelected: null,
+        _onChange: null,
+        _onMessage: null,
 
         init() {
             this.inputId = this.$el.dataset.inputId || '';
