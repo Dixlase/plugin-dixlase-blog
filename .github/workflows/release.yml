@@ -27,20 +27,12 @@ jobs:
         # Dixlase/dixlase-core#520.
         run: .github/scripts/check-manifest.sh plugin.json
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install npm dependencies
-        run: npm ci --no-audit --no-fund
-
-      - name: Build frontend assets
-        # Same command CI's Frontend Build job runs on every PR, so a
-        # green PR check on main is a real signal this step will succeed
-        # when the release tag is pushed.
-        run: npm run build
+      # No front-end build here any more. resources/assets is committed, so
+      # the step above has already compared those bytes against the signed
+      # manifest: a release whose assets were not rebuilt and re-signed
+      # fails there rather than shipping a tree the signature does not
+      # describe. Building here would overwrite the signed bytes with new
+      # hashed filenames and break every hash in the manifest.
 
       - name: Package plugin ZIP with prebuilt assets
         # The release ZIP has to look like a GitHub-style source zipball

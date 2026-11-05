@@ -110,7 +110,7 @@
         ]
     },
     "requires": {
-        "dixlase": ">=0.2.0",
+        "dixlase": ">=0.2.1",
         "dixlase_api": "^0.1",
         "php": ">=8.2"
     },

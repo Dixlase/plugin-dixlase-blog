@@ -1,6 +1,10 @@
 /.phpunit.cache
 /node_modules
-/resources/assets/*
+# resources/assets is NOT ignored: the built front-end assets are
+# committed by the release, signed with the rest of the extension, and
+# distributed as those exact bytes. Nothing rebuilds them downstream --
+# not the deploy, not the release ZIP, not an install. The plugin's
+# thumbnail.png lives at the repository root, not here.
 /public/build
 /public/hot
 /public/storage
