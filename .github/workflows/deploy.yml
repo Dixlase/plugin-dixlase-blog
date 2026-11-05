@@ -32,57 +32,30 @@ jobs:
           fi
 
       # ------------------------------------------------------------------
-      # Frontend build (npm run build).
+      # No frontend build here.
       #
-      # The plugin's resources/assets/ directory is gitignored, so
-      # the git-clone-on-server step that follows never brings the
-      # compiled CSS / JS / manifest along. Build them here on the
-      # runner and rsync into a per-plugin _shared/ directory on the
-      # deploy server; the SSH deploy script then copies from
-      # _shared/ into the plugin's resources/assets/ inside every
-      # site's checkout.
-      #
-      # The build step is written to be safe on plugins that carry a
-      # `vite.config.js` but no `package.json` (some older shells of
-      # this workflow do): the shell guard turns it into a clean no-op
-      # that still populates an empty dist/, keeping the rsync target
-      # deterministic across every deploy.
+      # resources/assets is committed: the release builds it once, signs
+      # it with the rest of the tree, and ships those exact bytes. Each
+      # site's own fetch and reset therefore brings the compiled CSS, JS
+      # and manifest along, and nothing downstream rebuilds them. A build
+      # on this runner would write different hashed filenames and leave
+      # every hash in the signed manifest wrong.
       # ------------------------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: '20'
-
-      - name: Build frontend assets (skipped when no package.json)
+      - name: Refuse a tree that carries no built assets
+        # The guard that replaces the build. If this ref was pushed without
+        # its compiled assets, every site would serve the plugin's views
+        # without their stylesheet -- and the page's byte size barely moves,
+        # so a size-based health check would still call the site healthy.
+        # Fail here, before any site has been touched.
         run: |
-          if [ -f package.json ] && jq -e '.scripts.build' package.json > /dev/null 2>&1; then
-            npm ci --no-audit --no-fund
-            NODE_ENV=production npx vite build --outDir dist
-          else
-            echo "No package.json with a build script — skipping frontend build."
-            mkdir -p dist
+          if [ ! -f resources/assets/manifest.json ]; then
+            echo "::error::resources/assets/manifest.json is missing. This ref carries no built assets, so deploying it would leave every site unstyled. Build and commit them (the release does this), then push again." >&2
+            exit 1
           fi
-
-      - name: Create shared build directory on server
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: mkdir -p ${{ steps.target.outputs.base_dir }}/_shared/plugins/DixlaseBlog
-
-      - name: Deploy built assets via rsync
-        uses: burnett01/rsync-deployments@7.0.1
-        with:
-          switches: -avz --delete
-          path: dist/
-          remote_path: ${{ steps.target.outputs.base_dir }}/_shared/plugins/DixlaseBlog/
-          remote_host: ${{ secrets.SERVER_HOST }}
-          remote_user: ${{ secrets.SERVER_USER }}
-          remote_key: ${{ secrets.SERVER_SSH_KEY }}
+          echo "Built assets present: $(find resources/assets -type f | wc -l | tr -d ' ') file(s)."
 
       - name: Deploy plugin via SSH
         uses: appleboy/ssh-action@v1
@@ -280,63 +253,24 @@ jobs:
                 docker exec $RUN_AS "$PHP_CONTAINER" sh -c "cd $APP_ROOT && if [ -f scripts/sync-local-autoload.php ]; then php scripts/sync-local-autoload.php; fi && composer dump-autoload $NO_DEV --optimize"
               fi
 
-              # Copy the frontend build produced on the runner into the
-              # plugin's resources/assets/. The directory is gitignored,
-              # so the git-clone/pull above never brought the compiled
-              # CSS / JS / manifest along, and the on-server prod host
-              # does not have npm to build them locally. A blanket
-              # `rsync --delete` would remove hand-authored files such
-              # as thumbnail.png (and its predecessors) that live at
-              # the same asset root, so that approach stays off — the
-              # manifest-driven sweep below handles cleanup instead.
-              if [ -d "$BASE/_shared/plugins/$PLUGIN_DIR" ]; then
-                mkdir -p "$DEST/resources/assets"
-                rsync -a "$BASE/_shared/plugins/$PLUGIN_DIR/" "$DEST/resources/assets/"
-                fix_owner "$CONTAINER_DEST/resources/assets"
-              fi
+              # Nothing to copy: resources/assets is tracked now, so the
+              # fetch and reset above already placed the compiled CSS, JS
+              # and manifest, as the exact bytes the release signed. The
+              # ownership fix runs after the cleanup below, once.
 
-              # Sweep stale build artefacts. Vite content-hashes JS/CSS
-              # entry filenames so every build's URLs are unique; without
-              # this sweep, the `rsync -a` above (no --delete) leaves
-              # every prior build's files stacked forever. Files from
-              # the pre-hash era (bare `style.css` / `app.js`) also get
-              # collected on the first run.
+              # Clear what earlier deploys left behind. Until this release
+              # the assets arrived by rsync, so every prior build's hashed
+              # files are sitting there untracked; git does not remove them
+              # on a reset because it never knew about them. Scoped to
+              # resources/assets and limited to untracked files, so the
+              # tracked build stays.
               #
-              # `manifest.json` is the source of truth for what the
-              # newly-compiled views will reference — anything under
-              # css/ / js/ / fonts/ / images/ / assets/ that isn't
-              # listed is dead weight and gets removed. Hand-authored
-              # files at the resources/assets/ root (thumbnails, etc.)
-              # are deliberately NOT swept — only the known subdirs.
-              #
-              # Trade-off: a browser holding stale HTML with an old
-              # hashed URL will 404 on that asset after this runs,
-              # until the next navigation re-fetches the HTML. HTML is
-              # served without Cache-Control so that window is short.
-              ASSET_ROOT="$DEST/resources/assets"
-              MANIFEST="$ASSET_ROOT/manifest.json"
-              if [ -f "$MANIFEST" ]; then
-                KEEP_LIST=$(mktemp)
-                grep -oE '"file"[[:space:]]*:[[:space:]]*"[^"]+"' "$MANIFEST" \
-                  | sed -E 's/.*"file"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/' \
-                  | sort -u > "$KEEP_LIST"
-                echo "manifest.json" >> "$KEEP_LIST"
-
-                REMOVED=0
-                for SUBDIR in css js fonts images assets; do
-                  DIR="$ASSET_ROOT/$SUBDIR"
-                  [ -d "$DIR" ] || continue
-                  while IFS= read -r -d '' F; do
-                    REL="${F#$ASSET_ROOT/}"
-                    if ! grep -qxF "$REL" "$KEEP_LIST"; then
-                      rm -f "$F"
-                      REMOVED=$((REMOVED + 1))
-                    fi
-                  done < <(find "$DIR" -type f -print0)
-                done
-                rm -f "$KEEP_LIST"
-                echo "Stale-asset sweep: removed $REMOVED file(s) not present in manifest.json"
-              fi
+              # Trade-off, unchanged: a browser holding stale HTML with an
+              # old hashed URL will 404 on that asset until the next
+              # navigation re-fetches the HTML. HTML is served without
+              # Cache-Control, so that window is short.
+              git -C "$DEST" clean -fd -- resources/assets
+              fix_owner "$CONTAINER_DEST/resources/assets"
 
               # Invalidate Laravel's compiled bootstrap caches (views, config,
               # routes, events) so blade / config / route changes shipped by
