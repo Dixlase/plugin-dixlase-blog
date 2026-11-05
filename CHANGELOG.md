@@ -5,6 +5,24 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.3.1] — 2026-11-06
+
+### Added
+
+- The tag field of the post form suggests the blog's existing tags as you type, with their post
+  counts, and offers to create a new tag below them (#206, fixes #205). Space, a leading `#` and
+  Backspace behave as before.
+
+### Fixed
+
+- The live preview shows the post's title again instead of the featured image's media ID, and
+  typing in the title field reaches it (#204, fixes #203).
+
+### Changed
+
+- The front-end assets are built once, when the plugin is released, and ship with it in
+  `resources/assets`. A site no longer builds them itself (#207).
+
 ## [0.3.0] — 2026-11-01
 
 ### Added
