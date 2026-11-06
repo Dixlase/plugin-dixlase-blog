@@ -60,6 +60,7 @@ use Plugins\DixlaseBlog\App\Services\BlogContentRenderer;
 use Plugins\DixlaseBlog\App\Services\BlogPostFiles;
 use Plugins\DixlaseBlog\App\Services\BlogPostService;
 use Plugins\DixlaseBlog\App\Services\BlogPostSourceLanguage;
+use Plugins\DixlaseBlog\App\Services\BlogPublishPolicy;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 use Plugins\DixlaseBlog\App\Services\BlogSeoMeta;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
@@ -109,6 +110,8 @@ class DixlaseBlogAdminPostsController extends Controller
             'selectedCategoryIds' => [],
             'tagNames' => [],
             'commentStatusOptions' => $this->commentStatusOptions(),
+            'canPublish' => BlogPublishPolicy::canPublish(AdminHelper::getMember()),
+            'canChangePost' => true,
         ]));
     }
 
@@ -165,19 +168,23 @@ class DixlaseBlogAdminPostsController extends Controller
             'selectedCategoryIds' => $post->categories->pluck('id')->all(),
             'tagNames' => $post->tags->pluck('name')->all(),
             'commentStatusOptions' => $this->commentStatusOptions(),
+            'canPublish' => BlogPublishPolicy::canPublish(AdminHelper::getMember()),
+            'canChangePost' => BlogPublishPolicy::canChange(AdminHelper::getMember(), $post),
         ]));
     }
 
     /**
      * Publish the changes made to a post's files outside the admin. The
      * members who may edit the post may publish them: saving it from the
-     * form would publish the same.
+     * form would publish the same. On a live or scheduled post that needs
+     * the right to publish, as saving it does.
      */
     public function publishFile(Request $request): RedirectResponse
     {
         $post = BlogPost::query()->findOrFail((int) $request->route('post'));
         $member = AdminHelper::getMember();
         abort_unless(BlogScriptAuthoringPolicy::canEditEditorType($member, $post->editor_type), 403);
+        abort_unless(BlogPublishPolicy::canChange($member, $post), 403);
 
         $result = (new PublishFileContentAction($post, null, app(FileContentPublisher::class)))
             ->execute(new MemberActor($member), []);
@@ -207,9 +214,12 @@ class DixlaseBlogAdminPostsController extends Controller
 
     public function destroy(Request $request): RedirectResponse
     {
-        BlogPost::query()
-            ->findOrFail((int) $request->route('post'))
-            ->delete();
+        $post = BlogPost::query()->findOrFail((int) $request->route('post'));
+
+        // Trashing a live post takes it off the site.
+        abort_unless(BlogPublishPolicy::canChange(AdminHelper::getMember(), $post), 403);
+
+        $post->delete();
 
         return redirect()
             ->route('dixlase-blog::admin.blog.index')
@@ -231,6 +241,11 @@ class DixlaseBlogAdminPostsController extends Controller
     public function restore(Request $request): RedirectResponse
     {
         $post = BlogPost::onlyTrashed()->findOrFail((int) $request->route('id'));
+
+        // A post keeps its status in the trash, so restoring a live one puts
+        // it back on the site.
+        abort_unless(BlogPublishPolicy::canChange(AdminHelper::getMember(), $post), 403);
+
         $slug = $post->slug;
         $post = $this->postService->restoreFromTrash($post);
 

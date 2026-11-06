@@ -26,13 +26,21 @@ Dixlase Blog is dual-licensed. You may use this file under either:
         </a>
     </div>
 
-    {{-- Changes made to the post's files outside the admin, waiting to be
-         published (#193). Outside the post form: it posts its own form. --}}
-    <x-content.file-changes
-        id="post-file-changes"
-        :changes="$fileChanges"
-        :publishUrl="route('dixlase-blog::admin.blog.publishFile', ['post' => $post->id])"
-    />
+    {{-- A live or scheduled post changes what the site shows, so saving it
+         needs the right to publish. See BlogPublishPolicy. --}}
+    @unless ($canChangePost)
+        <div role="status" class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+            {{ __('dixlase-blog::admin.post.live_post_read_only') }}
+        </div>
+    @else
+        {{-- Changes made to the post's files outside the admin, waiting to be
+             published (#193). Outside the post form: it posts its own form. --}}
+        <x-content.file-changes
+            id="post-file-changes"
+            :changes="$fileChanges"
+            :publishUrl="route('dixlase-blog::admin.blog.publishFile', ['post' => $post->id])"
+        />
+    @endunless
 
     {{-- The form's x-data dispatches "right-sidebar-active" so the admin
          layout knows to apply lg:mr-80 to #admin-main-content (which is
@@ -52,6 +60,7 @@ Dixlase Blog is dual-licensed. You may use this file under either:
 @endsection
 
 @section('save')
+    @if ($canChangePost)
     <x-admin.save-button
         id_confirmation="confirm-blog-post-save"
         :label="__('common.save')"
@@ -61,4 +70,5 @@ Dixlase Blog is dual-licensed. You may use this file under either:
         :cancel_label="__('common.cancel')"
         form="blog-post-form"
     />
+    @endif
 @endsection

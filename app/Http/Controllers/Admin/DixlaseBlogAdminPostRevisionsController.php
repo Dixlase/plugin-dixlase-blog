@@ -35,6 +35,7 @@ declare(strict_types=1);
 namespace Plugins\DixlaseBlog\App\Http\Controllers\Admin;
 
 use App\Enums\ContentEditorType;
+use App\Enums\ContentStatus;
 use App\Helpers\AdminHelper;
 use App\Presenters\Admin\RevisionDiffPresenter;
 use App\Services\RevisionService;
@@ -48,6 +49,7 @@ use Illuminate\View\View;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Models\BlogPostRevision;
 use Plugins\DixlaseBlog\App\Services\BlogPostService;
+use Plugins\DixlaseBlog\App\Services\BlogPublishPolicy;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 
 class DixlaseBlogAdminPostRevisionsController extends Controller
@@ -161,6 +163,13 @@ class DixlaseBlogAdminPostRevisionsController extends Controller
                 && ($snapshotEditorType === null || BlogScriptAuthoringPolicy::canEditEditorType($member, $snapshotEditorType)),
             403,
         );
+        // A live or scheduled post shows the restored text at once, and the
+        // snapshot's own status is restored too.
+        abort_unless(
+            BlogPublishPolicy::canChange($member, $post)
+                && (BlogPublishPolicy::canPublish($member) || ! $this->snapshotIsLive($revision->snapshot['status'] ?? null)),
+            403,
+        );
 
         $snapshotSlug = $revision->snapshot['slug'] ?? null;
         $restored = $this->postService->restoreRevision($revision, $member?->id);
@@ -226,6 +235,22 @@ class DixlaseBlogAdminPostRevisionsController extends Controller
             BlogPostRevision::TYPE_MANUAL => __('dixlase-blog::admin.revision.type_manual'),
             BlogPostRevision::TYPE_RESTORE_BACKUP => __('dixlase-blog::admin.revision.type_restore_backup'),
         ];
+    }
+
+    /**
+     * Whether a snapshot's status (stored as the enum's value, or its slug)
+     * puts the post on the site.
+     */
+    private function snapshotIsLive(mixed $status): bool
+    {
+        $status = match (true) {
+            $status instanceof ContentStatus => $status,
+            is_int($status), is_numeric($status) => ContentStatus::tryFrom((int) $status),
+            is_string($status) => ContentStatus::tryFromSlug($status),
+            default => null,
+        };
+
+        return $status === ContentStatus::PUBLISHED || $status === ContentStatus::SCHEDULED;
     }
 
     /**

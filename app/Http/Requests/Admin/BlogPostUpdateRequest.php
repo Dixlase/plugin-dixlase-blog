@@ -35,7 +35,6 @@ declare(strict_types=1);
 namespace Plugins\DixlaseBlog\App\Http\Requests\Admin;
 
 use App\Enums\ContentEditorType;
-use App\Enums\ContentStatus;
 use App\Helpers\LocaleHelper;
 use App\Rules\UniqueContentSlug;
 use Illuminate\Foundation\Http\FormRequest;
@@ -48,6 +47,7 @@ use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\LimitsCustomAssets;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\NullsBlankInput;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\ReadsDatetimeInDisplayTimezone;
 use Plugins\DixlaseBlog\App\Services\BlogPostSourceLanguage;
+use Plugins\DixlaseBlog\App\Services\BlogPublishPolicy;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
@@ -61,13 +61,20 @@ class BlogPostUpdateRequest extends FormRequest
     /**
      * An HTML (or legacy Blade) body is script-capable: only members who may
      * author scripts may change such a post. See BlogScriptAuthoringPolicy.
+     * A live or scheduled post changes what the site shows, so it needs the
+     * right to publish as well. See BlogPublishPolicy.
      */
     public function authorize(): bool
     {
         $post = $this->postBeingUpdated();
+        if ($post === null) {
+            return true;
+        }
 
-        return $post === null
-            || BlogScriptAuthoringPolicy::canEditEditorType(Auth::guard('member')->user(), $post->editor_type);
+        $member = Auth::guard('member')->user();
+
+        return BlogScriptAuthoringPolicy::canEditEditorType($member, $post->editor_type)
+            && BlogPublishPolicy::canChange($member, $post);
     }
 
     /**
@@ -89,8 +96,6 @@ class BlogPostUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $statuses = array_map(fn ($case) => $case->slug(), ContentStatus::cases());
-
         $post = $this->postBeingUpdated();
         $postId = $post?->id;
 
@@ -114,7 +119,8 @@ class BlogPostUpdateRequest extends FormRequest
             'editor_type' => ['required', 'string', Rule::in($post !== null
                 ? [$post->editor_type->slug()]
                 : array_map(fn ($case) => $case->slug(), ContentEditorType::cases()))],
-            'status' => ['required', 'string', Rule::in($statuses)],
+            // Published and scheduled need the right to publish; see BlogPublishPolicy.
+            'status' => ['required', 'string', Rule::in(BlogPublishPolicy::allowedStatusSlugs(Auth::guard('member')->user()))],
             'is_pinned' => ['sometimes', 'boolean'],
             'comment_status' => ['sometimes', 'string', Rule::in(BlogPost::COMMENT_STATUSES)],
             // A scheduled post appears at published_at, so it needs one.
@@ -191,6 +197,7 @@ class BlogPostUpdateRequest extends FormRequest
         return [
             'editor_type.in' => __('dixlase-blog::admin.post.editor_type_not_allowed'),
             'published_at.required_if' => __('dixlase-blog::admin.post.scheduled_needs_published_at'),
+            'status.in' => __('dixlase-blog::admin.post.publish_not_allowed'),
         ];
     }
 }
