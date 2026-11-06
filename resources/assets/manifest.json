@@ -1,17 +1,21 @@
 {
   "resources/src/css/style.scss": {
-    "file": "css/style-CZcV7qpw.css",
+    "file": "css/style-DXukS5a4.css",
+    "name": "style",
+    "names": [
+      "style.css"
+    ],
     "src": "resources/src/css/style.scss",
     "isEntry": true
   },
   "resources/src/js/app.js": {
-    "file": "js/app-BWsrmLtO.js",
+    "file": "js/app-DO224ZKj.js",
     "name": "app",
     "src": "resources/src/js/app.js",
     "isEntry": true
   },
   "resources/src/js/front.js": {
-    "file": "js/front-QEz5Zd2Z.js",
+    "file": "js/front-BU_Sl9Ri.js",
     "name": "front",
     "src": "resources/src/js/front.js",
     "isEntry": true

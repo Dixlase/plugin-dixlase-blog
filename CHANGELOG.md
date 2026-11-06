@@ -5,6 +5,23 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.3.4] — 2026-11-06
+
+### Added
+
+- `dls:blog:post:import` creates or updates a post from a Markdown file with front matter
+  (#211, fixes #210). The input goes through the same validation and saving as the post editor,
+  under the member named by `--as`, and an existing slug updates that post as a new revision.
+  Relative image paths in the file are imported into the media library and replaced by the
+  media item. New posts are drafts unless the file says otherwise, `--dry-run` checks the file
+  without writing anything, and `--json` prints the result. It runs only when `APP_ENV` is
+  `local`, unless `--allow-non-local` is given.
+
+### Changed
+
+- Requires Dixlase core 0.2.8 or later (`requires.dixlase: >=0.2.8`), whose media importer the
+  command uses.
+
 ## [0.3.3] — 2026-11-06
 
 ### Changed
