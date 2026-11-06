@@ -5,6 +5,13 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.3.2] — 2026-11-06
+
+### Changed
+
+- SCSS is compiled with `sass-embedded` only; the unused `sass` package is no longer installed
+  (#213). The built stylesheet is unchanged.
+
 ## [0.3.1] — 2026-11-06
 
 ### Added

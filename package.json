@@ -1,6 +1,6 @@
 {
     "name": "plugins/dixlase-blog",
-    "version": "0.3.2-dev",
+    "version": "0.3.3-dev",
     "description": "Dixlase Blog - blog plugin for Dixlase",
     "private": true,
     "scripts": {
@@ -9,9 +9,8 @@
         "watch": "vite build --watch"
     },
     "devDependencies": {
-        "sass": "^1.77.0",
         "sass-embedded": "^1.105.0",
-        "vite": "^5.0.0"
+        "vite": "^8.3.3"
     },
     "author": "exc-D inc.",
     "license": "GPL-3.0-or-later",
