@@ -94,7 +94,7 @@ class BlogPostImportTest extends TestCase
     {
         $this->image('images/cover.png', 120, 60);
         $this->image('images/figure.png', 30, 20);
-        $file = $this->post(<<<'MD'
+        $file = $this->postFile(<<<'MD'
             ---
             title: "Hello: world"
             slug: hello-world
@@ -137,12 +137,12 @@ class BlogPostImportTest extends TestCase
 
     public function test_importing_again_updates_the_post_and_keeps_what_the_file_leaves_out(): void
     {
-        $file = $this->post("---\ntitle: First\nslug: same-post\nexcerpt: Kept\ntags: [one]\n---\n\nFirst body.");
+        $file = $this->postFile("---\ntitle: First\nslug: same-post\nexcerpt: Kept\ntags: [one]\n---\n\nFirst body.");
         $this->import($file)->assertSuccessful();
         $post = BlogPost::sole();
         $revisions = BlogPostRevision::query()->where('post_id', $post->id)->count();
 
-        $file = $this->post("---\ntitle: Second\nslug: same-post\n---\n\nSecond body.");
+        $file = $this->postFile("---\ntitle: Second\nslug: same-post\n---\n\nSecond body.");
         $this->import($file)->assertSuccessful();
 
         $post = BlogPost::sole()->fresh(['tags']);
@@ -156,7 +156,7 @@ class BlogPostImportTest extends TestCase
     public function test_the_same_image_twice_is_one_media_item(): void
     {
         $this->image('images/a.png');
-        $file = $this->post("---\ntitle: Twice\nfeatured_image: images/a.png\n---\n\n![a](images/a.png)");
+        $file = $this->postFile("---\ntitle: Twice\nfeatured_image: images/a.png\n---\n\n![a](images/a.png)");
 
         $this->import($file)->assertSuccessful();
 
@@ -166,7 +166,7 @@ class BlogPostImportTest extends TestCase
     public function test_an_unknown_category_saves_nothing(): void
     {
         $this->image('images/a.png');
-        $file = $this->post("---\ntitle: Bad\ncategories: [missing]\nfeatured_image: ./images/a.png\n---\n\nBody");
+        $file = $this->postFile("---\ntitle: Bad\ncategories: [missing]\nfeatured_image: ./images/a.png\n---\n\nBody");
 
         $this->import($file)
             ->expectsOutputToContain(__('dixlase-blog::import.unknown_categories', ['slugs' => 'missing']))
@@ -178,7 +178,7 @@ class BlogPostImportTest extends TestCase
 
     public function test_a_missing_image_saves_nothing(): void
     {
-        $file = $this->post("---\ntitle: Bad\n---\n\n![x](./images/nope.png)");
+        $file = $this->postFile("---\ntitle: Bad\n---\n\n![x](./images/nope.png)");
 
         $this->import($file)
             ->expectsOutputToContain(__('dixlase-blog::import.image_not_found', ['field' => 'body', 'path' => './images/nope.png']))
@@ -190,7 +190,7 @@ class BlogPostImportTest extends TestCase
     public function test_an_invalid_field_saves_nothing_and_imports_no_image(): void
     {
         $this->image('images/a.png');
-        $file = $this->post("---\ntitle: Bad\nslug: Not A Slug!\nfeatured_image: ./images/a.png\n---\n\nBody");
+        $file = $this->postFile("---\ntitle: Bad\nslug: Not A Slug!\nfeatured_image: ./images/a.png\n---\n\nBody");
 
         $this->import($file)->expectsOutputToContain('slug:')->assertFailed();
 
@@ -200,7 +200,7 @@ class BlogPostImportTest extends TestCase
 
     public function test_an_unknown_key_is_refused(): void
     {
-        $file = $this->post("---\ntitle: Typo\ntagz: [one]\n---\n\nBody");
+        $file = $this->postFile("---\ntitle: Typo\ntagz: [one]\n---\n\nBody");
 
         $this->import($file)
             ->expectsOutputToContain(__('dixlase-blog::import.unknown_key', ['key' => 'tagz', 'keys' => implode(', ', \Plugins\DixlaseBlog\App\Services\BlogPostImporter::KEYS)]))
@@ -210,7 +210,7 @@ class BlogPostImportTest extends TestCase
     public function test_a_dry_run_writes_nothing(): void
     {
         $this->image('images/a.png');
-        $file = $this->post("---\ntitle: Dry\nfeatured_image: ./images/a.png\n---\n\nBody");
+        $file = $this->postFile("---\ntitle: Dry\nfeatured_image: ./images/a.png\n---\n\nBody");
 
         $this->import($file, ['--dry-run' => true])
             ->expectsOutputToContain(__('dixlase-blog::import.would_create'))
@@ -223,7 +223,7 @@ class BlogPostImportTest extends TestCase
     public function test_json_output_names_the_post_and_its_images(): void
     {
         $this->image('images/a.png');
-        $file = $this->post("---\ntitle: Json\nslug: json-post\nfeatured_image: ./images/a.png\n---\n\nBody");
+        $file = $this->postFile("---\ntitle: Json\nslug: json-post\nfeatured_image: ./images/a.png\n---\n\nBody");
 
         Artisan::call('dls:blog:post:import', ['file' => $file, '--as' => 'author@example.com', '--json' => true, '--allow-non-local' => true]);
         $result = json_decode(Artisan::output(), true);
@@ -238,7 +238,7 @@ class BlogPostImportTest extends TestCase
 
     public function test_it_refuses_to_run_outside_a_local_environment(): void
     {
-        $file = $this->post("---\ntitle: Live\n---\n\nBody");
+        $file = $this->postFile("---\ntitle: Live\n---\n\nBody");
 
         $this->artisan('dls:blog:post:import', ['file' => $file, '--as' => 'author@example.com'])
             ->expectsOutputToContain(__('dixlase-blog::import.not_local'))
@@ -249,7 +249,7 @@ class BlogPostImportTest extends TestCase
 
     public function test_it_needs_an_active_author(): void
     {
-        $file = $this->post("---\ntitle: Nobody\n---\n\nBody");
+        $file = $this->postFile("---\ntitle: Nobody\n---\n\nBody");
 
         $this->artisan('dls:blog:post:import', ['file' => $file, '--allow-non-local' => true])
             ->expectsOutputToContain(__('dixlase-blog::import.member_required'))
@@ -268,7 +268,7 @@ class BlogPostImportTest extends TestCase
         return $this->artisan('dls:blog:post:import', ['file' => $file, '--as' => 'author@example.com', '--allow-non-local' => true] + $options);
     }
 
-    private function post(string $markdown): string
+    private function postFile(string $markdown): string
     {
         $path = $this->dir.'/post-'.uniqid().'.md';
         File::put($path, $markdown);
