@@ -5,6 +5,14 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.3.3] — 2026-11-06
+
+### Changed
+
+- The front-end build uses Vite 8 (8.3.6), as the core and the other extensions do (#216).
+  Vite 5 had advisories with no fix inside 5.x. The built files get new names, since their
+  names are content hashes.
+
 ## [0.3.2] — 2026-11-06
 
 ### Changed
