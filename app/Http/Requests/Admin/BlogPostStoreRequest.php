@@ -35,7 +35,6 @@ declare(strict_types=1);
 namespace Plugins\DixlaseBlog\App\Http\Requests\Admin;
 
 use App\Enums\ContentEditorType;
-use App\Enums\ContentStatus;
 use App\Helpers\LocaleHelper;
 use App\Rules\UniqueContentSlug;
 use Illuminate\Foundation\Http\FormRequest;
@@ -46,6 +45,7 @@ use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\LimitsCustomAssets;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\NullsBlankInput;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\Concerns\ReadsDatetimeInDisplayTimezone;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
+use Plugins\DixlaseBlog\App\Services\BlogPublishPolicy;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 
@@ -66,8 +66,6 @@ class BlogPostStoreRequest extends FormRequest
      */
     public function rules(): array
     {
-        $statuses = array_map(fn ($case) => $case->slug(), ContentStatus::cases());
-
         return [
             'title' => ['required', 'string', 'max:255'],
             'slug' => [
@@ -87,7 +85,8 @@ class BlogPostStoreRequest extends FormRequest
             'editor_type' => ['required', 'string', Rule::in(
                 BlogScriptAuthoringPolicy::creatableEditorSlugs(Auth::guard('member')->user())
             )],
-            'status' => ['required', 'string', Rule::in($statuses)],
+            // Published and scheduled need the right to publish; see BlogPublishPolicy.
+            'status' => ['required', 'string', Rule::in(BlogPublishPolicy::allowedStatusSlugs(Auth::guard('member')->user()))],
             'is_pinned' => ['sometimes', 'boolean'],
             'comment_status' => ['sometimes', 'string', Rule::in(BlogPost::COMMENT_STATUSES)],
             'lang' => ['nullable', 'string', Rule::in(LocaleHelper::supportedLocales())],
@@ -135,6 +134,7 @@ class BlogPostStoreRequest extends FormRequest
         return [
             'editor_type.in' => __('dixlase-blog::admin.post.editor_type_not_allowed'),
             'published_at.required_if' => __('dixlase-blog::admin.post.scheduled_needs_published_at'),
+            'status.in' => __('dixlase-blog::admin.post.publish_not_allowed'),
         ];
     }
 }

@@ -107,6 +107,10 @@ class BlogPostImporter
         if ($post !== null && $post->editor_type->slug() !== 'markdown') {
             throw new PostImportException([__('dixlase-blog::import.not_markdown', ['slug' => $post->slug])]);
         }
+        // A live post changes what the site shows; see BlogPublishPolicy.
+        if ($post !== null && ! BlogPublishPolicy::canChange($author, $post)) {
+            throw new PostImportException([__('dixlase-blog::import.live_post', ['slug' => $post->slug])]);
+        }
         $images = $this->localImages($fields, $frontMatter->body, dirname((string) realpath($file)));
         $data = $this->data($fields, $frontMatter->body, $post);
 

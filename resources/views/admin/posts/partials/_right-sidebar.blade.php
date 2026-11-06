@@ -47,6 +47,13 @@ side validation continues to enforce it.
         'scheduled' => \App\Enums\ContentStatus::SCHEDULED->label(),
     ];
 
+    // Without the right to publish a post is saved only as a draft (see
+    // BlogPublishPolicy). A live post such a member cannot change keeps every
+    // choice, so its status still reads correctly.
+    if (! ($canPublish ?? true) && ($canChangePost ?? true)) {
+        $statusOptions = array_intersect_key($statusOptions, ['draft' => true]);
+    }
+
     // The sidebar Preview button posts the form, saved or not, and opens
     // the post in the theme's full layout in a new tab (an admin route, so
     // the admin login applies), vs. the editor's split-pane preview which
@@ -443,6 +450,9 @@ side validation continues to enforce it.
                 :value="$statusSlug"
             />
             <x-form-error name="status" />
+            @unless ($canPublish ?? true)
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ __('dixlase-blog::admin.post.drafts_only_hint') }}</p>
+            @endunless
         </div>
 
         {{-- Pinned: listed first on the blog index --}}

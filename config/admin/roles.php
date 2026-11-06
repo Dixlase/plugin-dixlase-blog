@@ -76,6 +76,10 @@ return [
                 'store' => $editor,
                 'edit' => $editor,
                 'update' => $editor,
+                // Not a route: putting a post on the site. Without it a
+                // member saves posts only as drafts and cannot change a live
+                // or scheduled one. See BlogPublishPolicy.
+                'publish' => $editor,
                 // Publishing changes made to a post's files outside the
                 // admin is the same authoring as saving the post; the
                 // controller checks the editor type as the save does.

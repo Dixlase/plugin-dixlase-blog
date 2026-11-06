@@ -30,6 +30,7 @@ return [
     'seo_not_a_map' => '「seo」の下には字下げしたキーを書いてください: :keys',
     'not_text' => '「:key」はリストではなく、1 つの値にしてください。',
     'not_markdown' => '記事「:slug」は Markdown で書かれていないため、ファイルから更新できません。',
+    'live_post' => '記事「:slug」は公開中か予約中で、著者のロールでは公開できないため、変更できません。',
     'unknown_categories' => 'このスラッグのカテゴリがありません: :slugs',
     'image_not_found' => ':field: 画像が見つかりません: :path',
     'image_must_be_local' => ':field にはローカルの画像ファイルのパスを書いてください。',

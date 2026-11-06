@@ -30,6 +30,7 @@ return [
     'seo_not_a_map' => '"seo" must hold indented keys: :keys',
     'not_text' => '":key" must be a single value, not a list.',
     'not_markdown' => 'The post ":slug" is not written in Markdown, so it cannot be updated from a file.',
+    'live_post' => 'The post ":slug" is published or scheduled, and the author\'s role cannot publish, so it cannot be changed.',
     'unknown_categories' => 'No category has the slug: :slugs',
     'image_not_found' => ':field: image not found: :path',
     'image_must_be_local' => ':field must be a path to a local image file.',
