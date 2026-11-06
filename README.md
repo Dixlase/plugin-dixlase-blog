@@ -74,6 +74,41 @@ The `[blog]` shortcode lists the latest posts wherever content goes through core
 
 For example, `[blog count="5" layout="list" link="false"]`. With no posts to show, it renders nothing.
 
+### Importing a post from a Markdown file
+
+A post drafted outside the admin — by hand, with a script or with an assistant — can be brought in with one command instead of filling the editor:
+
+```bash
+php artisan dls:blog:post:import drafts/hello.md --as=author@example.com --dry-run
+php artisan dls:blog:post:import drafts/hello.md --as=author@example.com
+```
+
+```markdown
+---
+title: Hello, world
+slug: hello-world
+lang: en
+status: draft                 # draft (default), scheduled or published
+published_at: 2026-11-10 09:00 # in the site's display timezone
+categories: [news]            # category slugs
+tags: [dixlase, blog]
+excerpt: A short summary
+featured_image: ./images/cover.png
+seo:
+  description: Meta description
+  ogp_image: ./images/ogp.png
+---
+
+The body, in Markdown. ![A figure](./images/figure-1.png)
+```
+
+- The post is checked with the editor's own rules and saved the same way, with a revision. It is a Markdown post, and a **draft unless the file says otherwise** — read it in the admin before publishing
+- A post whose slug already exists is **updated**; a key the file leaves out keeps its current value
+- Local images (relative paths) in `featured_image`, `seo.ogp_image` and the body are imported into the media library with core's `dls:media:import`, and the body points at them. URLs and site paths starting with `/` are left as they are. An image already in the library is reused
+- Nothing is saved, and no image is imported, unless the whole file is valid. `--dry-run` only checks; `--json` prints the post and the images used
+- `--as` names the author. The command runs only when `APP_ENV` is `local` (`--allow-non-local` overrides): it is meant for a local site whose content is then deployed
+- The front matter is a small subset of YAML: `key: value`, lists as `[a, b]` or `- item` lines, and one level of indented keys under `seo`. Anything else is refused with the line number
+
 ## Customising the templates
 
 The front pages use the plugin's own templates and stylesheet. To change a template, copy it from `resources/views/` to one of these directories, keeping its relative path (for example `front/show.blade.php`). The first directory that holds the file wins:

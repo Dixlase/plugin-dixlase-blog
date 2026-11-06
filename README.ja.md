@@ -74,6 +74,24 @@ cd plugins/DixlaseBlog && npm ci && npm run build
 
 例: `[blog count="5" layout="list" link="false"]`。表示する記事がないときは、何も出しません。
 
+### Markdown ファイルから記事を取り込む
+
+管理画面の外で書いた記事（手書き、スクリプト、アシスタントなど）は、エディタを埋める代わりにコマンド 1 つで取り込める。
+
+```bash
+php artisan dls:blog:post:import drafts/hello.md --as=author@example.com --dry-run
+php artisan dls:blog:post:import drafts/hello.md --as=author@example.com
+```
+
+（ファイルの例は英語版の README を参照）
+
+- 記事はエディタと同じルールで検査され、同じ方法でリビジョン付きで保存される。Markdown の記事になり、**ファイルで指定しない限り下書き**になる。公開する前に管理画面で確認すること
+- そのスラッグの記事がすでにあれば**更新**する。ファイルに書かなかったキーは今の値のまま
+- `featured_image`・`seo.ogp_image`・本文にあるローカルの画像（相対パス）は、コアの `dls:media:import` でメディアライブラリに取り込み、本文はそれを指すように書き換える。URL と `/` で始まるサイト内のパスはそのまま。ライブラリにすでにある画像は使い回す
+- ファイル全体が正しくない限り、何も保存せず、画像も取り込まない。`--dry-run` は検査だけ、`--json` は記事と使った画像を出す
+- `--as` で著者を指定する。`APP_ENV` が `local` のときだけ動く（`--allow-non-local` で上書きできる）。ローカルのサイトに入れてからデプロイするためのもの
+- フロントマターは YAML の小さなサブセット。`key: value`、`[a, b]` または `- item` の行によるリスト、`seo` の下の 1 段だけの字下げしたキー。それ以外は行番号付きで拒否する
+
 ## テンプレートの変更
 
 表側のページは、プラグインのテンプレートとスタイルシートで表示します。テンプレートを変えるには、`resources/views/` からファイルを次のどちらかのディレクトリへ、相対パスを保ったまま(例: `front/show.blade.php`)コピーします。最初にファイルが見つかったディレクトリのものが使われます。
