@@ -278,6 +278,8 @@ class BlogPostImportTest extends TestCase
 
     private function image(string $relative, int $width = 10, int $height = 10): void
     {
-        File::copy(UploadedFile::fake()->image(basename($relative), $width, $height)->getPathname(), $this->dir.'/'.$relative);
+        // Held in a variable: the fake's temporary file goes when it does.
+        $fake = UploadedFile::fake()->image(basename($relative), $width, $height);
+        File::copy($fake->getPathname(), $this->dir.'/'.$relative);
     }
 }
