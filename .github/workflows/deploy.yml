@@ -1,10 +1,15 @@
 name: Deploy Plugin
 
-# Manual only until the blog launches: a merge to main must not deploy
-# anywhere while the plugin is unreleased. At launch, a separate pull
-# request adds the `push` trigger on main that the other official plugins
-# use (the `sites` fallback below keeps that working without an input).
+# A release deploys itself. `main` moves only at a release, in the same
+# push as the tag, so a push to main is a release; it deploys to brand
+# and demo through the `sites` fallback below (#223). The trigger is not
+# `release: published`: release.yml creates the Release with
+# GITHUB_TOKEN, and an event raised by GITHUB_TOKEN starts no other
+# workflow. The manual entry point stays for re-running a deploy.
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       sites:
