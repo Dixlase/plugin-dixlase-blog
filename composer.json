@@ -2,7 +2,7 @@
     "name": "dixlase/dixlase-blog",
     "description": "Blog plugin for Dixlase: posts, categories and tags, comments, a sidebar, archives and an RSS feed.",
     "type": "dixlase-plugin",
-    "version": "0.3.5-dev",
+    "version": "0.3.5",
     "license": "GPL-3.0-or-later",
     "authors": [
         {

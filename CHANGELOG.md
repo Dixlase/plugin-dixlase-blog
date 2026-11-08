@@ -5,6 +5,17 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.3.5] — 2026-11-08
+
+### Added
+
+- Publishing a post is a permission of its own, `blog.publish` (#220, fixes #219). Editors and
+  above hold it by default, so no existing role changes. A role without it can write drafts but
+  cannot publish or schedule a post, and cannot save, trash, restore or restore a revision of a
+  post that is already published or scheduled; the edit screen says so and offers only Draft.
+  `dls:blog:post:import` follows the same rules for the member named by `--as`. Scheduled
+  publishing is unaffected.
+
 ## [0.3.4] — 2026-11-06
 
 ### Added
