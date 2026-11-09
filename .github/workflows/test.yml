@@ -22,16 +22,33 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: PHPUnit Tests (${{ matrix.db }})
+    name: ${{ matrix.php == '8.3' && format('PHPUnit Tests ({0})', matrix.db) || format('PHPUnit Tests ({0}, PHP {1})', matrix.db, matrix.php) }}
 
     # SQLite accepts values MariaDB refuses (an empty string in an integer
     # or datetime column, for one), so the suite also runs on the database
     # the Docker installer ships. The service container exists only for
     # this job; the SQLite leg ignores it.
+    #
+    # Every PHP version from core's floor (^8.3) up (Dixlase/dixlase-core#977).
+    # 8.6 is a development build in setup-php (8.6.0-dev) until it is
+    # released, so its legs report but do not fail the workflow; move it
+    # into `php` once setup-php lists it as stable. The 8.3 leg keeps the
+    # check name the rulesets require, so the extra versions add checks
+    # without renaming that one.
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
         db: [sqlite, mariadb]
+        php: ['8.3', '8.4', '8.5']
+        experimental: [false]
+        include:
+          - db: sqlite
+            php: '8.6'
+            experimental: true
+          - db: mariadb
+            php: '8.6'
+            experimental: true
 
     services:
       mariadb:
@@ -63,7 +80,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: ${{ matrix.php }}
           extensions: sodium, mbstring, json, sqlite3, pdo_sqlite, pdo_mysql
           coverage: none
 
@@ -80,9 +97,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: core/vendor
-          key: ${{ runner.os }}-php83-composer-${{ hashFiles('core/composer.lock') }}
+          key: ${{ runner.os }}-php${{ matrix.php }}-composer-${{ hashFiles('core/composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php83-composer-
+            ${{ runner.os }}-php${{ matrix.php }}-composer-
 
       - name: Install core composer dependencies
         working-directory: core
