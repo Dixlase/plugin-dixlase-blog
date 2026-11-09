@@ -5,6 +5,18 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.3.7] — 2026-11-10
+
+### Changed
+
+- The plugin states PHP 8.3 as its floor, as core does, instead of 8.2 (#230, fixes #229).
+
+### Development
+
+- The tests run on the newest MySQL and MariaDB LTS (9.7, 12.3) alongside SQLite for every PHP
+  version, on the supported floor (MySQL 8.4, MariaDB 10.11) for PHP 8.3, and, as a warning only,
+  on MySQL 8.0 and MariaDB 11.8 (#228, part of Dixlase/dixlase-core#981).
+
 ## [0.3.6] — 2026-11-09
 
 ### Development
