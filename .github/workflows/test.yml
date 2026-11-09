@@ -22,47 +22,134 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: ${{ matrix.php == '8.3' && format('PHPUnit Tests ({0})', matrix.db) || format('PHPUnit Tests ({0}, PHP {1})', matrix.db, matrix.php) }}
+    name: PHPUnit Tests (${{ matrix.label }})
 
-    # SQLite accepts values MariaDB refuses (an empty string in an integer
-    # or datetime column, for one), so the suite also runs on the database
-    # the Docker installer ships. The service container exists only for
-    # this job; the SQLite leg ignores it.
-    #
-    # Every PHP version from core's floor (^8.3) up (Dixlase/dixlase-core#977).
-    # 8.6 is a development build in setup-php (8.6.0-dev) until it is
-    # released, so its legs report but do not fail the workflow; move it
-    # into `php` once setup-php lists it as stable. The 8.3 leg keeps the
-    # check name the rulesets require, so the extra versions add checks
-    # without renaming that one.
+    # Every PHP version from 8.3 up (Dixlase/dixlase-core#977) on SQLite and
+    # the newest MySQL and MariaDB LTS, plus PHP 8.3 on the supported floor
+    # (MySQL 8.4, MariaDB 10.11) and, warn-only, on versions still widely
+    # run outside the supported range (MySQL 8.0, MariaDB 11.8)
+    # (Dixlase/dixlase-core#981). `experimental` legs (PHP 8.6 while it is a
+    # development build, and the warn-only ones) report but do not fail the
+    # workflow. SQLite accepts values MySQL and MariaDB refuse (an empty
+    # string in an integer or datetime column, for one), which is why both
+    # kinds run.
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
-        db: [sqlite, mariadb]
-        php: ['8.3', '8.4', '8.5']
-        experimental: [false]
         include:
-          - db: sqlite
-            php: '8.6'
+          - php: '8.3'
+            db: sqlite
+            image: ''
+            health: ''
+            experimental: false
+            label: 'sqlite'
+          - php: '8.3'
+            db: mysql
+            image: 'mysql:9.7'
+            health: 'mysqladmin ping'
+            experimental: false
+            label: 'MySQL 9.7, PHP 8.3'
+          - php: '8.3'
+            db: mariadb
+            image: 'mariadb:12.3'
+            health: 'healthcheck.sh --connect --innodb_initialized'
+            experimental: false
+            label: 'mariadb'
+          - php: '8.4'
+            db: sqlite
+            image: ''
+            health: ''
+            experimental: false
+            label: 'SQLite, PHP 8.4'
+          - php: '8.4'
+            db: mysql
+            image: 'mysql:9.7'
+            health: 'mysqladmin ping'
+            experimental: false
+            label: 'MySQL 9.7, PHP 8.4'
+          - php: '8.4'
+            db: mariadb
+            image: 'mariadb:12.3'
+            health: 'healthcheck.sh --connect --innodb_initialized'
+            experimental: false
+            label: 'MariaDB 12.3, PHP 8.4'
+          - php: '8.5'
+            db: sqlite
+            image: ''
+            health: ''
+            experimental: false
+            label: 'SQLite, PHP 8.5'
+          - php: '8.5'
+            db: mysql
+            image: 'mysql:9.7'
+            health: 'mysqladmin ping'
+            experimental: false
+            label: 'MySQL 9.7, PHP 8.5'
+          - php: '8.5'
+            db: mariadb
+            image: 'mariadb:12.3'
+            health: 'healthcheck.sh --connect --innodb_initialized'
+            experimental: false
+            label: 'MariaDB 12.3, PHP 8.5'
+          - php: '8.6'
+            db: sqlite
+            image: ''
+            health: ''
             experimental: true
-          - db: mariadb
-            php: '8.6'
+            label: 'SQLite, PHP 8.6'
+          - php: '8.6'
+            db: mysql
+            image: 'mysql:9.7'
+            health: 'mysqladmin ping'
             experimental: true
+            label: 'MySQL 9.7, PHP 8.6'
+          - php: '8.6'
+            db: mariadb
+            image: 'mariadb:12.3'
+            health: 'healthcheck.sh --connect --innodb_initialized'
+            experimental: true
+            label: 'MariaDB 12.3, PHP 8.6'
+          - php: '8.3'
+            db: mysql
+            image: 'mysql:8.4'
+            health: 'mysqladmin ping'
+            experimental: false
+            label: 'MySQL 8.4, PHP 8.3'
+          - php: '8.3'
+            db: mariadb
+            image: 'mariadb:10.11'
+            health: 'healthcheck.sh --connect --innodb_initialized'
+            experimental: false
+            label: 'MariaDB 10.11, PHP 8.3'
+          - php: '8.3'
+            db: mysql
+            image: 'mysql:8.0'
+            health: 'mysqladmin ping'
+            experimental: true
+            label: 'MySQL 8.0, PHP 8.3'
+          - php: '8.3'
+            db: mariadb
+            image: 'mariadb:11.8'
+            health: 'healthcheck.sh --connect --innodb_initialized'
+            experimental: true
+            label: 'MariaDB 11.8, PHP 8.3'
 
     services:
-      mariadb:
-        image: mariadb:12.2.2
+      db:
+        # An empty image (the SQLite legs) starts no service container.
+        image: ${{ matrix.image }}
         env:
-          MARIADB_ROOT_PASSWORD: password
-          MARIADB_DATABASE: dixlase_test
+          # The MariaDB image reads the MYSQL_* names as aliases.
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: dixlase_test
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-cmd="${{ matrix.health }}"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=10
 
     steps:
       - name: Checkout plugin
@@ -133,8 +220,8 @@ jobs:
           APP_KEY: base64:dGVzdGtleWZvcmRpeGxhc2VibG9nY2l0ZXN0czEyMzQ=
         run: ../../vendor/bin/phpunit
 
-      - name: Run PHPUnit tests (MariaDB)
-        if: matrix.db == 'mariadb'
+      - name: Run PHPUnit tests (MySQL / MariaDB)
+        if: matrix.db != 'sqlite'
         working-directory: core/plugins/DixlaseBlog
         env:
           APP_KEY: base64:dGVzdGtleWZvcmRpeGxhc2VibG9nY2l0ZXN0czEyMzQ=
