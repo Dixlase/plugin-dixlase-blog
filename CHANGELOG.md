@@ -5,6 +5,17 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.3.6] — 2026-11-09
+
+### Development
+
+- A release is deployed automatically when it lands on `main`, as the other plugins' releases
+  are, instead of waiting for a manual run (#224, fixes #223).
+- The tests run on every PHP version from 8.3 up: 8.3, 8.4, 8.5, and 8.6 while it is a
+  development build, on SQLite and MariaDB alike (#225, part of Dixlase/dixlase-core#977).
+
+No change to the plugin itself.
+
 ## [0.3.5] — 2026-11-08
 
 ### Added

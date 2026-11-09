@@ -2,7 +2,7 @@
     "name": "Dixlase Blog",
     "package_name": "dixlase/dixlase-blog",
     "slug": "dixlase-blog",
-    "version": "0.3.6-dev",
+    "version": "0.3.6",
     "description": {
         "en": "Provides a blog: posts with revisions, a trash and featured images, hierarchical categories and tags, comments with moderation, notification mail and CAPTCHA, a settings screen, a configurable sidebar, search and date archives, pinned posts, previous / next and related posts, share buttons, breadcrumbs and an RSS feed. Works with DixlaseSEO for meta tags and the sitemap.",
         "ja": "ブログ機能を提供します。リビジョン、ゴミ箱、アイキャッチ画像のある記事、階層カテゴリとタグ、承認・通知メール・CAPTCHA に対応したコメント、設定画面、設定できるサイドバー、検索と日付のアーカイブ、固定表示、前後の記事と関連記事、共有ボタン、パンくずリスト、RSS フィードを備えます。DixlaseSEO でメタタグとサイトマップに対応します。"
@@ -197,8 +197,8 @@
         "middleware": false
     },
     "files": {
-        "CHANGELOG.ja.md": "sha256:f8410b5a43580fcbe2e3c24145525e9c2c18395efa9b77e6b9000508f4ab409e",
-        "CHANGELOG.md": "sha256:659d5a68c5f9745e02f7b9ab409adc8301b172e4c85e63157e7183e02d350309",
+        "CHANGELOG.ja.md": "sha256:28fa83ef399561b760453041071f8df71ae949c8692b704b583b28fa2a88e129",
+        "CHANGELOG.md": "sha256:45c84db661aa133eb12c7f2354e683026e2ae4acc5ae9356d37d805ef9419953",
         "CONTRIBUTING.ja.md": "sha256:a43628cf75539ffc7a39e5a0bf604c91e2a95be97f364a3c260399681fe01881",
         "CONTRIBUTING.md": "sha256:04efb3f6a4d618518776fcd0f7c0ec229140e069c9706f90a5b8b2f0ef8e1786",
         "COPYRIGHT-POLICY.ja.md": "sha256:8544f9ca08306d5c6926a6508064ae6ece44286c4161a06475aa1a2946ab2d94",
@@ -270,7 +270,7 @@
         "app/Support/Import/FrontMatter.php": "sha256:528d7e85290536b8b4a74d93c22564b0562494e4458741f01573429deadc7e18",
         "app/Support/Import/FrontMatterException.php": "sha256:614acf5931f5ab71101fac129c196cfcd94d1f5bacba571720f258dde56e4cb8",
         "app/Support/Import/PostImportException.php": "sha256:23074de2a4102dea1d06cc79dddb859acb7e8953b0707b88bf5c160d7041b764",
-        "composer.json": "sha256:1d34fae06cfad9ba4bb010ffb7af41da1544660fb4ae2e748756bb33dba9b6bb",
+        "composer.json": "sha256:bd6cb83858fd426317967f10e02c68a3ccdab30b669cfb6154f00d1b5a9ec706",
         "config/admin.php": "sha256:5be489e772d384244b1e9a494b412e651b510e4297353ae5b1b7ae28c8445b3f",
         "config/admin/database-cleanup.php": "sha256:29f176102ae2b77b208abd688c8338d4918ebc1cee7febd7553a1b96371588e8",
         "config/admin/roles.php": "sha256:9e65d2730a25f4881835a4e31bd337002835f730bbb91b98997e587c472896eb",
@@ -304,7 +304,7 @@
         "lang/ja/route-slug.php": "sha256:3e4b347887eb1564725c8162d4795c63823e8ca102ccdfa7566285a571efd18c",
         "license-info.json": "sha256:27febc29bf90ae573eb5b5386023e10fd024253ebcf56eb86ff42dff93106128",
         "package-lock.json": "sha256:ba464d286da80d89145b3b105553cdbc898bea8bb6487974f21f71f27238dbb1",
-        "package.json": "sha256:a9985a7faf903cdeb61af6ba028dbde6694b7daa17fbdbb034fa28688e3e773d",
+        "package.json": "sha256:694f4beb143130c86c6a4f9af90a5fe8ce3c65b20bd6de8a7f170f5e53072f53",
         "phpunit.xml": "sha256:77ec274db7ba908e0c39b96381dd7c1a1ce4fd6b468f47ebe037090fe9c56959",
         "resources/assets/css/style-DXukS5a4.css": "sha256:f0e1a241b800c2836cad7beeb28f8a1548fafddecd1a1eac9144fe40cffba384",
         "resources/assets/js/app-DO224ZKj.js": "sha256:6850f9cd947b9bf2d8cfefb82d166ec5a4ca6e24551d1285357fbb2a0599cf6a",
@@ -422,6 +422,6 @@
     "signing": {
         "algo": "ed25519",
         "key_id": "dixlase-authority-2026",
-        "signed_at": "2026-11-08T12:43:19+00:00"
+        "signed_at": "2026-11-09T13:55:56+00:00"
     }
 }
