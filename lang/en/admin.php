@@ -257,6 +257,7 @@ return [
         'type_auto' => 'Auto',
         'type_manual' => 'Manual',
         'type_restore_backup' => 'Pre-restore backup',
+        'type_import' => 'Import',
         'diff_heading' => 'Diff',
         'diff_no_changes' => 'No differences from the current state.',
         'diff_meta_heading' => 'Metadata',

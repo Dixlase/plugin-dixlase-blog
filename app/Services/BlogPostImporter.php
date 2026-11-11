@@ -45,6 +45,7 @@ use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogPostStoreRequest;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogPostUpdateRequest;
 use Plugins\DixlaseBlog\App\Models\BlogCategory;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
+use Plugins\DixlaseBlog\App\Models\BlogPostRevision;
 use Plugins\DixlaseBlog\App\Support\BlogSettings;
 use Plugins\DixlaseBlog\App\Support\DisplayTimezoneDatetime;
 use Plugins\DixlaseBlog\App\Support\Import\FrontMatter;
@@ -73,7 +74,7 @@ class BlogPostImporter
         'title', 'slug', 'lang', 'status', 'published_at', 'closed_at',
         'categories', 'tags', 'excerpt', 'featured_image', 'is_pinned',
         'comment_status', 'seo',
-        // The version the export took the file from (#235). Read by the
+        // The version the export took the file from (#235), read by the
         // overwrite check (#236); the post has no column for it.
         'revision',
     ];
@@ -94,11 +95,13 @@ class BlogPostImporter
      *                            is stored, or null to leave it to the editor's
      *                            rule (the blog's default for a new post, the
      *                            post's own storage otherwise) (#233)
+     * @param  bool  $force  Overwrite a post changed since the file was
+     *                       taken (#236)
      * @return array{action: 'create'|'update', post: ?BlogPost, storage: string, images: list<array{source: string, field: string, media_id: ?int, path: ?string, reused: bool}>}
      *
      * @throws PostImportException
      */
-    public function import(string $file, Member $author, bool $dryRun = false, ?string $storage = null): array
+    public function import(string $file, Member $author, bool $dryRun = false, ?string $storage = null, bool $force = false): array
     {
         if ($storage !== null && ! in_array($storage, BlogSettings::STORAGE_TYPES, true)) {
             throw new PostImportException([__('dixlase-blog::import.invalid_storage', ['storage' => $storage, 'types' => implode(', ', BlogSettings::STORAGE_TYPES)])]);
@@ -122,6 +125,9 @@ class BlogPostImporter
         // A live post changes what the site shows; see BlogPublishPolicy.
         if ($post !== null && ! BlogPublishPolicy::canChange($author, $post)) {
             throw new PostImportException([__('dixlase-blog::import.live_post', ['slug' => $post->slug])]);
+        }
+        if (! $force) {
+            $this->checkOverwrite($fields, $post);
         }
         $this->checkStorage($storage, $post);
         $images = $this->localImages($fields, $frontMatter->body, dirname((string) realpath($file)));
@@ -151,8 +157,8 @@ class BlogPostImporter
 
         $saved = DB::transaction(function () use ($post, $validated, $author): BlogPost {
             $saved = $post === null
-                ? $this->posts->create($validated, $author->id)
-                : $this->posts->update($post, $validated, $author->id);
+                ? $this->posts->create($validated, $author->id, BlogPostRevision::TYPE_IMPORT)
+                : $this->posts->update($post, $validated, $author->id, BlogPostRevision::TYPE_IMPORT);
             $this->seoMeta->save($saved, $validated);
 
             return $saved;
@@ -161,6 +167,49 @@ class BlogPostImporter
         $plan['post'] = $saved;
 
         return $plan;
+    }
+
+    /**
+     * Refuse a file that would undo a change made to the post since (#236)
+     *
+     * A file from the export carries `revision`, the post's version when it
+     * was taken; any change since moves the post to another version. A file
+     * without it was written by hand, and is refused when the post's latest
+     * revision was not recorded by an import, i.e. someone saved it in the
+     * admin since. On a site that keeps no revisions that cannot be told,
+     * and the file is imported.
+     *
+     * @param  array<string, mixed>  $fields
+     *
+     * @throws PostImportException
+     */
+    private function checkOverwrite(array $fields, ?BlogPost $post): void
+    {
+        if ($post === null) {
+            return;
+        }
+
+        if (array_key_exists('revision', $fields)) {
+            $current = $this->posts->versionToken($post);
+            if ((string) $fields['revision'] !== $current) {
+                throw new PostImportException([__('dixlase-blog::import.stale_revision', [
+                    'slug' => $post->slug,
+                    'revision' => (string) $fields['revision'],
+                    'current' => $current,
+                ])]);
+            }
+
+            return;
+        }
+
+        $latest = BlogPostRevision::query()
+            ->where('post_id', $post->id)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->first();
+        if ($latest !== null && $latest->type !== BlogPostRevision::TYPE_IMPORT) {
+            throw new PostImportException([__('dixlase-blog::import.changed_in_admin', ['slug' => $post->slug])]);
+        }
     }
 
     /**
@@ -223,7 +272,7 @@ class BlogPostImporter
             }
         }
 
-        foreach (['title', 'slug', 'lang', 'status', 'published_at', 'closed_at', 'excerpt', 'featured_image', 'comment_status'] as $key) {
+        foreach (['title', 'slug', 'lang', 'status', 'published_at', 'closed_at', 'excerpt', 'featured_image', 'comment_status', 'revision'] as $key) {
             if (isset($fields[$key]) && ! is_string($fields[$key])) {
                 $errors[] = __('dixlase-blog::import.not_text', ['key' => $key]);
             }

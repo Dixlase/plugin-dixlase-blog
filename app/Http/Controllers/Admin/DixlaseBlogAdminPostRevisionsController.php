@@ -234,6 +234,7 @@ class DixlaseBlogAdminPostRevisionsController extends Controller
             BlogPostRevision::TYPE_AUTO => __('dixlase-blog::admin.revision.type_auto'),
             BlogPostRevision::TYPE_MANUAL => __('dixlase-blog::admin.revision.type_manual'),
             BlogPostRevision::TYPE_RESTORE_BACKUP => __('dixlase-blog::admin.revision.type_restore_backup'),
+            BlogPostRevision::TYPE_IMPORT => __('dixlase-blog::admin.revision.type_import'),
         ];
     }
 

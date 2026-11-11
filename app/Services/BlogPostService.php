@@ -73,9 +73,9 @@ class BlogPostService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function create(array $data, ?int $authorId): BlogPost
+    public function create(array $data, ?int $authorId, string $revisionType = BlogPostRevision::TYPE_MANUAL): BlogPost
     {
-        return DB::transaction(function () use ($data, $authorId): BlogPost {
+        return DB::transaction(function () use ($data, $authorId, $revisionType): BlogPost {
             $payload = $this->preparePayload($data);
             $payload['slug'] = $this->resolveSlug($data['slug'] ?? null, $data['title'] ?? '', null);
             $payload['excerpt'] = $this->resolveExcerpt($data['excerpt'] ?? null, $payload['content'] ?? null);
@@ -88,7 +88,7 @@ class BlogPostService
             $this->syncCategories($post, $data['categories'] ?? []);
             $this->syncTagsByNames($post, $data['tags'] ?? []);
 
-            $this->recordRevisionWithPivots($post, BlogPostRevision::TYPE_MANUAL, $authorId, null);
+            $this->recordRevisionWithPivots($post, $revisionType, $authorId, null);
 
             return $post->fresh(['categories', 'tags']) ?? $post;
         });
@@ -97,9 +97,9 @@ class BlogPostService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function update(BlogPost $post, array $data, ?int $editorId): BlogPost
+    public function update(BlogPost $post, array $data, ?int $editorId, string $revisionType = BlogPostRevision::TYPE_MANUAL): BlogPost
     {
-        return DB::transaction(function () use ($post, $data, $editorId): BlogPost {
+        return DB::transaction(function () use ($post, $data, $editorId, $revisionType): BlogPost {
             $payload = $this->preparePayload($data);
             $payload['slug'] = $this->resolveSlug($data['slug'] ?? null, $data['title'] ?? $post->title, $post->id);
             $payload['excerpt'] = $this->resolveExcerpt(
@@ -128,7 +128,7 @@ class BlogPostService
                 $this->syncTagsByNames($post, $data['tags'] ?? []);
             }
 
-            $this->recordRevisionWithPivots($post, BlogPostRevision::TYPE_MANUAL, $editorId, null);
+            $this->recordRevisionWithPivots($post, $revisionType, $editorId, null);
 
             return $post->fresh(['categories', 'tags']) ?? $post;
         });
