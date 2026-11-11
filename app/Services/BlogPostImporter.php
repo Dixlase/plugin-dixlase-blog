@@ -97,11 +97,13 @@ class BlogPostImporter
      *                            post's own storage otherwise) (#233)
      * @param  bool  $force  Overwrite a post changed since the file was
      *                       taken (#236)
-     * @return array{action: 'create'|'update', post: ?BlogPost, storage: string, images: list<array{source: string, field: string, media_id: ?int, path: ?string, reused: bool}>}
+     * @param  bool  $draft  Save a draft whatever status the file gives,
+     *                       and leave a live post alone (#238)
+     * @return array{action: 'create'|'update', post: ?BlogPost, status: string, storage: string, images: list<array{source: string, field: string, media_id: ?int, path: ?string, reused: bool}>}
      *
      * @throws PostImportException
      */
-    public function import(string $file, Member $author, bool $dryRun = false, ?string $storage = null, bool $force = false): array
+    public function import(string $file, Member $author, bool $dryRun = false, ?string $storage = null, bool $force = false, bool $draft = false): array
     {
         if ($storage !== null && ! in_array($storage, BlogSettings::STORAGE_TYPES, true)) {
             throw new PostImportException([__('dixlase-blog::import.invalid_storage', ['storage' => $storage, 'types' => implode(', ', BlogSettings::STORAGE_TYPES)])]);
@@ -126,12 +128,20 @@ class BlogPostImporter
         if ($post !== null && ! BlogPublishPolicy::canChange($author, $post)) {
             throw new PostImportException([__('dixlase-blog::import.live_post', ['slug' => $post->slug])]);
         }
+        // Saving a live post as a draft would take it off the site; that is
+        // for the admin to do on purpose, not a side effect of --draft.
+        if ($draft && $post !== null && BlogPublishPolicy::isLive($post)) {
+            throw new PostImportException([__('dixlase-blog::import.draft_live_post', ['slug' => $post->slug])]);
+        }
         if (! $force) {
             $this->checkOverwrite($fields, $post);
         }
         $this->checkStorage($storage, $post);
         $images = $this->localImages($fields, $frontMatter->body, dirname((string) realpath($file)));
         $data = $this->data($fields, $frontMatter->body, $post);
+        if ($draft) {
+            $data['status'] = 'draft';
+        }
         if ($storage !== null) {
             $data['storage_type'] = $storage;
         }
@@ -143,6 +153,7 @@ class BlogPostImporter
         $plan = [
             'action' => $post === null ? 'create' : 'update',
             'post' => $post,
+            'status' => (string) $checked['status'],
             'storage' => (string) ($checked['storage_type'] ?? $post?->storage_type->slug() ?? 'database'),
             'images' => array_map(fn (array $image): array => $image + ['media_id' => null, 'path' => null, 'reused' => false], $images),
         ];
