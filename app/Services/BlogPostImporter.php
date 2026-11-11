@@ -358,11 +358,22 @@ class BlogPostImporter
         if (array_key_exists('seo', $fields)) {
             $seo = (array) ($fields['seo'] ?? []);
             $data['seo_meta'] = [];
+
+            // The meta is saved whole, so a key the block leaves out is
+            // carried over, as at the top level (#239).
+            $current = $post !== null
+                ? $this->seoMeta->formData($post)['seoMeta']
+                : null;
+
             if (array_key_exists('description', $seo)) {
                 $data['seo_meta']['description'] = $seo['description'];
+            } elseif ($current?->description !== null) {
+                $data['seo_meta']['description'] = $current->description;
             }
             if (array_key_exists('ogp_image', $seo)) {
                 $data['seo_meta']['ogp_media_id'] = null;
+            } elseif ($current?->ogpMediaId !== null) {
+                $data['seo_meta']['ogp_media_id'] = $current->ogpMediaId;
             }
         }
 
