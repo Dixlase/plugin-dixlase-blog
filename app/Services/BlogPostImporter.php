@@ -45,6 +45,7 @@ use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogPostStoreRequest;
 use Plugins\DixlaseBlog\App\Http\Requests\Admin\BlogPostUpdateRequest;
 use Plugins\DixlaseBlog\App\Models\BlogCategory;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
+use Plugins\DixlaseBlog\App\Support\BlogSettings;
 use Plugins\DixlaseBlog\App\Support\DisplayTimezoneDatetime;
 use Plugins\DixlaseBlog\App\Support\Import\FrontMatter;
 use Plugins\DixlaseBlog\App\Support\Import\FrontMatterException;
@@ -86,12 +87,20 @@ class BlogPostImporter
     ) {}
 
     /**
-     * @return array{action: 'create'|'update', post: ?BlogPost, images: list<array{source: string, field: string, media_id: ?int, path: ?string, reused: bool}>}
+     * @param  ?string  $storage  `file` or `database` to choose where the post
+     *                            is stored, or null to leave it to the editor's
+     *                            rule (the blog's default for a new post, the
+     *                            post's own storage otherwise) (#233)
+     * @return array{action: 'create'|'update', post: ?BlogPost, storage: string, images: list<array{source: string, field: string, media_id: ?int, path: ?string, reused: bool}>}
      *
      * @throws PostImportException
      */
-    public function import(string $file, Member $author, bool $dryRun = false): array
+    public function import(string $file, Member $author, bool $dryRun = false, ?string $storage = null): array
     {
+        if ($storage !== null && ! in_array($storage, BlogSettings::STORAGE_TYPES, true)) {
+            throw new PostImportException([__('dixlase-blog::import.invalid_storage', ['storage' => $storage, 'types' => implode(', ', BlogSettings::STORAGE_TYPES)])]);
+        }
+
         $markdown = $this->read($file);
 
         try {
@@ -111,16 +120,21 @@ class BlogPostImporter
         if ($post !== null && ! BlogPublishPolicy::canChange($author, $post)) {
             throw new PostImportException([__('dixlase-blog::import.live_post', ['slug' => $post->slug])]);
         }
+        $this->checkStorage($storage, $post);
         $images = $this->localImages($fields, $frontMatter->body, dirname((string) realpath($file)));
         $data = $this->data($fields, $frontMatter->body, $post);
+        if ($storage !== null) {
+            $data['storage_type'] = $storage;
+        }
 
         // Once without the images, so a file that cannot be saved imports
         // nothing into the media library.
-        $this->validate($data, $post, $author);
+        $checked = $this->validate($data, $post, $author);
 
         $plan = [
             'action' => $post === null ? 'create' : 'update',
             'post' => $post,
+            'storage' => (string) ($checked['storage_type'] ?? $post?->storage_type->slug() ?? 'database'),
             'images' => array_map(fn (array $image): array => $image + ['media_id' => null, 'path' => null, 'reused' => false], $images),
         ];
 
@@ -144,6 +158,26 @@ class BlogPostImporter
         $plan['post'] = $saved;
 
         return $plan;
+    }
+
+    /**
+     * The editor offers no storage choice in the simple admin mode, and its
+     * form request quietly keeps the post where it is there. A storage named
+     * on the command line is an explicit request, so refuse it rather than
+     * ignore it when it would not be honoured.
+     *
+     * @throws PostImportException
+     */
+    private function checkStorage(?string $storage, ?BlogPost $post): void
+    {
+        if ($storage === null || ! BlogScriptAuthoringPolicy::isSimpleMode()) {
+            return;
+        }
+
+        $kept = $post?->storage_type->slug() ?? 'database';
+        if ($storage !== $kept) {
+            throw new PostImportException([__('dixlase-blog::import.storage_simple_mode', ['storage' => $storage])]);
+        }
     }
 
     /**

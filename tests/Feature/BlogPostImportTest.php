@@ -36,9 +36,12 @@ namespace Plugins\DixlaseBlog\Tests\Feature;
 
 use App\Enums\ContentEditorType;
 use App\Enums\ContentStatus;
+use App\Enums\ContentStorageType;
 use App\Enums\MemberRole;
 use App\Models\Media;
 use App\Models\Member;
+use App\Models\SiteSetting;
+use App\Services\Content\FileContentRegistry;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -57,6 +60,9 @@ use Tests\TestCase;
 class BlogPostImportTest extends TestCase
 {
     use RefreshDatabase;
+
+    /** Where post files live on the local disk */
+    private const FILES = 'dixlase-blog/posts';
 
     private Member $author;
 
@@ -258,6 +264,91 @@ class BlogPostImportTest extends TestCase
         $this->artisan('dls:blog:post:import', ['file' => $file, '--as' => 'nobody@example.com', '--allow-non-local' => true])
             ->expectsOutputToContain(__('dixlase-blog::import.member_not_found', ['identifier' => 'nobody@example.com']))
             ->assertFailed();
+    }
+
+    public function test_storage_file_creates_a_post_stored_as_files(): void
+    {
+        $this->useAdvancedMode();
+        $file = $this->postFile("---\ntitle: Files\nslug: files-post\n---\n\nBody on disk.");
+
+        $this->import($file, ['--storage' => 'file'])
+            ->expectsOutputToContain(__('dixlase-blog::import.stored', ['storage' => 'file']))
+            ->assertSuccessful();
+
+        $post = BlogPost::sole();
+        $this->assertSame(ContentStorageType::FILE, $post->storage_type);
+        $this->assertSame('Body on disk.', trim((string) Storage::disk('local')->get(self::FILES.'/'.$post->id.'/content.md')));
+    }
+
+    public function test_storage_moves_an_existing_post_and_is_kept_when_left_out(): void
+    {
+        $this->useAdvancedMode();
+        $file = $this->postFile("---\ntitle: Moving\nslug: moving-post\n---\n\nBody.");
+
+        $this->import($file)->assertSuccessful();
+        $post = BlogPost::sole();
+        $this->assertSame(ContentStorageType::DATABASE, $post->storage_type);
+
+        $this->import($file, ['--storage' => 'file'])->assertSuccessful();
+        $this->assertSame(ContentStorageType::FILE, $post->fresh()->storage_type);
+        $this->assertTrue(Storage::disk('local')->exists(self::FILES.'/'.$post->id.'/content.md'));
+
+        // Left out, the post stays where it is.
+        $this->import($file)->assertSuccessful();
+        $this->assertSame(ContentStorageType::FILE, $post->fresh()->storage_type);
+
+        $this->import($file, ['--storage' => 'database'])->assertSuccessful();
+        $this->assertSame(ContentStorageType::DATABASE, $post->fresh()->storage_type);
+        $this->assertFalse(Storage::disk('local')->exists(self::FILES.'/'.$post->id.'/content.md'));
+    }
+
+    public function test_storage_is_refused_in_the_simple_mode(): void
+    {
+        $file = $this->postFile("---\ntitle: Simple\n---\n\nBody");
+
+        $this->import($file, ['--storage' => 'file'])
+            ->expectsOutputToContain(__('dixlase-blog::import.storage_simple_mode', ['storage' => 'file']))
+            ->assertFailed();
+
+        $this->assertSame(0, BlogPost::count());
+    }
+
+    public function test_an_unknown_storage_is_refused(): void
+    {
+        $this->useAdvancedMode();
+        $file = $this->postFile("---\ntitle: Unknown\n---\n\nBody");
+
+        $this->import($file, ['--storage' => 'cloud'])
+            ->expectsOutputToContain(__('dixlase-blog::import.invalid_storage', ['storage' => 'cloud', 'types' => 'database, file']))
+            ->assertFailed();
+
+        $this->assertSame(0, BlogPost::count());
+    }
+
+    public function test_a_dry_run_and_json_report_the_storage(): void
+    {
+        $this->useAdvancedMode();
+        $file = $this->postFile("---\ntitle: Report\nslug: report-post\n---\n\nBody");
+
+        $this->import($file, ['--storage' => 'file', '--dry-run' => true])
+            ->expectsOutputToContain(__('dixlase-blog::import.would_store', ['storage' => 'file']))
+            ->assertSuccessful();
+        $this->assertSame(0, BlogPost::count());
+
+        Artisan::call('dls:blog:post:import', ['file' => $file, '--as' => 'author@example.com', '--json' => true, '--allow-non-local' => true, '--storage' => 'file']);
+        $result = json_decode(Artisan::output(), true);
+
+        $this->assertSame('file', $result['storage']);
+        $this->assertSame('file', $result['post']['storage']);
+    }
+
+    /**
+     * Storage can be chosen only in the advanced admin mode, as in the editor.
+     */
+    private function useAdvancedMode(): void
+    {
+        SiteSetting::setValue('admin_mode', '1');
+        app(FileContentRegistry::class)->register(BlogPost::class);
     }
 
     /**
