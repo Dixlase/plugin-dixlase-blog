@@ -34,6 +34,8 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\Tests\Feature;
 
+use App\Contracts\PluginIntegration\SeoMetaProviderInterface;
+use App\DTO\PluginIntegration\SeoMetaDTO;
 use App\Enums\ContentEditorType;
 use App\Enums\ContentStatus;
 use App\Enums\ContentStorageType;
@@ -349,6 +351,68 @@ class BlogPostImportTest extends TestCase
     {
         SiteSetting::setValue('admin_mode', '1');
         app(FileContentRegistry::class)->register(BlogPost::class);
+    }
+
+    public function test_a_partial_seo_block_keeps_the_other_field(): void
+    {
+        $seo = $this->fakeSeo();
+        $this->image('images/ogp.png');
+        $file = $this->postFile("---\ntitle: Seo\nslug: seo-post\nseo:\n  description: First\n  ogp_image: ./images/ogp.png\n---\n\nBody");
+        $this->import($file)->assertSuccessful();
+        $post = BlogPost::sole();
+        $ogp = Media::sole()->id;
+
+        $file = $this->postFile("---\nslug: seo-post\nseo:\n  description: Second\n---\n\nBody");
+        $this->import($file)->assertSuccessful();
+        $this->assertEquals(new SeoMetaDTO('Second', $ogp), $seo->meta[$post->id]);
+
+        $file = $this->postFile("---\nslug: seo-post\nseo:\n  ogp_image: null\n---\n\nBody");
+        $this->import($file)->assertSuccessful();
+        $this->assertEquals(new SeoMetaDTO('Second', null), $seo->meta[$post->id]);
+
+        $file = $this->postFile("---\nslug: seo-post\nseo:\n---\n\nBody");
+        $this->import($file)->assertSuccessful();
+        $this->assertEquals(new SeoMetaDTO(null, null), $seo->meta[$post->id]);
+    }
+
+    /**
+     * An SEO provider that keeps the meta in memory
+     */
+    private function fakeSeo(): object
+    {
+        $provider = new class implements SeoMetaProviderInterface
+        {
+            /** @var array<string, SeoMetaDTO> */
+            public array $meta = [];
+
+            public function getMeta(string $pluginSlug, string $entityId): ?SeoMetaDTO
+            {
+                return $this->meta[$entityId] ?? null;
+            }
+
+            public function saveMeta(string $pluginSlug, string $entityId, SeoMetaDTO $meta): void
+            {
+                $this->meta[$entityId] = $meta;
+            }
+
+            public function deleteMeta(string $pluginSlug, string $entityId): void
+            {
+                unset($this->meta[$entityId]);
+            }
+
+            public function purgeByPlugin(string $pluginSlug): int
+            {
+                return 0;
+            }
+
+            public function isEnabledForPlugin(string $pluginSlug): bool
+            {
+                return true;
+            }
+        };
+        $this->app->instance(SeoMetaProviderInterface::class, $provider);
+
+        return $provider;
     }
 
     /**
