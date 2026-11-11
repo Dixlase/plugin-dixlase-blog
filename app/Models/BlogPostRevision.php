@@ -59,6 +59,12 @@ class BlogPostRevision extends Model
 
     public const TYPE_RESTORE_BACKUP = RevisionService::TYPE_RESTORE_BACKUP;
 
+    /**
+     * Saved by the Markdown import (#236). Lets the import tell a post it
+     * wrote last from one changed in the admin since.
+     */
+    public const TYPE_IMPORT = 'import';
+
     /** @var list<string> */
     protected $fillable = [
         'post_id',

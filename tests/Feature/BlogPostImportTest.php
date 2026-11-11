@@ -54,6 +54,7 @@ use Plugins\DixlaseBlog\App\Console\Commands\ImportPost;
 use Plugins\DixlaseBlog\App\Models\BlogCategory;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Models\BlogPostRevision;
+use Plugins\DixlaseBlog\App\Services\BlogPostService;
 use Tests\TestCase;
 
 /**
@@ -369,6 +370,53 @@ class BlogPostImportTest extends TestCase
         $file = $this->postFile("---\nslug: seo-post\nseo:\n  ogp_image: null\n---\n\nBody");
         $this->import($file)->assertSuccessful();
         $this->assertEquals(new SeoMetaDTO('Second', null), $seo->meta[$post->id]);
+    }
+
+    public function test_a_file_from_an_older_version_is_refused(): void
+    {
+        $file = $this->postFile("---\ntitle: First\nslug: versioned\n---\n\nFirst body.");
+        $this->import($file)->assertSuccessful();
+        $post = BlogPost::sole();
+        $token = app(BlogPostService::class)->versionToken($post);
+
+        $stale = $this->postFile("---\ntitle: Stale\nslug: versioned\nrevision: 000000000000\n---\n\nStale body.");
+        $this->import($stale, ['--dry-run' => true])
+            ->expectsOutputToContain(__('dixlase-blog::import.stale_revision', ['slug' => 'versioned', 'revision' => '000000000000', 'current' => $token]))
+            ->assertFailed();
+        $this->import($stale)->assertFailed();
+        $this->assertSame('First', $post->fresh()->title);
+
+        $current = $this->postFile("---\ntitle: Second\nslug: versioned\nrevision: {$token}\n---\n\nSecond body.");
+        $this->import($current)->assertSuccessful();
+        $this->assertSame('Second', $post->fresh()->title);
+
+        $this->import($stale, ['--force' => true])->assertSuccessful();
+        $this->assertSame('Stale', $post->fresh()->title);
+    }
+
+    public function test_a_hand_written_file_is_refused_after_a_save_in_the_admin(): void
+    {
+        $file = $this->postFile("---\ntitle: First\nslug: hand-written\n---\n\nFirst body.");
+        $this->import($file)->assertSuccessful();
+        $post = BlogPost::sole();
+        $this->assertSame(BlogPostRevision::TYPE_IMPORT, BlogPostRevision::query()->where('post_id', $post->id)->latest('id')->value('type'));
+
+        // Importing again is fine while the import made the latest change.
+        $this->import($file)->assertSuccessful();
+
+        BlogPostRevision::query()->forceCreate([
+            'post_id' => $post->id,
+            'snapshot' => [],
+            'type' => BlogPostRevision::TYPE_MANUAL,
+            'created_by' => $this->author->id,
+            'created_at' => now()->addMinute(),
+        ]);
+
+        $this->import($file)
+            ->expectsOutputToContain(__('dixlase-blog::import.changed_in_admin', ['slug' => 'hand-written']))
+            ->assertFailed();
+
+        $this->import($file, ['--force' => true])->assertSuccessful();
     }
 
     /**

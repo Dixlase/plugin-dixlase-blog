@@ -42,6 +42,8 @@ return [
     'created' => '記事 #:id（:slug）を :status で作成しました。',
     'updated' => '記事 #:id（:slug）を更新しました。状態は :status です。',
     'images' => '画像: 取り込み :imported 件、登録済み :reused 件。',
+    'stale_revision' => '記事「:slug」は、このファイルを書き出したあとに変更されています（ファイルの revision: :revision、今の記事: :current）。書き出し直してそのファイルを直すか、変更を上書きするなら --force を付けてください。',
+    'changed_in_admin' => '記事「:slug」は、取り込み以外（管理画面など）で最後に保存されています。書き出してそのファイルを直すか、変更を上書きするなら --force を付けてください。',
     'invalid_storage' => '--storage は次のどれかにしてください: :types（指定された値: 「:storage」）',
     'storage_simple_mode' => '管理画面がシンプルモードのため記事の保存先を選べず、--storage=:storage には従えません。詳細モードに切り替えるか、--storage を外してください。',
     'would_store' => '保存先: :storage',

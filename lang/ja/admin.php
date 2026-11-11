@@ -257,6 +257,7 @@ return [
         'type_auto' => '自動',
         'type_manual' => '手動',
         'type_restore_backup' => '復元前バックアップ',
+        'type_import' => '取り込み',
         'diff_heading' => '差分',
         'diff_no_changes' => '現状との差分はありません。',
         'diff_meta_heading' => 'メタ情報',

@@ -58,6 +58,7 @@ class ImportPost extends Command
                             {file : The Markdown file to import}
                             {--as= : The post\'s author (member ID or e-mail address)}
                             {--storage= : Where the post is stored: file or database (default: the blog\'s setting for a new post, unchanged for an existing one)}
+                            {--force : Import even when the post was changed since the file was taken}
                             {--dry-run : Check the file and show what would change, writing nothing}
                             {--json : Print the result as JSON}
                             {--allow-non-local : Run even when APP_ENV is not "local"}';
@@ -83,7 +84,7 @@ class ImportPost extends Command
             $storage = $this->option('storage');
             $storage = is_string($storage) && trim($storage) !== '' ? trim($storage) : null;
 
-            $result = $importer->import((string) $this->argument('file'), $author, $dryRun, $storage);
+            $result = $importer->import((string) $this->argument('file'), $author, $dryRun, $storage, (bool) $this->option('force'));
         } catch (PostImportException $e) {
             return $this->failWith($e->errors);
         } catch (Throwable $e) {
