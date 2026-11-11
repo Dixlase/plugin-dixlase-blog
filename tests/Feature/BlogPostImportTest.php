@@ -234,7 +234,7 @@ class BlogPostImportTest extends TestCase
         $this->image('images/a.png');
         $file = $this->postFile("---\ntitle: Json\nslug: json-post\nfeatured_image: ./images/a.png\n---\n\nBody");
 
-        Artisan::call('dls:blog:post:import', ['file' => $file, '--as' => 'author@example.com', '--json' => true, '--allow-non-local' => true]);
+        Artisan::call('dls:blog:post:import', ['paths' => [$file], '--as' => 'author@example.com', '--json' => true, '--allow-non-local' => true]);
         $result = json_decode(Artisan::output(), true);
 
         $this->assertTrue($result['ok']);
@@ -249,7 +249,7 @@ class BlogPostImportTest extends TestCase
     {
         $file = $this->postFile("---\ntitle: Live\n---\n\nBody");
 
-        $this->artisan('dls:blog:post:import', ['file' => $file, '--as' => 'author@example.com'])
+        $this->artisan('dls:blog:post:import', ['paths' => [$file], '--as' => 'author@example.com'])
             ->expectsOutputToContain(__('dixlase-blog::import.not_local'))
             ->assertFailed();
 
@@ -260,11 +260,11 @@ class BlogPostImportTest extends TestCase
     {
         $file = $this->postFile("---\ntitle: Nobody\n---\n\nBody");
 
-        $this->artisan('dls:blog:post:import', ['file' => $file, '--allow-non-local' => true])
+        $this->artisan('dls:blog:post:import', ['paths' => [$file], '--allow-non-local' => true])
             ->expectsOutputToContain(__('dixlase-blog::import.member_required'))
             ->assertFailed();
 
-        $this->artisan('dls:blog:post:import', ['file' => $file, '--as' => 'nobody@example.com', '--allow-non-local' => true])
+        $this->artisan('dls:blog:post:import', ['paths' => [$file], '--as' => 'nobody@example.com', '--allow-non-local' => true])
             ->expectsOutputToContain(__('dixlase-blog::import.member_not_found', ['identifier' => 'nobody@example.com']))
             ->assertFailed();
     }
@@ -338,7 +338,7 @@ class BlogPostImportTest extends TestCase
             ->assertSuccessful();
         $this->assertSame(0, BlogPost::count());
 
-        Artisan::call('dls:blog:post:import', ['file' => $file, '--as' => 'author@example.com', '--json' => true, '--allow-non-local' => true, '--storage' => 'file']);
+        Artisan::call('dls:blog:post:import', ['paths' => [$file], '--as' => 'author@example.com', '--json' => true, '--allow-non-local' => true, '--storage' => 'file']);
         $result = json_decode(Artisan::output(), true);
 
         $this->assertSame('file', $result['storage']);
@@ -450,6 +450,51 @@ class BlogPostImportTest extends TestCase
         $this->assertSame('Live', $post->title);
     }
 
+    public function test_several_files_and_a_directory_import_in_one_run(): void
+    {
+        File::ensureDirectoryExists($this->dir.'/batch');
+        File::put($this->dir.'/batch/b.md', "---\ntitle: B\nslug: post-b\n---\n\nB");
+        File::put($this->dir.'/batch/a.md', "---\ntitle: A\nslug: post-a\n---\n\nA");
+        File::put($this->dir.'/batch/notes.txt', 'not a post');
+        $single = $this->postFile("---\ntitle: C\nslug: post-c\n---\n\nC");
+
+        $this->artisan('dls:blog:post:import', ['paths' => [$this->dir.'/batch', $single], '--as' => 'author@example.com', '--allow-non-local' => true])
+            ->expectsOutputToContain(__('dixlase-blog::import.summary', ['ok' => 3, 'failed' => 0]))
+            ->assertSuccessful();
+
+        $this->assertSame(['post-a', 'post-b', 'post-c'], BlogPost::query()->orderBy('id')->pluck('slug')->all());
+    }
+
+    public function test_a_failing_file_does_not_stop_the_others(): void
+    {
+        $good = $this->postFile("---\ntitle: Good\nslug: good\n---\n\nBody");
+        $bad = $this->postFile("---\ntitle: Bad\ncategories: [missing]\n---\n\nBody");
+
+        $this->artisan('dls:blog:post:import', ['paths' => [$bad, $good], '--as' => 'author@example.com', '--allow-non-local' => true])
+            ->expectsOutputToContain(__('dixlase-blog::import.unknown_categories', ['slugs' => 'missing']))
+            ->expectsOutputToContain(__('dixlase-blog::import.summary', ['ok' => 1, 'failed' => 1]))
+            ->assertFailed();
+
+        $this->assertSame(['good'], BlogPost::query()->pluck('slug')->all());
+    }
+
+    public function test_json_lists_a_result_per_file(): void
+    {
+        $good = $this->postFile("---\ntitle: Good\nslug: good\n---\n\nBody");
+        File::ensureDirectoryExists($this->dir.'/empty');
+
+        Artisan::call('dls:blog:post:import', ['paths' => [$good, $this->dir.'/empty'], '--as' => 'author@example.com', '--json' => true, '--allow-non-local' => true]);
+        $result = json_decode(Artisan::output(), true);
+
+        $this->assertFalse($result['ok']);
+        $this->assertCount(2, $result['results']);
+        $this->assertSame($good, $result['results'][0]['file']);
+        $this->assertTrue($result['results'][0]['ok']);
+        $this->assertSame('good', $result['results'][0]['post']['slug']);
+        $this->assertFalse($result['results'][1]['ok']);
+        $this->assertSame([__('dixlase-blog::import.no_markdown_files', ['path' => $this->dir.'/empty'])], $result['results'][1]['errors']);
+    }
+
     /**
      * An SEO provider that keeps the meta in memory
      */
@@ -495,7 +540,7 @@ class BlogPostImportTest extends TestCase
      */
     private function import(string $file, array $options = []): \Illuminate\Testing\PendingCommand
     {
-        return $this->artisan('dls:blog:post:import', ['file' => $file, '--as' => 'author@example.com', '--allow-non-local' => true] + $options);
+        return $this->artisan('dls:blog:post:import', ['paths' => [$file], '--as' => 'author@example.com', '--allow-non-local' => true] + $options);
     }
 
     private function postFile(string $markdown): string

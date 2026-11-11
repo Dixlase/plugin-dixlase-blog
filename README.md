@@ -81,6 +81,7 @@ A post drafted outside the admin — by hand, with a script or with an assistant
 ```bash
 php artisan dls:blog:post:import drafts/hello.md --as=author@example.com --dry-run
 php artisan dls:blog:post:import drafts/hello.md --as=author@example.com
+php artisan dls:blog:post:import drafts/ more/post.md --as=author@example.com   # several at once
 ```
 
 ```markdown
@@ -109,6 +110,7 @@ The body, in Markdown. ![A figure](./images/figure-1.png)
 - Local images (relative paths) in `featured_image`, `seo.ogp_image` and the body are imported into the media library with core's `dls:media:import`, and the body points at them. URLs and site paths starting with `/` are left as they are. An image already in the library is reused
 - Nothing is saved, and no image is imported, unless the whole file is valid. `--dry-run` only checks; `--json` prints the post and the images used
 - `--storage=file` or `--storage=database` chooses where the post is stored, as the editor's storage choice does: a new post is created there and an existing one is moved (moving back to the database removes its files). Without it a new post takes the blog's default and an existing post stays where it is. Storage can be chosen only in the advanced admin mode; in the simple mode the option is refused
+- Several files and directories can be given at once; a directory stands for the `*.md` files directly inside it, in name order. Each file is imported on its own: one that fails saves nothing and does not stop the others, and the command ends with a summary (and fails if any file did). With `--json` the output is then a list of results, one per file
 - `--as` names the author. The command runs only when `APP_ENV` is `local` (`--allow-non-local` overrides): it is meant for a local site whose content is then deployed
 - The front matter is a small subset of YAML: `key: value`, lists as `[a, b]` or `- item` lines, and one level of indented keys under `seo`. Anything else is refused with the line number
 

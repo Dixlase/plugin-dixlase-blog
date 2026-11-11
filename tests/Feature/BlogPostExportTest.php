@@ -207,6 +207,6 @@ class BlogPostExportTest extends TestCase
 
     private function import(string $file): \Illuminate\Testing\PendingCommand
     {
-        return $this->artisan('dls:blog:post:import', ['file' => $file, '--as' => 'author@example.com', '--allow-non-local' => true]);
+        return $this->artisan('dls:blog:post:import', ['paths' => [$file], '--as' => 'author@example.com', '--allow-non-local' => true]);
     }
 }

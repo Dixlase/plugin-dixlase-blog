@@ -55,7 +55,7 @@ use Throwable;
 class ImportPost extends Command
 {
     protected $signature = 'dls:blog:post:import
-                            {file : The Markdown file to import}
+                            {paths* : Markdown files to import, or directories whose *.md files are imported}
                             {--as= : The post\'s author (member ID or e-mail address)}
                             {--storage= : Where the post is stored: file or database (default: the blog\'s setting for a new post, unchanged for an existing one)}
                             {--force : Import even when the post was changed since the file was taken}
@@ -80,23 +80,118 @@ class ImportPost extends Command
         }
 
         $dryRun = (bool) $this->option('dry-run');
+        [$files, $many] = $this->files((array) $this->argument('paths'));
+
+        // One file keeps the single-post output it always had.
+        if (! $many) {
+            $outcome = $this->importOne($importer, $files[0], $author, $dryRun);
+            if (! $outcome['ok']) {
+                return $this->failWith($outcome['errors']);
+            }
+            $this->option('json') ? $this->printJson($outcome['result'], $dryRun) : $this->printText($outcome['result'], $dryRun);
+
+            return self::SUCCESS;
+        }
+
+        // Several files (#237): each is imported on its own, and one that
+        // fails saves nothing and does not stop the others.
+        $outcomes = [];
+        foreach ($files as $file) {
+            if (! $this->option('json')) {
+                $this->newLine();
+                $this->line('<comment>'.$file.'</comment>');
+            }
+
+            $outcome = $this->importOne($importer, $file, $author, $dryRun);
+            $outcomes[] = ['file' => $file] + $outcome;
+
+            if ($this->option('json')) {
+                continue;
+            }
+            if ($outcome['ok']) {
+                $this->printText($outcome['result'], $dryRun);
+            } else {
+                foreach ($outcome['errors'] as $error) {
+                    $this->error($error);
+                }
+            }
+        }
+
+        $failed = count(array_filter($outcomes, fn (array $outcome): bool => ! $outcome['ok']));
+
+        if ($this->option('json')) {
+            $this->line((string) json_encode([
+                'ok' => $failed === 0,
+                'dry_run' => $dryRun,
+                'results' => array_map(fn (array $outcome): array => $outcome['ok']
+                    ? ['file' => $outcome['file']] + $this->jsonResult($outcome['result'], $dryRun)
+                    : ['file' => $outcome['file'], 'ok' => false, 'errors' => $outcome['errors']], $outcomes),
+            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        } else {
+            $this->newLine();
+            $this->line(__($dryRun ? 'dixlase-blog::import.summary_dry_run' : 'dixlase-blog::import.summary', [
+                'ok' => count($outcomes) - $failed,
+                'failed' => $failed,
+            ]));
+        }
+
+        return $failed === 0 ? self::SUCCESS : self::FAILURE;
+    }
+
+    /**
+     * The files to import, and whether there is more than one
+     *
+     * A directory stands for the `*.md` files directly inside it, in name
+     * order; it counts as several even when it holds one, so a script gets
+     * the same output shape whatever the directory holds.
+     *
+     * @param  array<int, mixed>  $paths
+     * @return array{0: non-empty-list<string>, 1: bool}
+     */
+    private function files(array $paths): array
+    {
+        $files = [];
+        $many = count($paths) > 1;
+
+        foreach ($paths as $path) {
+            $path = (string) $path;
+            if (! is_dir($path)) {
+                $files[] = $path;
+
+                continue;
+            }
+
+            $many = true;
+            $found = glob(rtrim($path, '/').'/*.md') ?: [];
+            sort($found);
+            // An empty directory is reported as a failure of its own.
+            array_push($files, ...($found !== [] ? $found : [$path]));
+        }
+
+        return [$files === [] ? [''] : $files, $many];
+    }
+
+    /**
+     * @return array{ok: true, result: array{action: string, post: ?\Plugins\DixlaseBlog\App\Models\BlogPost, status: string, storage: string, images: list<array<string, mixed>>}}|array{ok: false, errors: list<string>}
+     */
+    private function importOne(BlogPostImporter $importer, string $file, Member $author, bool $dryRun): array
+    {
+        if (is_dir($file)) {
+            return ['ok' => false, 'errors' => [__('dixlase-blog::import.no_markdown_files', ['path' => $file])]];
+        }
+
+        $storage = $this->option('storage');
+        $storage = is_string($storage) && trim($storage) !== '' ? trim($storage) : null;
 
         try {
-            $storage = $this->option('storage');
-            $storage = is_string($storage) && trim($storage) !== '' ? trim($storage) : null;
-
-            $result = $importer->import((string) $this->argument('file'), $author, $dryRun, $storage, (bool) $this->option('force'), (bool) $this->option('draft'));
+            return ['ok' => true, 'result' => $importer->import($file, $author, $dryRun, $storage, (bool) $this->option('force'), (bool) $this->option('draft'))];
         } catch (PostImportException $e) {
-            return $this->failWith($e->errors);
+            return ['ok' => false, 'errors' => $e->errors];
         } catch (Throwable $e) {
             report($e);
 
-            return $this->failWith([$e->getMessage()]);
+            return ['ok' => false, 'errors' => [$e->getMessage()]];
         }
-
-        $this->option('json') ? $this->printJson($result, $dryRun) : $this->printText($result, $dryRun);
-
-        return self::SUCCESS;
     }
 
     private function resolveAuthor(): ?Member
@@ -150,9 +245,18 @@ class ImportPost extends Command
      */
     private function printJson(array $result, bool $dryRun): void
     {
+        $this->line((string) json_encode($this->jsonResult($result, $dryRun), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+    }
+
+    /**
+     * @param  array{action: string, post: ?\Plugins\DixlaseBlog\App\Models\BlogPost, status: string, storage: string, images: list<array<string, mixed>>}  $result
+     * @return array<string, mixed>
+     */
+    private function jsonResult(array $result, bool $dryRun): array
+    {
         $post = $result['post'];
 
-        $this->line((string) json_encode([
+        return [
             'ok' => true,
             'dry_run' => $dryRun,
             'action' => $result['action'],
@@ -168,7 +272,7 @@ class ImportPost extends Command
                 'edit_path' => $this->editPath($post->id),
             ],
             'images' => $result['images'],
-        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        ];
     }
 
     /**
