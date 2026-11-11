@@ -114,6 +114,7 @@ class BlogPostExportTest extends TestCase
 
             And a rule above.
             MD);
+        $content = $post->content;
         $token = app(BlogPostService::class)->versionToken($post);
         $revisions = BlogPostRevision::query()->where('post_id', $post->id)->count();
 
@@ -124,6 +125,7 @@ class BlogPostExportTest extends TestCase
         $this->import($file)->assertSuccessful();
 
         $post = BlogPost::sole();
+        $this->assertSame($content, $post->content);
         $this->assertSame($token, app(BlogPostService::class)->versionToken($post));
         $this->assertSame($revisions, BlogPostRevision::query()->where('post_id', $post->id)->count());
         $this->assertSame('Quotes " and: colons # not a comment', $post->title);
@@ -139,7 +141,7 @@ class BlogPostExportTest extends TestCase
         $output = Artisan::output();
 
         $this->assertStringStartsWith("---\ntitle: \"Printed\"\nslug: \"printed\"\n", $output);
-        $this->assertStringEndsWith("---\n\nBody\n", $output);
+        $this->assertStringEndsWith("---\n\nBody", $output);
     }
 
     public function test_it_finds_a_post_by_id_and_refuses_an_unknown_one(): void

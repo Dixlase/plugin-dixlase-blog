@@ -103,15 +103,14 @@ class BlogPostExporter
 
     /**
      * The body the editor shows: a post stored as files is edited from its
-     * working copy, which may hold a change not published yet.
+     * working copy, which may hold a change not published yet. Written as
+     * it is stored, so importing it again changes nothing.
      */
     private function body(BlogPost $post): string
     {
-        $body = $post->usesFileStorage()
+        return $post->usesFileStorage()
             ? (app(FileContentPublisher::class)->readFiles($post)['content'] ?? '')
             : (string) $post->content;
-
-        return rtrim($body, "\n")."\n";
     }
 
     /**
