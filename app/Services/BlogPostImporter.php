@@ -73,6 +73,9 @@ class BlogPostImporter
         'title', 'slug', 'lang', 'status', 'published_at', 'closed_at',
         'categories', 'tags', 'excerpt', 'featured_image', 'is_pinned',
         'comment_status', 'seo',
+        // The version the export took the file from (#235). Read by the
+        // overwrite check (#236); the post has no column for it.
+        'revision',
     ];
 
     public const SEO_KEYS = ['description', 'ogp_image'];

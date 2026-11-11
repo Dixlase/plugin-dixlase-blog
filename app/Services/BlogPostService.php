@@ -344,6 +344,20 @@ class BlogPostService
     }
 
     /**
+     * A short token for the post's current version (#235)
+     *
+     * Taken from the same snapshot a revision records, so it covers the
+     * columns, categories and tags, and an unchanged save leaves it as it
+     * was. The export writes it as `revision`, so an import can tell whether
+     * the post changed since the file was taken. It does not depend on
+     * revisions being kept.
+     */
+    public function versionToken(BlogPost $post): string
+    {
+        return substr($this->snapshotHash($this->buildSnapshotWithPivots($post)), 0, 12);
+    }
+
+    /**
      * Record a revision whose snapshot includes both column data and the
      * post's current category / tag pivot ids. Mirrors RevisionService::record()
      * but uses an augmented snapshot so the matchesLatest hash check covers

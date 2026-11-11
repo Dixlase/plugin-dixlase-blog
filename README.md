@@ -110,6 +110,23 @@ The body, in Markdown. ![A figure](./images/figure-1.png)
 - `--as` names the author. The command runs only when `APP_ENV` is `local` (`--allow-non-local` overrides): it is meant for a local site whose content is then deployed
 - The front matter is a small subset of YAML: `key: value`, lists as `[a, b]` or `- item` lines, and one level of indented keys under `seo`. Anything else is refused with the line number
 
+### Exporting a post to a Markdown file
+
+The way back: a post — for example one edited in the admin after it was imported — is written as the file the import reads, so it can be continued in the file and imported again.
+
+```bash
+php artisan dls:blog:post:export hello-world                       # to standard output
+php artisan dls:blog:post:export hello-world --output=drafts/hello.md
+```
+
+- The post is named by its slug or ID. Only Markdown posts can be exported
+- `--output` refuses to overwrite an existing file unless `--force` is given
+- The front matter holds the post's fields, its categories, tags and SEO description, and `revision`, the post's version when the file was taken
+- Images are not written to the front matter: a key the import does not see keeps its value, so the featured and OGP images stay. Images in the body keep their site paths
+- A post stored as files is exported from its working copy, the one the editor shows
+- Importing the file again without editing it leaves the post unchanged
+- Like the import, it runs only when `APP_ENV` is `local` (`--allow-non-local` overrides)
+
 ## Customising the templates
 
 The front pages use the plugin's own templates and stylesheet. To change a template, copy it from `resources/views/` to one of these directories, keeping its relative path (for example `front/show.blade.php`). The first directory that holds the file wins:
