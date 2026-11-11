@@ -81,6 +81,7 @@ cd plugins/DixlaseBlog && npm ci && npm run build
 ```bash
 php artisan dls:blog:post:import drafts/hello.md --as=author@example.com --dry-run
 php artisan dls:blog:post:import drafts/hello.md --as=author@example.com
+php artisan dls:blog:post:import drafts/ more/post.md --as=author@example.com   # まとめて取り込む
 ```
 
 （ファイルの例は英語版の README を参照）
@@ -92,6 +93,7 @@ php artisan dls:blog:post:import drafts/hello.md --as=author@example.com
 - `featured_image`・`seo.ogp_image`・本文にあるローカルの画像（相対パス）は、コアの `dls:media:import` でメディアライブラリに取り込み、本文はそれを指すように書き換える。URL と `/` で始まるサイト内のパスはそのまま。ライブラリにすでにある画像は使い回す
 - ファイル全体が正しくない限り、何も保存せず、画像も取り込まない。`--dry-run` は検査だけ、`--json` は記事と使った画像を出す
 - `--storage=file` / `--storage=database` で、記事の保存先を選べる。エディタの保存先の選択と同じで、新しい記事はその保存先で作り、既存の記事はそこへ移す（データベースに戻すと記事のファイルは削除される）。指定しなければ、新しい記事は Blog の既定、既存の記事は今の保存先のまま。保存先を選べるのは管理画面の詳細モードだけで、シンプルモードではこのオプションを拒否する
+- ファイルとディレクトリを一度に複数渡せる。ディレクトリは、その直下の `*.md` を名前の順に取り込む。ファイルは 1 つずつ取り込み、失敗したファイルは何も保存せず、ほかのファイルは止めない。最後にまとめを出し、1 つでも失敗があればコマンドも失敗で終わる。そのとき `--json` は、ファイルごとの結果の一覧になる
 - `--as` で著者を指定する。`APP_ENV` が `local` のときだけ動く（`--allow-non-local` で上書きできる）。ローカルのサイトに入れてからデプロイするためのもの
 - フロントマターは YAML の小さなサブセット。`key: value`、`[a, b]` または `- item` の行によるリスト、`seo` の下の 1 段だけの字下げしたキー。それ以外は行番号付きで拒否する
 
