@@ -369,10 +369,6 @@ class BlogPostImportTest extends TestCase
         $file = $this->postFile("---\nslug: seo-post\nseo:\n  ogp_image: null\n---\n\nBody");
         $this->import($file)->assertSuccessful();
         $this->assertEquals(new SeoMetaDTO('Second', null), $seo->meta[$post->id]);
-
-        $file = $this->postFile("---\nslug: seo-post\nseo:\n---\n\nBody");
-        $this->import($file)->assertSuccessful();
-        $this->assertEquals(new SeoMetaDTO(null, null), $seo->meta[$post->id]);
     }
 
     /**

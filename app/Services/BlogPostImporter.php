@@ -363,9 +363,8 @@ class BlogPostImporter
             $data['seo_meta'] = [];
 
             // The meta is saved whole, so a key the block leaves out is
-            // carried over, as at the top level (#239). An empty `seo:`
-            // still clears both.
-            $current = is_array($fields['seo']) && $post !== null
+            // carried over, as at the top level (#239).
+            $current = $post !== null
                 ? $this->seoMeta->formData($post)['seoMeta']
                 : null;
 
