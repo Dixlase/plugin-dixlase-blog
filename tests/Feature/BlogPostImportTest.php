@@ -419,6 +419,37 @@ class BlogPostImportTest extends TestCase
         $this->import($file, ['--force' => true])->assertSuccessful();
     }
 
+    public function test_draft_saves_a_draft_whatever_the_file_says(): void
+    {
+        $published = $this->postFile("---\ntitle: Published\nslug: says-published\nstatus: published\n---\n\nBody");
+        $scheduled = $this->postFile("---\ntitle: Scheduled\nslug: says-scheduled\nstatus: scheduled\npublished_at: 2030-01-01 09:00\n---\n\nBody");
+
+        $this->import($published, ['--draft' => true, '--dry-run' => true])
+            ->expectsOutputToContain(__('dixlase-blog::import.would_status', ['status' => 'draft']))
+            ->assertSuccessful();
+
+        $this->import($published, ['--draft' => true])->assertSuccessful();
+        $this->import($scheduled, ['--draft' => true])->assertSuccessful();
+
+        $this->assertSame(ContentStatus::DRAFT, BlogPost::where('slug', 'says-published')->sole()->status);
+        $this->assertSame(ContentStatus::DRAFT, BlogPost::where('slug', 'says-scheduled')->sole()->status);
+    }
+
+    public function test_draft_leaves_a_live_post_alone(): void
+    {
+        $file = $this->postFile("---\ntitle: Live\nslug: live-post\nstatus: published\n---\n\nBody");
+        $this->import($file)->assertSuccessful();
+
+        $edited = $this->postFile("---\ntitle: Edited\nslug: live-post\n---\n\nEdited body");
+        $this->import($edited, ['--draft' => true])
+            ->expectsOutputToContain(__('dixlase-blog::import.draft_live_post', ['slug' => 'live-post']))
+            ->assertFailed();
+
+        $post = BlogPost::sole();
+        $this->assertSame(ContentStatus::PUBLISHED, $post->status);
+        $this->assertSame('Live', $post->title);
+    }
+
     /**
      * An SEO provider that keeps the meta in memory
      */

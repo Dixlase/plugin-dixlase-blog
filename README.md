@@ -103,6 +103,7 @@ The body, in Markdown. ![A figure](./images/figure-1.png)
 ```
 
 - The post is checked with the editor's own rules and saved the same way, with a revision. It is a Markdown post, and a **draft unless the file says otherwise** — read it in the admin before publishing
+- `--draft` saves a draft whatever `status` the file gives — for files written by someone else, or by an assistant, that should be read before they go live. A post that is already published or scheduled is refused rather than taken off the site
 - A post whose slug already exists is **updated**; a key the file leaves out keeps its current value
 - An update is refused when it would undo a change made since the file was written: a file from the export whose `revision` no longer matches the post, or a file without `revision` when the post was last saved outside the import (for example in the admin). Export the post again and edit that file, or pass `--force` to overwrite. Revisions saved by the import are labelled *Import* in the post's revision list
 - Local images (relative paths) in `featured_image`, `seo.ogp_image` and the body are imported into the media library with core's `dls:media:import`, and the body points at them. URLs and site paths starting with `/` are left as they are. An image already in the library is reused

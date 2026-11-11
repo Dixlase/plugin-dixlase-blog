@@ -44,6 +44,8 @@ return [
     'images' => 'Images: :imported imported, :reused already in the library.',
     'stale_revision' => 'The post ":slug" has changed since this file was exported (file revision :revision, post now :current). Export it again and edit that file, or pass --force to overwrite the changes.',
     'changed_in_admin' => 'The post ":slug" was last saved outside the import, for example in the admin. Export it and edit that file, or pass --force to overwrite the changes.',
+    'draft_live_post' => 'The post ":slug" is published or scheduled. --draft would take it off the site, so it was left alone; unpublish it in the admin first, or import without --draft.',
+    'would_status' => 'Status: :status',
     'invalid_storage' => '--storage must be one of: :types (given ":storage").',
     'storage_simple_mode' => 'The admin is in simple mode, where a post\'s storage cannot be chosen, so --storage=:storage cannot be honoured. Switch to the advanced mode, or leave --storage out.',
     'would_store' => 'Storage: :storage',
