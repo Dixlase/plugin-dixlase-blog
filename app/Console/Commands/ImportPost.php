@@ -57,6 +57,7 @@ class ImportPost extends Command
     protected $signature = 'dls:blog:post:import
                             {file : The Markdown file to import}
                             {--as= : The post\'s author (member ID or e-mail address)}
+                            {--storage= : Where the post is stored: file or database (default: the blog\'s setting for a new post, unchanged for an existing one)}
                             {--dry-run : Check the file and show what would change, writing nothing}
                             {--json : Print the result as JSON}
                             {--allow-non-local : Run even when APP_ENV is not "local"}';
@@ -79,7 +80,10 @@ class ImportPost extends Command
         $dryRun = (bool) $this->option('dry-run');
 
         try {
-            $result = $importer->import((string) $this->argument('file'), $author, $dryRun);
+            $storage = $this->option('storage');
+            $storage = is_string($storage) && trim($storage) !== '' ? trim($storage) : null;
+
+            $result = $importer->import((string) $this->argument('file'), $author, $dryRun, $storage);
         } catch (PostImportException $e) {
             return $this->failWith($e->errors);
         } catch (Throwable $e) {
@@ -140,7 +144,7 @@ class ImportPost extends Command
     }
 
     /**
-     * @param  array{action: string, post: ?\Plugins\DixlaseBlog\App\Models\BlogPost, images: list<array<string, mixed>>}  $result
+     * @param  array{action: string, post: ?\Plugins\DixlaseBlog\App\Models\BlogPost, storage: string, images: list<array<string, mixed>>}  $result
      */
     private function printJson(array $result, bool $dryRun): void
     {
@@ -150,12 +154,14 @@ class ImportPost extends Command
             'ok' => true,
             'dry_run' => $dryRun,
             'action' => $result['action'],
+            'storage' => $result['storage'],
             'post' => $post === null ? null : [
                 'id' => $post->id,
                 'slug' => $post->slug,
                 'title' => $post->title,
                 'lang' => $post->lang,
                 'status' => $post->status->slug(),
+                'storage' => $post->storage_type->slug(),
                 'edit_path' => $this->editPath($post->id),
             ],
             'images' => $result['images'],
@@ -163,7 +169,7 @@ class ImportPost extends Command
     }
 
     /**
-     * @param  array{action: string, post: ?\Plugins\DixlaseBlog\App\Models\BlogPost, images: list<array<string, mixed>>}  $result
+     * @param  array{action: string, post: ?\Plugins\DixlaseBlog\App\Models\BlogPost, storage: string, images: list<array<string, mixed>>}  $result
      */
     private function printText(array $result, bool $dryRun): void
     {
@@ -173,6 +179,7 @@ class ImportPost extends Command
             $this->info($post === null
                 ? __('dixlase-blog::import.would_create')
                 : __('dixlase-blog::import.would_update', ['id' => $post->id, 'slug' => $post->slug]));
+            $this->line(__('dixlase-blog::import.would_store', ['storage' => $result['storage']]));
 
             if ($result['images'] !== []) {
                 $this->line(__('dixlase-blog::import.would_import', ['count' => count($result['images'])]));
@@ -193,6 +200,7 @@ class ImportPost extends Command
             'slug' => $post->slug,
             'status' => $post->status->slug(),
         ]));
+        $this->line(__('dixlase-blog::import.stored', ['storage' => $post->storage_type->slug()]));
 
         if ($result['images'] !== []) {
             $reused = count(array_filter($result['images'], fn (array $image): bool => (bool) $image['reused']));

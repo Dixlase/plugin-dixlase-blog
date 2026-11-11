@@ -106,6 +106,7 @@ The body, in Markdown. ![A figure](./images/figure-1.png)
 - A post whose slug already exists is **updated**; a key the file leaves out keeps its current value
 - Local images (relative paths) in `featured_image`, `seo.ogp_image` and the body are imported into the media library with core's `dls:media:import`, and the body points at them. URLs and site paths starting with `/` are left as they are. An image already in the library is reused
 - Nothing is saved, and no image is imported, unless the whole file is valid. `--dry-run` only checks; `--json` prints the post and the images used
+- `--storage=file` or `--storage=database` chooses where the post is stored, as the editor's storage choice does: a new post is created there and an existing one is moved (moving back to the database removes its files). Without it a new post takes the blog's default and an existing post stays where it is. Storage can be chosen only in the advanced admin mode; in the simple mode the option is refused
 - `--as` names the author. The command runs only when `APP_ENV` is `local` (`--allow-non-local` overrides): it is meant for a local site whose content is then deployed
 - The front matter is a small subset of YAML: `key: value`, lists as `[a, b]` or `- item` lines, and one level of indented keys under `seo`. Anything else is refused with the line number
 

@@ -42,4 +42,8 @@ return [
     'created' => '記事 #:id（:slug）を :status で作成しました。',
     'updated' => '記事 #:id（:slug）を更新しました。状態は :status です。',
     'images' => '画像: 取り込み :imported 件、登録済み :reused 件。',
+    'invalid_storage' => '--storage は次のどれかにしてください: :types（指定された値: 「:storage」）',
+    'storage_simple_mode' => '管理画面がシンプルモードのため記事の保存先を選べず、--storage=:storage には従えません。詳細モードに切り替えるか、--storage を外してください。',
+    'would_store' => '保存先: :storage',
+    'stored' => '保存先: :storage',
 ];

@@ -42,4 +42,8 @@ return [
     'created' => 'Created post #:id (:slug) as :status.',
     'updated' => 'Updated post #:id (:slug); it is :status.',
     'images' => 'Images: :imported imported, :reused already in the library.',
+    'invalid_storage' => '--storage must be one of: :types (given ":storage").',
+    'storage_simple_mode' => 'The admin is in simple mode, where a post\'s storage cannot be chosen, so --storage=:storage cannot be honoured. Switch to the advanced mode, or leave --storage out.',
+    'would_store' => 'Storage: :storage',
+    'stored' => 'Storage: :storage',
 ];
