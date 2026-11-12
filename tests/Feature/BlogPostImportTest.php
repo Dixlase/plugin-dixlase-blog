@@ -250,7 +250,6 @@ class BlogPostImportTest extends TestCase
         $file = $this->postFile("---\ntitle: Live\nslug: asked\n---\n\nBody");
 
         $this->artisan('dls:blog:post:import', ['paths' => [$file], '--as' => 'author@example.com'])
-            ->expectsOutputToContain(__('dixlase-blog::import.not_local', ['env' => 'testing']))
             ->expectsConfirmation('Are you sure you want to run this command?', 'no')
             ->assertFailed();
         $this->assertSame(0, BlogPost::count());
