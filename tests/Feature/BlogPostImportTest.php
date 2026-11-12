@@ -696,7 +696,7 @@ class BlogPostImportTest extends TestCase
      */
     private function import(string $file, array $options = []): \Illuminate\Testing\PendingCommand
     {
-        return $this->artisan('dls:blog:post:import', ['paths' => [$file], '--as' => 'author@example.com', '--force' => true] + $options);
+        return $this->artisan('dls:blog:post:import', array_replace(['paths' => [$file], '--as' => 'author@example.com', '--force' => true], $options));
     }
 
     private function postFile(string $markdown): string
