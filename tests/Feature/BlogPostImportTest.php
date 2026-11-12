@@ -530,6 +530,130 @@ class BlogPostImportTest extends TestCase
     /**
      * An SEO provider that keeps the meta in memory
      */
+    public function test_custom_css_is_read_from_a_file_and_kept_when_left_out(): void
+    {
+        File::put($this->dir.'/post.css', '.post { color: red; }');
+        $file = $this->postFile("---\ntitle: Styled\nslug: styled\ncustom_css: ./post.css\n---\n\nBody");
+
+        $this->import($file)->assertSuccessful();
+        $post = BlogPost::sole();
+        $this->assertSame(ContentEditorType::MARKDOWN, $post->editor_type);
+        $this->assertSame('.post { color: red; }', $post->custom_css);
+
+        // Left out, the CSS stays; null clears it.
+        File::put($file, "---\ntitle: Styled again\nslug: styled\n---\n\nBody");
+        $this->import($file, ['--overwrite' => true])->assertSuccessful();
+        $this->assertSame('.post { color: red; }', $post->fresh()->custom_css);
+
+        File::put($file, "---\ntitle: Styled again\nslug: styled\ncustom_css: null\n---\n\nBody");
+        $this->import($file, ['--overwrite' => true])->assertSuccessful();
+        $this->assertNull($post->fresh()->custom_css);
+    }
+
+    public function test_an_html_post_takes_its_css_js_and_body_images(): void
+    {
+        $this->useAdvancedMode();
+        $this->image('images/figure.png', 30, 20);
+        File::put($this->dir.'/post.css', 'p { margin: 0; }');
+        File::put($this->dir.'/post.js', 'console.log(1);');
+        $file = $this->postFile(<<<'MD'
+            ---
+            title: Html post
+            slug: html-post
+            editor: html
+            custom_css: ./post.css
+            custom_js: ./post.js
+            ---
+
+            <p>Intro</p>
+            <img alt="A figure" src="./images/figure.png">
+            <img src="https://example.com/remote.png">
+            MD);
+
+        $this->import($file)->assertSuccessful();
+
+        $post = BlogPost::sole();
+        $this->assertSame(ContentEditorType::HTML, $post->editor_type);
+        $this->assertSame('p { margin: 0; }', $post->custom_css);
+        $this->assertSame('console.log(1);', $post->custom_js);
+        $figure = Media::where('name', 'figure.png')->sole();
+        $this->assertStringContainsString('src="/storage/'.config('admin.files.mediaPath', 'media').'/'.$figure->path.'"', (string) $post->content);
+        $this->assertStringContainsString('src="https://example.com/remote.png"', (string) $post->content);
+        $this->assertStringNotContainsString('./images/figure.png', (string) $post->content);
+    }
+
+    public function test_custom_js_is_refused_on_a_markdown_post(): void
+    {
+        File::put($this->dir.'/post.js', 'alert(1);');
+        $file = $this->postFile("---\ntitle: Script\ncustom_js: ./post.js\n---\n\nBody");
+
+        $this->import($file)
+            ->expectsOutputToContain(__('dixlase-blog::import.custom_js_html_only'))
+            ->assertFailed();
+        $this->assertSame(0, BlogPost::count());
+    }
+
+    public function test_css_js_and_html_need_a_member_who_may_author_scripts(): void
+    {
+        $this->useAdvancedMode();
+        Member::factory()->create(['role' => MemberRole::EDITOR, 'status' => 1, 'account_name' => 'writer']);
+        File::put($this->dir.'/post.css', 'p {}');
+
+        $css = $this->postFile("---\ntitle: Css\ncustom_css: ./post.css\n---\n\nBody");
+        $this->import($css, ['--as' => 'writer'])
+            ->expectsOutputToContain(__('dixlase-blog::import.custom_assets_not_allowed', ['keys' => 'custom_css']))
+            ->assertFailed();
+
+        $html = $this->postFile("---\ntitle: Html\neditor: html\n---\n\n<p>Body</p>");
+        $this->import($html, ['--as' => 'writer'])->assertFailed();
+
+        $this->assertSame(0, BlogPost::count());
+
+        // An HTML post made by an admin cannot be changed by the writer.
+        $this->import($html)->assertSuccessful();
+        $this->import($html, ['--as' => 'writer', '--overwrite' => true])
+            ->expectsOutputToContain(__('dixlase-blog::import.html_not_allowed', ['slug' => BlogPost::sole()->slug]))
+            ->assertFailed();
+    }
+
+    public function test_a_saved_post_keeps_its_editor(): void
+    {
+        $file = $this->postFile("---\ntitle: Fixed\nslug: fixed\n---\n\nBody");
+        $this->import($file)->assertSuccessful();
+
+        File::put($file, "---\ntitle: Fixed\nslug: fixed\neditor: html\n---\n\n<p>Body</p>");
+        $this->import($file)
+            ->expectsOutputToContain(__('dixlase-blog::import.editor_fixed', ['slug' => 'fixed', 'editor' => 'markdown', 'named' => 'html']))
+            ->assertFailed();
+
+        $this->assertSame(ContentEditorType::MARKDOWN, BlogPost::sole()->editor_type);
+    }
+
+    public function test_an_unknown_editor_and_a_missing_asset_save_nothing(): void
+    {
+        $unknown = $this->postFile("---\ntitle: Gui\neditor: gui\n---\n\nBody");
+        $this->import($unknown)
+            ->expectsOutputToContain(__('dixlase-blog::import.invalid_editor', ['editor' => 'gui', 'editors' => 'markdown, html']))
+            ->assertFailed();
+
+        $missing = $this->postFile("---\ntitle: Missing\ncustom_css: ./missing.css\n---\n\nBody");
+        $this->import($missing)
+            ->expectsOutputToContain(__('dixlase-blog::import.asset_not_found', ['key' => 'custom_css', 'path' => './missing.css']))
+            ->assertFailed();
+
+        $this->assertSame(0, BlogPost::count());
+    }
+
+    public function test_a_dry_run_with_css_writes_nothing(): void
+    {
+        File::put($this->dir.'/post.css', 'p {}');
+        $file = $this->postFile("---\ntitle: Dry\ncustom_css: ./post.css\n---\n\nBody");
+
+        $this->import($file, ['--dry-run' => true])->assertSuccessful();
+
+        $this->assertSame(0, BlogPost::count());
+    }
+
     private function fakeSeo(): object
     {
         $provider = new class implements SeoMetaProviderInterface

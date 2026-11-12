@@ -19,7 +19,8 @@
 
 return [
     'post_not_found' => 'スラッグまたは ID が「:identifier」の記事がありません。',
-    'not_markdown' => '記事「:slug」は Markdown で書かれていないため、ファイルに書き出せません。',
+    'editor_not_exportable' => '記事「:slug」は :editor エディタの記事で、ファイルに書き出せる本文の形がありません。書き出せるのは、Markdown と HTML の記事だけです。',
+    'assets_omitted' => ':keys は書き出していません。記事のファイルの横にファイルとして書き出すには --output を付けてください。このファイルを取り込んでも、記事の今の値はそのまま残ります。',
     'file_exists' => ':path は既にあります。上書きするには --force を付けてください。',
     'written' => '記事 #:id（:slug）を :path に書き出しました。',
 ];

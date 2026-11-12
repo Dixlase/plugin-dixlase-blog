@@ -51,6 +51,11 @@ use Plugins\DixlaseBlog\App\Support\Import\PostImportException;
  * Images are left out of the front matter: a key the import does not see
  * keeps its current value, so the featured and OGP images stay. Images in
  * the body keep their site paths, which the import leaves alone.
+ *
+ * Markdown and HTML posts are exported, with `editor` naming which (#251).
+ * The post's own CSS and JavaScript are returned as files to write next to
+ * the post file, named by `custom_css` / `custom_js`; without a name for
+ * them they are left out, and the import keeps the post's current ones.
  */
 class BlogPostExporter
 {
@@ -60,13 +65,24 @@ class BlogPostExporter
     ) {}
 
     /**
+     * The file, and the CSS / JavaScript files to write next to it
+     *
+     * `assets` maps a file name to its contents; `omitted` lists the keys
+     * left out because no name was given for their files.
+     *
+     * @param  ?string  $assetName  The name, without extension, of the CSS /
+     *                              JavaScript files; null leaves them out
+     * @return array{markdown: string, assets: array<string, string>, omitted: list<string>}
+     *
      * @throws PostImportException
      */
-    public function export(BlogPost $post): string
+    public function export(BlogPost $post, ?string $assetName = null): array
     {
-        if ($post->editor_type !== ContentEditorType::MARKDOWN) {
-            throw new PostImportException([__('dixlase-blog::export.not_markdown', ['slug' => $post->slug])]);
+        if (! in_array($post->editor_type, [ContentEditorType::MARKDOWN, ContentEditorType::HTML], true)) {
+            throw new PostImportException([__('dixlase-blog::export.editor_not_exportable', ['slug' => $post->slug, 'editor' => $post->editor_type->slug()])]);
         }
+
+        $parts = $this->parts($post);
 
         $post->loadMissing(['categories', 'tags']);
 
@@ -75,6 +91,7 @@ class BlogPostExporter
             'slug: '.$this->quote((string) $post->slug),
             'lang: '.$this->quote((string) $post->lang),
             'status: '.$post->status->slug(),
+            'editor: '.$post->editor_type->slug(),
         ];
         foreach (['published_at', 'closed_at'] as $key) {
             $value = DateTimeHelper::display($post->{$key}, 'Y-m-d H:i:s');
@@ -96,21 +113,53 @@ class BlogPostExporter
             $lines[] = '  description: '.$this->quote((string) $description);
         }
 
+        $assets = [];
+        $omitted = [];
+        foreach (['custom_css' => 'css', 'custom_js' => 'js'] as $key => $extension) {
+            $value = $parts[$key] ?? '';
+            if ($value === '') {
+                continue;
+            }
+            if ($assetName === null) {
+                $omitted[] = $key;
+
+                continue;
+            }
+
+            $name = $assetName.'.'.$extension;
+            $assets[$name] = $value;
+            $lines[] = $key.': '.$this->quote('./'.$name);
+        }
+
         $lines[] = 'revision: '.$this->posts->versionToken($post);
 
-        return "---\n".implode("\n", $lines)."\n---\n\n".$this->body($post);
+        return [
+            'markdown' => "---\n".implode("\n", $lines)."\n---\n\n".($parts['content'] ?? ''),
+            'assets' => $assets,
+            'omitted' => $omitted,
+        ];
     }
 
     /**
-     * The body the editor shows: a post stored as files is edited from its
-     * working copy, which may hold a change not published yet. Written as
-     * it is stored, so importing it again changes nothing.
+     * The body, CSS and JavaScript the editor shows: a post stored as files
+     * is edited from its working copy, which may hold a change not
+     * published yet. Written as stored, so importing them again changes
+     * nothing.
+     *
+     * @return array<string, string>
      */
-    private function body(BlogPost $post): string
+    private function parts(BlogPost $post): array
     {
-        return $post->usesFileStorage()
-            ? (app(FileContentPublisher::class)->readFiles($post)['content'] ?? '')
-            : (string) $post->content;
+        if ($post->usesFileStorage()) {
+            return app(FileContentPublisher::class)->readFiles($post);
+        }
+
+        $parts = ['content' => (string) $post->content];
+        foreach (array_keys($post->fileContentParts()) as $part) {
+            $parts[$part] = (string) $post->getAttribute($part);
+        }
+
+        return $parts;
     }
 
     /**
