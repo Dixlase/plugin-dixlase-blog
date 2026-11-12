@@ -604,7 +604,7 @@ class BlogPostImportTest extends TestCase
             ->expectsOutputToContain(__('dixlase-blog::import.custom_assets_not_allowed', ['keys' => 'custom_css']))
             ->assertFailed();
 
-        $html = $this->postFile("---\ntitle: Html\neditor: html\n---\n\n<p>Body</p>");
+        $html = $this->postFile("---\ntitle: Html\nslug: html-post\neditor: html\n---\n\n<p>Body</p>");
         $this->import($html, ['--as' => 'writer'])->assertFailed();
 
         $this->assertSame(0, BlogPost::count());
@@ -612,7 +612,7 @@ class BlogPostImportTest extends TestCase
         // An HTML post made by an admin cannot be changed by the writer.
         $this->import($html)->assertSuccessful();
         $this->import($html, ['--as' => 'writer', '--overwrite' => true])
-            ->expectsOutputToContain(__('dixlase-blog::import.html_not_allowed', ['slug' => BlogPost::sole()->slug]))
+            ->expectsOutputToContain(__('dixlase-blog::import.html_not_allowed', ['slug' => 'html-post']))
             ->assertFailed();
     }
 
