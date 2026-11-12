@@ -5,6 +5,37 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.4.0] — 2026-11-12
+
+### Breaking
+
+- `dls:blog:post:import --as` no longer accepts a member ID. Pass the member's account name or
+  e-mail address: a value containing `@` is an e-mail address, anything else an account name, so
+  a mistyped number cannot name another member (#246, fixes #245).
+- `--allow-non-local` is removed from the import. Outside `APP_ENV=local` the import now asks for
+  confirmation, as `migrate` does in production; pass `--force` to run without asking. A run
+  that cannot answer (no terminal) stops (#248, fixes #247).
+
+### Added
+
+- `dls:blog:post:export {post}` writes a Markdown post as the file the import reads, to standard
+  output or to `--output=<path>`. It carries a `revision` token for the post's version (#241,
+  fixes #235).
+- Re-importing a file no longer overwrites changes made in the admin since the file was taken:
+  a stale `revision`, or a post last saved outside the import, is refused unless `--overwrite`
+  is given. Import revisions are recorded with the new type `import` (#242, fixes #236).
+- `--draft` saves every imported post as a draft, and refuses rather than unpublishes an existing
+  published or scheduled post (#243, fixes #238).
+- The import takes several files or directories at once. A directory stands for the `*.md`
+  files directly inside it; each file is imported on its own, and the command fails when any
+  file failed (#244, fixes #237).
+- `--storage=file|database` chooses where an imported post is stored, and moves an existing post
+  there as the editor does (#234, fixes #233).
+
+### Fixed
+
+- An imported `seo:` block that names only one key no longer clears the other (#240, fixes #239).
+
 ## [0.3.7] — 2026-11-10
 
 ### Changed
