@@ -137,7 +137,7 @@ class BlogPostExportTest extends TestCase
     {
         $this->importPost("---\ntitle: Printed\nslug: printed\n---\n\nBody");
 
-        Artisan::call('dls:blog:post:export', ['post' => 'printed', '--allow-non-local' => true]);
+        Artisan::call('dls:blog:post:export', ['post' => 'printed']);
         $output = Artisan::output();
 
         $this->assertStringStartsWith("---\ntitle: \"Printed\"\nslug: \"printed\"\n", $output);
@@ -179,13 +179,12 @@ class BlogPostExportTest extends TestCase
             ->assertFailed();
     }
 
-    public function test_it_refuses_to_run_outside_a_local_environment(): void
+    public function test_it_runs_outside_a_local_environment(): void
     {
         $this->importPost("---\ntitle: Live\nslug: live\n---\n\nBody");
 
-        $this->artisan('dls:blog:post:export', ['post' => 'live'])
-            ->expectsOutputToContain(__('dixlase-blog::export.not_local'))
-            ->assertFailed();
+        // The tests run as "testing"; reading needs no confirmation.
+        $this->artisan('dls:blog:post:export', ['post' => 'live'])->assertSuccessful();
     }
 
     private function importPost(string $markdown): BlogPost
@@ -202,11 +201,11 @@ class BlogPostExportTest extends TestCase
      */
     private function export(string $post, array $options = []): \Illuminate\Testing\PendingCommand
     {
-        return $this->artisan('dls:blog:post:export', ['post' => $post, '--allow-non-local' => true] + $options);
+        return $this->artisan('dls:blog:post:export', ['post' => $post] + $options);
     }
 
     private function import(string $file): \Illuminate\Testing\PendingCommand
     {
-        return $this->artisan('dls:blog:post:import', ['paths' => [$file], '--as' => 'author@example.com', '--allow-non-local' => true]);
+        return $this->artisan('dls:blog:post:import', ['paths' => [$file], '--as' => 'author@example.com', '--force' => true]);
     }
 }

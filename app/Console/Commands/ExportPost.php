@@ -53,19 +53,12 @@ class ExportPost extends Command
     protected $signature = 'dls:blog:post:export
                             {post : The post\'s slug or ID}
                             {--output= : Write to this file instead of standard output}
-                            {--force : Overwrite the output file if it exists}
-                            {--allow-non-local : Run even when APP_ENV is not "local"}';
+                            {--force : Overwrite the output file if it exists}';
 
     protected $description = 'Write a blog post as a Markdown file with front matter, as the import reads it';
 
     public function handle(BlogPostExporter $exporter): int
     {
-        if (! app()->environment('local') && ! $this->option('allow-non-local')) {
-            $this->error(__('dixlase-blog::export.not_local'));
-
-            return self::FAILURE;
-        }
-
         $identifier = trim((string) $this->argument('post'));
         $post = BlogPost::query()->where('slug', $identifier)->first()
             ?? (ctype_digit($identifier) ? BlogPost::query()->find((int) $identifier) : null);

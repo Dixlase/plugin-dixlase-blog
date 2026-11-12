@@ -37,6 +37,7 @@ namespace Plugins\DixlaseBlog\App\Console\Commands;
 use App\Enums\MemberStatus;
 use App\Models\Member;
 use Illuminate\Console\Command;
+use Illuminate\Console\ConfirmableTrait;
 use Plugins\DixlaseBlog\App\Services\BlogPostImporter;
 use Plugins\DixlaseBlog\App\Support\Import\PostImportException;
 use Throwable;
@@ -49,28 +50,29 @@ use Throwable;
  * as a draft unless the file says otherwise; read it in the admin before
  * publishing. See {@see BlogPostImporter} for what the file may contain.
  *
- * Importing is meant for a local site whose content is then deployed, so the
- * command refuses to run outside APP_ENV=local without --allow-non-local.
+ * Outside APP_ENV=local the command asks before it writes, as Laravel's
+ * migrate does in production, and --force answers for it (#247).
  */
 class ImportPost extends Command
 {
+    use ConfirmableTrait;
+
     protected $signature = 'dls:blog:post:import
                             {paths* : Markdown files to import, or directories whose *.md files are imported}
                             {--as= : The post\'s author: the member\'s account name or e-mail address}
                             {--storage= : Where the post is stored: file or database (default: the blog\'s setting for a new post, unchanged for an existing one)}
-                            {--force : Import even when the post was changed since the file was taken}
+                            {--overwrite : Import even when the post was changed since the file was taken}
                             {--draft : Save every post as a draft, whatever status the file gives}
                             {--dry-run : Check the file and show what would change, writing nothing}
                             {--json : Print the result as JSON}
-                            {--allow-non-local : Run even when APP_ENV is not "local"}';
+                            {--force : Run without asking when APP_ENV is not "local"}';
 
     protected $description = 'Create or update a blog post from a Markdown file with front matter';
 
     public function handle(BlogPostImporter $importer): int
     {
-        if (! app()->environment('local') && ! $this->option('allow-non-local')) {
-            $this->error(__('dixlase-blog::import.not_local'));
-
+        // A run that cannot answer (no TTY) is treated as a no.
+        if (! $this->confirmToProceed(__('dixlase-blog::import.not_local', ['env' => (string) app()->environment()]), fn (): bool => ! app()->environment('local'))) {
             return self::FAILURE;
         }
 
@@ -184,7 +186,7 @@ class ImportPost extends Command
         $storage = is_string($storage) && trim($storage) !== '' ? trim($storage) : null;
 
         try {
-            return ['ok' => true, 'result' => $importer->import($file, $author, $dryRun, $storage, (bool) $this->option('force'), (bool) $this->option('draft'))];
+            return ['ok' => true, 'result' => $importer->import($file, $author, $dryRun, $storage, (bool) $this->option('overwrite'), (bool) $this->option('draft'))];
         } catch (PostImportException $e) {
             return ['ok' => false, 'errors' => $e->errors];
         } catch (Throwable $e) {
