@@ -19,8 +19,8 @@
 
 return [
     'not_local' => '取り込みはこのサイトのデータベースに書き込みます。APP_ENV が「local」のときだけ動きます。ここで動かすには --allow-non-local を付けてください。',
-    'member_required' => '記事の著者を --as で指定してください（メンバー ID またはメールアドレス）。',
-    'member_not_found' => '「:identifier」に一致するメンバーがいません。',
+    'member_required' => '記事の著者を --as で指定してください（メンバーのアカウント名またはメールアドレス）。',
+    'member_not_found' => 'アカウント名またはメールアドレスが「:identifier」のメンバーがいません。--as にはメンバー ID ではなく、どちらかを指定してください。',
     'member_inactive' => 'メンバー「:identifier」は有効ではありません。',
     'file_not_found' => '読み込めるファイルではありません: :path',
     'front_matter_unclosed' => 'フロントマターが「---」で始まっていますが、閉じる「---」の行がありません。',
