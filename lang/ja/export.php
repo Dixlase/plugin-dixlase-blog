@@ -18,7 +18,6 @@
  */
 
 return [
-    'not_local' => '書き出しは、内容をあとでデプロイするローカルのサイト向けです。APP_ENV が「local」のときだけ動きます。ここで動かすには --allow-non-local を付けてください。',
     'post_not_found' => 'スラッグまたは ID が「:identifier」の記事がありません。',
     'not_markdown' => '記事「:slug」は Markdown で書かれていないため、ファイルに書き出せません。',
     'file_exists' => ':path は既にあります。上書きするには --force を付けてください。',

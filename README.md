@@ -106,13 +106,19 @@ The body, in Markdown. ![A figure](./images/figure-1.png)
 - The post is checked with the editor's own rules and saved the same way, with a revision. It is a Markdown post, and a **draft unless the file says otherwise** — read it in the admin before publishing
 - `--draft` saves a draft whatever `status` the file gives — for files written by someone else, or by an assistant, that should be read before they go live. A post that is already published or scheduled is refused rather than taken off the site
 - A post whose slug already exists is **updated**; a key the file leaves out keeps its current value
-- An update is refused when it would undo a change made since the file was written: a file from the export whose `revision` no longer matches the post, or a file without `revision` when the post was last saved outside the import (for example in the admin). Export the post again and edit that file, or pass `--force` to overwrite. Revisions saved by the import are labelled *Import* in the post's revision list
+- An update is refused when it would undo a change made since the file was written: a file from the export whose `revision` no longer matches the post, or a file without `revision` when the post was last saved outside the import (for example in the admin). Export the post again and edit that file, or pass `--overwrite` to overwrite. Revisions saved by the import are labelled *Import* in the post's revision list
 - Local images (relative paths) in `featured_image`, `seo.ogp_image` and the body are imported into the media library with core's `dls:media:import`, and the body points at them. URLs and site paths starting with `/` are left as they are. An image already in the library is reused
 - Nothing is saved, and no image is imported, unless the whole file is valid. `--dry-run` only checks; `--json` prints the post and the images used
 - `--storage=file` or `--storage=database` chooses where the post is stored, as the editor's storage choice does: a new post is created there and an existing one is moved (moving back to the database removes its files). Without it a new post takes the blog's default and an existing post stays where it is. Storage can be chosen only in the advanced admin mode; in the simple mode the option is refused
 - Several files and directories can be given at once; a directory stands for the `*.md` files directly inside it, in name order. Each file is imported on its own: one that fails saves nothing and does not stop the others, and the command ends with a summary (and fails if any file did). With `--json` the output is then a list of results, one per file
-- `--as` names the author by account name or e-mail address (not by member ID, so a mistyped number cannot name another member). The command runs only when `APP_ENV` is `local` (`--allow-non-local` overrides): it is meant for a local site whose content is then deployed
+- `--as` names the author by account name or e-mail address (not by member ID, so a mistyped number cannot name another member).
 - The front matter is a small subset of YAML: `key: value`, lists as `[a, b]` or `- item` lines, and one level of indented keys under `seo`. Anything else is refused with the line number
+
+#### On a site that is not local
+
+Importing is meant above all for a local site whose content is then deployed. Outside `APP_ENV=local` — on staging or production — the command first asks for confirmation, as `php artisan migrate` does in production. `--force` runs it without asking, which is how to use it in a script; a run that cannot answer (no terminal, for example `docker exec` without `-t`) stops.
+
+Every other safeguard holds there too: the author's role, drafts by default (`--draft` to insist), the overwrite check and the audit log. A site with no deploy step can draft locally, export, copy the file and its images to the server, and import it there with `--force`. A post that already exists on the server was saved there, not exported from it, so its `revision` does not match: updating it needs `--overwrite` as well.
 
 ### Exporting a post to a Markdown file
 
@@ -129,7 +135,7 @@ php artisan dls:blog:post:export hello-world --output=drafts/hello.md
 - Images are not written to the front matter: a key the import does not see keeps its value, so the featured and OGP images stay. Images in the body keep their site paths
 - A post stored as files is exported from its working copy, the one the editor shows
 - Importing the file again without editing it leaves the post unchanged
-- Like the import, it runs only when `APP_ENV` is `local` (`--allow-non-local` overrides)
+- It only reads, so it runs in any environment
 
 ## Customising the templates
 

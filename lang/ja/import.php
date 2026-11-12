@@ -18,7 +18,7 @@
  */
 
 return [
-    'not_local' => '取り込みはこのサイトのデータベースに書き込みます。APP_ENV が「local」のときだけ動きます。ここで動かすには --allow-non-local を付けてください。',
+    'not_local' => 'このサイトはローカルではありません（APP_ENV は「:env」）。取り込みはこのサイトのデータベースに書き込みます。確認なしで動かすには --force を付けてください。',
     'member_required' => '記事の著者を --as で指定してください（メンバーのアカウント名またはメールアドレス）。',
     'member_not_found' => 'アカウント名またはメールアドレスが「:identifier」のメンバーがいません。--as にはメンバー ID ではなく、どちらかを指定してください。',
     'member_inactive' => 'メンバー「:identifier」は有効ではありません。',
@@ -42,8 +42,8 @@ return [
     'created' => '記事 #:id（:slug）を :status で作成しました。',
     'updated' => '記事 #:id（:slug）を更新しました。状態は :status です。',
     'images' => '画像: 取り込み :imported 件、登録済み :reused 件。',
-    'stale_revision' => '記事「:slug」は、このファイルを書き出したあとに変更されています（ファイルの revision: :revision、今の記事: :current）。書き出し直してそのファイルを直すか、変更を上書きするなら --force を付けてください。',
-    'changed_in_admin' => '記事「:slug」は、取り込み以外（管理画面など）で最後に保存されています。書き出してそのファイルを直すか、変更を上書きするなら --force を付けてください。',
+    'stale_revision' => '記事「:slug」は、このファイルを書き出したあとに変更されています（ファイルの revision: :revision、今の記事: :current）。書き出し直してそのファイルを直すか、変更を上書きするなら --overwrite を付けてください。',
+    'changed_in_admin' => '記事「:slug」は、取り込み以外（管理画面など）で最後に保存されています。書き出してそのファイルを直すか、変更を上書きするなら --overwrite を付けてください。',
     'draft_live_post' => '記事「:slug」は公開中か予約中です。--draft を付けるとサイトから取り下げることになるため、変更しませんでした。先に管理画面で非公開にするか、--draft を外して取り込んでください。',
     'would_status' => '状態: :status',
     'no_markdown_files' => 'ディレクトリ :path に .md ファイルがありません',

@@ -18,7 +18,7 @@
  */
 
 return [
-    'not_local' => 'Importing writes into this site\'s database. It runs only when APP_ENV is "local"; pass --allow-non-local to run it here anyway.',
+    'not_local' => 'This site is not local (APP_ENV is ":env"). Importing writes into its database. Pass --force to run without asking.',
     'member_required' => 'Name the post\'s author with --as (the member\'s account name or e-mail address).',
     'member_not_found' => 'No member has the account name or e-mail address ":identifier". --as takes one of those, not a member ID.',
     'member_inactive' => 'The member ":identifier" is not active.',
@@ -42,8 +42,8 @@ return [
     'created' => 'Created post #:id (:slug) as :status.',
     'updated' => 'Updated post #:id (:slug); it is :status.',
     'images' => 'Images: :imported imported, :reused already in the library.',
-    'stale_revision' => 'The post ":slug" has changed since this file was exported (file revision :revision, post now :current). Export it again and edit that file, or pass --force to overwrite the changes.',
-    'changed_in_admin' => 'The post ":slug" was last saved outside the import, for example in the admin. Export it and edit that file, or pass --force to overwrite the changes.',
+    'stale_revision' => 'The post ":slug" has changed since this file was exported (file revision :revision, post now :current). Export it again and edit that file, or pass --overwrite to overwrite the changes.',
+    'changed_in_admin' => 'The post ":slug" was last saved outside the import, for example in the admin. Export it and edit that file, or pass --overwrite to overwrite the changes.',
     'draft_live_post' => 'The post ":slug" is published or scheduled. --draft would take it off the site, so it was left alone; unpublish it in the admin first, or import without --draft.',
     'would_status' => 'Status: :status',
     'no_markdown_files' => 'No .md files in the directory :path',
