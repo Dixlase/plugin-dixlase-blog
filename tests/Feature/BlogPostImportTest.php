@@ -85,7 +85,7 @@ class BlogPostImportTest extends TestCase
         $this->app['translator']->addNamespace('dixlase-blog', base_path('plugins/DixlaseBlog/lang'));
         $this->app->make(ConsoleKernel::class)->registerCommand($this->app->make(ImportPost::class));
 
-        $this->author = Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1, 'email' => 'author@example.com']);
+        $this->author = Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1, 'email' => 'author@example.com', 'account_name' => 'author']);
         BlogCategory::create(['label' => 'News', 'slug' => 'news', 'display_order' => 10]);
 
         $this->dir = storage_path('framework/testing/blog-import-'.uniqid());
@@ -493,6 +493,25 @@ class BlogPostImportTest extends TestCase
         $this->assertSame('good', $result['results'][0]['post']['slug']);
         $this->assertFalse($result['results'][1]['ok']);
         $this->assertSame([__('dixlase-blog::import.no_markdown_files', ['path' => $this->dir.'/empty'])], $result['results'][1]['errors']);
+    }
+
+    public function test_the_author_is_named_by_account_name_or_e_mail_not_id(): void
+    {
+        $file = $this->postFile("---\ntitle: Named\nslug: named\n---\n\nBody");
+
+        $this->artisan('dls:blog:post:import', ['paths' => [$file], '--as' => 'author', '--allow-non-local' => true])->assertSuccessful();
+        $this->assertSame($this->author->id, (int) BlogPost::sole()->user_id);
+
+        $id = (string) $this->author->id;
+        $this->artisan('dls:blog:post:import', ['paths' => [$file], '--as' => $id, '--allow-non-local' => true])
+            ->expectsOutputToContain(__('dixlase-blog::import.member_not_found', ['identifier' => $id]))
+            ->assertFailed();
+
+        // A name of digits only is an account name, whatever IDs exist.
+        $digits = Member::factory()->create(['role' => MemberRole::ADMIN, 'status' => 1, 'account_name' => $id.'0']);
+        $other = $this->postFile("---\ntitle: Digits\nslug: digits\n---\n\nBody");
+        $this->artisan('dls:blog:post:import', ['paths' => [$other], '--as' => $id.'0', '--allow-non-local' => true])->assertSuccessful();
+        $this->assertSame($digits->id, (int) BlogPost::where('slug', 'digits')->sole()->user_id);
     }
 
     /**

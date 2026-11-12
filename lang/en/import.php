@@ -19,8 +19,8 @@
 
 return [
     'not_local' => 'Importing writes into this site\'s database. It runs only when APP_ENV is "local"; pass --allow-non-local to run it here anyway.',
-    'member_required' => 'Name the post\'s author with --as (a member ID or e-mail address).',
-    'member_not_found' => 'No member matches ":identifier".',
+    'member_required' => 'Name the post\'s author with --as (the member\'s account name or e-mail address).',
+    'member_not_found' => 'No member has the account name or e-mail address ":identifier". --as takes one of those, not a member ID.',
     'member_inactive' => 'The member ":identifier" is not active.',
     'file_not_found' => 'Not a readable file: :path',
     'front_matter_unclosed' => 'The front matter starts with "---" but has no closing "---" line.',

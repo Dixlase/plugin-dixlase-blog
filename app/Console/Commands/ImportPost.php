@@ -56,7 +56,7 @@ class ImportPost extends Command
 {
     protected $signature = 'dls:blog:post:import
                             {paths* : Markdown files to import, or directories whose *.md files are imported}
-                            {--as= : The post\'s author (member ID or e-mail address)}
+                            {--as= : The post\'s author: the member\'s account name or e-mail address}
                             {--storage= : Where the post is stored: file or database (default: the blog\'s setting for a new post, unchanged for an existing one)}
                             {--force : Import even when the post was changed since the file was taken}
                             {--draft : Save every post as a draft, whatever status the file gives}
@@ -203,9 +203,11 @@ class ImportPost extends Command
             return null;
         }
 
-        $member = ctype_digit($identifier)
-            ? Member::find((int) $identifier)
-            : Member::where('email', $identifier)->first();
+        // An account name may be digits only, so an ID is not accepted: a
+        // mistyped number would otherwise name another real member (#245).
+        $member = str_contains($identifier, '@')
+            ? Member::where('email', $identifier)->first()
+            : Member::where('account_name', $identifier)->first();
 
         if (! $member instanceof Member) {
             $this->error(__('dixlase-blog::import.member_not_found', ['identifier' => $identifier]));
