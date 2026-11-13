@@ -19,7 +19,8 @@
 
 return [
     'post_not_found' => 'No post has the slug or ID ":identifier".',
-    'not_markdown' => 'The post ":slug" is not written in Markdown, so it cannot be exported as a file.',
+    'editor_not_exportable' => 'The post ":slug" uses the :editor editor, which has no text body to write to a file. Only Markdown and HTML posts can be exported.',
+    'assets_omitted' => 'Left out: :keys. Pass --output to write them to files next to the post file; importing this file keeps the post\'s current ones.',
     'file_exists' => ':path already exists. Pass --force to overwrite it.',
     'written' => 'Exported post #:id (:slug) to :path.',
 ];

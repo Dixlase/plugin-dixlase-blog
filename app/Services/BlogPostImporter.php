@@ -34,6 +34,7 @@ declare(strict_types=1);
 
 namespace Plugins\DixlaseBlog\App\Services;
 
+use App\Enums\ContentEditorType;
 use App\Models\Member;
 use App\Services\Media\MediaImporter;
 use Illuminate\Foundation\Http\FormRequest;
@@ -63,9 +64,14 @@ use Plugins\DixlaseBlog\App\Support\Import\PostImportException;
  * field the front matter leaves out keeps its current value.
  *
  * Local images named in `featured_image`, `seo.ogp_image` and the body's
- * `![alt](path)` are imported through core's {@see MediaImporter} and
- * replaced by the media item. Nothing is imported until the file has passed
- * validation once, so a broken file adds nothing to the media library.
+ * `![alt](path)` (or, in an HTML body, `<img src="path">`) are imported
+ * through core's {@see MediaImporter} and replaced by the media item.
+ * Nothing is imported until the file has passed validation once, so a
+ * broken file adds nothing to the media library.
+ *
+ * `editor` chooses Markdown or HTML, and `custom_css` / `custom_js` name
+ * files next to the post file that become its own CSS and JavaScript
+ * (#251), under the same {@see BlogScriptAuthoringPolicy} as the editor.
  */
 class BlogPostImporter
 {
@@ -73,7 +79,7 @@ class BlogPostImporter
     public const KEYS = [
         'title', 'slug', 'lang', 'status', 'published_at', 'closed_at',
         'categories', 'tags', 'excerpt', 'featured_image', 'is_pinned',
-        'comment_status', 'seo',
+        'comment_status', 'seo', 'editor', 'custom_css', 'custom_js',
         // The version the export took the file from (#235), read by the
         // overwrite check (#236); the post has no column for it.
         'revision',
@@ -81,8 +87,17 @@ class BlogPostImporter
 
     public const SEO_KEYS = ['description', 'ogp_image'];
 
+    /** The editors a post file may be written for (#251) */
+    public const EDITORS = ['markdown', 'html'];
+
+    /** The front matter keys that name a file of the post's own CSS / JS */
+    public const ASSET_KEYS = ['custom_css', 'custom_js'];
+
     /** `![alt](path)` or `![alt](path "title")`; group 2 is the path */
     private const BODY_IMAGE = '/!\[([^\]]*)\]\(\s*<?([^\s)>]+)>?((?:\s+"[^"]*")?)\s*\)/u';
+
+    /** `<img … src="path">` in an HTML body; group 3 is the path */
+    private const HTML_IMAGE = '/(<img\b[^>]*?\ssrc\s*=\s*)(["\'])([^"\']+)\2/iu';
 
     public function __construct(
         private readonly BlogPostService $posts,
@@ -121,9 +136,8 @@ class BlogPostImporter
         $this->checkKeys($fields);
 
         $post = $this->existingPost($fields['slug'] ?? null);
-        if ($post !== null && $post->editor_type->slug() !== 'markdown') {
-            throw new PostImportException([__('dixlase-blog::import.not_markdown', ['slug' => $post->slug])]);
-        }
+        $editor = $this->editor($fields, $post, $author);
+        $this->checkAssets($fields, $editor, $author);
         // A live post changes what the site shows; see BlogPublishPolicy.
         if ($post !== null && ! BlogPublishPolicy::canChange($author, $post)) {
             throw new PostImportException([__('dixlase-blog::import.live_post', ['slug' => $post->slug])]);
@@ -137,8 +151,9 @@ class BlogPostImporter
             $this->checkOverwrite($fields, $post);
         }
         $this->checkStorage($storage, $post);
-        $images = $this->localImages($fields, $frontMatter->body, dirname((string) realpath($file)));
-        $data = $this->data($fields, $frontMatter->body, $post);
+        $baseDir = dirname((string) realpath($file));
+        $images = $this->localImages($fields, $frontMatter->body, $baseDir, $editor);
+        $data = $this->data($fields, $frontMatter->body, $post, $editor) + $this->assets($fields, $baseDir);
         if ($draft) {
             $data['status'] = 'draft';
         }
@@ -163,7 +178,7 @@ class BlogPostImporter
         }
 
         $plan['images'] = $this->importImages($images, $author);
-        $data = $this->withImages($data, $plan['images'], $fields);
+        $data = $this->withImages($data, $plan['images'], $editor);
         $validated = $this->validate($data, $post, $author);
 
         $saved = DB::transaction(function () use ($post, $validated, $author): BlogPost {
@@ -283,7 +298,7 @@ class BlogPostImporter
             }
         }
 
-        foreach (['title', 'slug', 'lang', 'status', 'published_at', 'closed_at', 'excerpt', 'featured_image', 'comment_status', 'revision'] as $key) {
+        foreach (['title', 'slug', 'lang', 'status', 'published_at', 'closed_at', 'excerpt', 'featured_image', 'comment_status', 'revision', 'editor', 'custom_css', 'custom_js'] as $key) {
             if (isset($fields[$key]) && ! is_string($fields[$key])) {
                 $errors[] = __('dixlase-blog::import.not_text', ['key' => $key]);
             }
@@ -314,7 +329,7 @@ class BlogPostImporter
      *
      * @throws PostImportException
      */
-    private function localImages(array $fields, string $body, string $baseDir): array
+    private function localImages(array $fields, string $body, string $baseDir, ContentEditorType $editor): array
     {
         $refs = [];
         if (is_string($fields['featured_image'] ?? null)) {
@@ -323,9 +338,16 @@ class BlogPostImporter
         if (is_string($fields['seo']['ogp_image'] ?? null)) {
             $refs[] = ['seo.ogp_image', $fields['seo']['ogp_image']];
         }
-        preg_match_all(self::BODY_IMAGE, $body, $matches);
-        foreach ($matches[2] as $path) {
-            $refs[] = ['body', $path];
+        if ($editor === ContentEditorType::HTML) {
+            preg_match_all(self::HTML_IMAGE, $body, $matches);
+            foreach ($matches[3] as $path) {
+                $refs[] = ['body', html_entity_decode($path, ENT_QUOTES | ENT_HTML5)];
+            }
+        } else {
+            preg_match_all(self::BODY_IMAGE, $body, $matches);
+            foreach ($matches[2] as $path) {
+                $refs[] = ['body', $path];
+            }
         }
 
         $images = [];
@@ -352,6 +374,128 @@ class BlogPostImporter
         return $images;
     }
 
+    /**
+     * The editor the post is written for (#251)
+     *
+     * A new post takes the file's `editor`, Markdown by default; whether
+     * the author may choose HTML is the store request's to say, as in the
+     * admin. A saved post keeps its editor, so a file naming another one is
+     * refused, and an HTML post is changed only by a member who may author
+     * scripts. GUI (block) posts have no text body to write by hand.
+     *
+     * @param  array<string, mixed>  $fields
+     *
+     * @throws PostImportException
+     */
+    private function editor(array $fields, ?BlogPost $post, Member $author): ContentEditorType
+    {
+        $named = $fields['editor'] ?? null;
+        if ($named !== null && ! in_array($named, self::EDITORS, true)) {
+            throw new PostImportException([__('dixlase-blog::import.invalid_editor', ['editor' => (string) $named, 'editors' => implode(', ', self::EDITORS)])]);
+        }
+
+        if ($post === null) {
+            return ContentEditorType::tryFromSlug((string) ($named ?? 'markdown')) ?? ContentEditorType::MARKDOWN;
+        }
+
+        $current = $post->editor_type->slug();
+        if (! in_array($current, self::EDITORS, true)) {
+            throw new PostImportException([__('dixlase-blog::import.editor_not_importable', ['slug' => $post->slug, 'editor' => $current])]);
+        }
+        if ($named !== null && $named !== $current) {
+            throw new PostImportException([__('dixlase-blog::import.editor_fixed', ['slug' => $post->slug, 'editor' => $current, 'named' => $named])]);
+        }
+        if (! BlogScriptAuthoringPolicy::canEditEditorType($author, $post->editor_type)) {
+            throw new PostImportException([__('dixlase-blog::import.html_not_allowed', ['slug' => $post->slug])]);
+        }
+
+        return $post->editor_type;
+    }
+
+    /**
+     * Refuse CSS or JavaScript the editor would not take (#251)
+     *
+     * The editor's form request drops what an author may not write and
+     * keeps the current value instead. A file that names it asks for it
+     * explicitly, so it is refused rather than quietly ignored.
+     *
+     * @param  array<string, mixed>  $fields
+     *
+     * @throws PostImportException
+     */
+    private function checkAssets(array $fields, ContentEditorType $editor, Member $author): void
+    {
+        $named = array_values(array_filter(self::ASSET_KEYS, fn (string $key): bool => array_key_exists($key, $fields)));
+        if ($named === []) {
+            return;
+        }
+
+        $errors = [];
+        if (array_key_exists('custom_js', $fields) && ! BlogScriptAuthoringPolicy::carriesCustomJs($editor)) {
+            $errors[] = __('dixlase-blog::import.custom_js_html_only');
+        }
+        if (! BlogScriptAuthoringPolicy::canAuthorScripts($author)) {
+            $errors[] = __('dixlase-blog::import.custom_assets_not_allowed', ['keys' => implode(', ', $named)]);
+        }
+
+        if ($errors !== []) {
+            throw new PostImportException($errors);
+        }
+    }
+
+    /**
+     * The CSS / JavaScript files the front matter names, read as form input
+     *
+     * A value is a path relative to the post file; `null` clears the
+     * post's CSS / JS. A key left out is left out of the input, so the form
+     * request keeps the current value.
+     *
+     * @param  array<string, mixed>  $fields
+     * @return array<string, ?string>
+     *
+     * @throws PostImportException
+     */
+    private function assets(array $fields, string $baseDir): array
+    {
+        $data = [];
+        $errors = [];
+
+        foreach (self::ASSET_KEYS as $key) {
+            if (! array_key_exists($key, $fields)) {
+                continue;
+            }
+
+            $path = $fields[$key];
+            if ($path === null || $path === '') {
+                $data[$key] = null;
+
+                continue;
+            }
+
+            $path = (string) $path;
+            if (! self::isLocal($path)) {
+                $errors[] = __('dixlase-blog::import.asset_must_be_local', ['key' => $key]);
+
+                continue;
+            }
+
+            $file = realpath($baseDir.DIRECTORY_SEPARATOR.rawurldecode($path));
+            if ($file === false || ! is_file($file) || ! is_readable($file)) {
+                $errors[] = __('dixlase-blog::import.asset_not_found', ['key' => $key, 'path' => $path]);
+
+                continue;
+            }
+
+            $data[$key] = (string) file_get_contents($file);
+        }
+
+        if ($errors !== []) {
+            throw new PostImportException($errors);
+        }
+
+        return $data;
+    }
+
     public static function isLocal(string $path): bool
     {
         return $path !== ''
@@ -368,13 +512,13 @@ class BlogPostImporter
      *
      * @throws PostImportException
      */
-    private function data(array $fields, string $body, ?BlogPost $post): array
+    private function data(array $fields, string $body, ?BlogPost $post, ContentEditorType $editor): array
     {
         $data = [
             'title' => $fields['title'] ?? $post?->title,
             'slug' => $fields['slug'] ?? null,
             'content' => $body,
-            'editor_type' => $post?->editor_type->slug() ?? 'markdown',
+            'editor_type' => $editor->slug(),
             'status' => $fields['status'] ?? $post?->status->slug() ?? 'draft',
         ];
 
@@ -513,7 +657,7 @@ class BlogPostImporter
      * @param  array<string, mixed>  $fields
      * @return array<string, mixed>
      */
-    private function withImages(array $data, array $images, array $fields): array
+    private function withImages(array $data, array $images, ContentEditorType $editor): array
     {
         $paths = [];
         foreach ($images as $image) {
@@ -524,7 +668,19 @@ class BlogPostImporter
             };
         }
 
-        if ($paths !== []) {
+        if ($paths !== [] && $editor === ContentEditorType::HTML) {
+            $data['content'] = preg_replace_callback(
+                self::HTML_IMAGE,
+                function (array $m) use ($paths): string {
+                    $path = html_entity_decode($m[3], ENT_QUOTES | ENT_HTML5);
+
+                    return isset($paths[$path])
+                        ? $m[1].$m[2].htmlspecialchars((string) $paths[$path], ENT_QUOTES | ENT_HTML5).$m[2]
+                        : $m[0];
+                },
+                (string) $data['content'],
+            ) ?? $data['content'];
+        } elseif ($paths !== []) {
             $data['content'] = preg_replace_callback(
                 self::BODY_IMAGE,
                 fn (array $m): string => isset($paths[$m[2]])

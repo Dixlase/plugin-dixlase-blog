@@ -98,16 +98,19 @@ featured_image: ./images/cover.png
 seo:
   description: Meta description
   ogp_image: ./images/ogp.png
+custom_css: ./hello.css       # the post's own CSS, from a file next to this one
 ---
 
 The body, in Markdown. ![A figure](./images/figure-1.png)
 ```
 
-- The post is checked with the editor's own rules and saved the same way, with a revision. It is a Markdown post, and a **draft unless the file says otherwise** — read it in the admin before publishing
+- The post is checked with the editor's own rules and saved the same way, with a revision. It is a Markdown post unless `editor: html` says otherwise, and a **draft unless the file says otherwise** — read it in the admin before publishing
+- `editor: html` makes an HTML post, whose body is HTML. A saved post keeps its editor, as in the admin: for an existing post `editor` must match it or be left out. Only Markdown and HTML posts can be imported
+- `custom_css` and `custom_js` name a file, relative to the post file, whose contents become the post's own CSS and JavaScript; `null` clears it. Custom JS is for HTML posts only. As in the editor, HTML posts, custom CSS and custom JS need a member who may author scripts (admin and above), and HTML is not offered in the simple admin mode; a file that asks for them otherwise is refused
 - `--draft` saves a draft whatever `status` the file gives — for files written by someone else, or by an assistant, that should be read before they go live. A post that is already published or scheduled is refused rather than taken off the site
 - A post whose slug already exists is **updated**; a key the file leaves out keeps its current value
 - An update is refused when it would undo a change made since the file was written: a file from the export whose `revision` no longer matches the post, or a file without `revision` when the post was last saved outside the import (for example in the admin). Export the post again and edit that file, or pass `--overwrite` to overwrite. Revisions saved by the import are labelled *Import* in the post's revision list
-- Local images (relative paths) in `featured_image`, `seo.ogp_image` and the body are imported into the media library with core's `dls:media:import`, and the body points at them. URLs and site paths starting with `/` are left as they are. An image already in the library is reused
+- Local images (relative paths) in `featured_image`, `seo.ogp_image` and the body (`![]()` in Markdown, `<img src>` in HTML) are imported into the media library with core's `dls:media:import`, and the body points at them. URLs and site paths starting with `/` are left as they are. An image already in the library is reused
 - Nothing is saved, and no image is imported, unless the whole file is valid. `--dry-run` only checks; `--json` prints the post and the images used
 - `--storage=file` or `--storage=database` chooses where the post is stored, as the editor's storage choice does: a new post is created there and an existing one is moved (moving back to the database removes its files). Without it a new post takes the blog's default and an existing post stays where it is. Storage can be chosen only in the advanced admin mode; in the simple mode the option is refused
 - Several files and directories can be given at once; a directory stands for the `*.md` files directly inside it, in name order. Each file is imported on its own: one that fails saves nothing and does not stop the others, and the command ends with a summary (and fails if any file did). With `--json` the output is then a list of results, one per file
@@ -129,9 +132,10 @@ php artisan dls:blog:post:export hello-world                       # to standard
 php artisan dls:blog:post:export hello-world --output=drafts/hello.md
 ```
 
-- The post is named by its slug or ID. Only Markdown posts can be exported
-- `--output` refuses to overwrite an existing file unless `--force` is given
-- The front matter holds the post's fields, its categories, tags and SEO description, and `revision`, the post's version when the file was taken
+- The post is named by its slug or ID. Markdown and HTML posts can be exported
+- With `--output`, the post's CSS and JavaScript are written next to the file, named after it (`drafts/hello.css`, `drafts/hello.js`), and the front matter points at them. Written to standard output they are left out, with a note; importing that file keeps the post's current CSS and JavaScript
+- `--output` refuses to overwrite an existing file — the post file or its CSS / JavaScript — unless `--force` is given
+- The front matter holds the post's fields, its editor, its categories, tags and SEO description, and `revision`, the post's version when the file was taken
 - Images are not written to the front matter: a key the import does not see keeps its value, so the featured and OGP images stay. Images in the body keep their site paths
 - A post stored as files is exported from its working copy, the one the editor shows
 - Importing the file again without editing it leaves the post unchanged

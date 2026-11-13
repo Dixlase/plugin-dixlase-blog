@@ -52,8 +52,8 @@ class ExportPost extends Command
 {
     protected $signature = 'dls:blog:post:export
                             {post : The post\'s slug or ID}
-                            {--output= : Write to this file instead of standard output}
-                            {--force : Overwrite the output file if it exists}';
+                            {--output= : Write to this file instead of standard output; the post\'s CSS and JavaScript go next to it}
+                            {--force : Overwrite the output files if they exist}';
 
     protected $description = 'Write a blog post as a Markdown file with front matter, as the import reads it';
 
@@ -68,8 +68,11 @@ class ExportPost extends Command
             return self::FAILURE;
         }
 
+        $output = trim((string) $this->option('output'));
+
         try {
-            $markdown = $exporter->export($post);
+            // The CSS and JavaScript are named after the post file (#251).
+            $export = $exporter->export($post, $output === '' ? null : pathinfo($output, PATHINFO_FILENAME));
         } catch (PostImportException $e) {
             foreach ($e->errors as $error) {
                 $this->error($error);
@@ -78,22 +81,41 @@ class ExportPost extends Command
             return self::FAILURE;
         }
 
-        $output = trim((string) $this->option('output'));
         if ($output === '') {
-            $this->output->write($markdown, false, OutputInterface::OUTPUT_RAW);
+            $this->output->write($export['markdown'], false, OutputInterface::OUTPUT_RAW);
+            if ($export['omitted'] !== []) {
+                // On standard error, so the file written from standard output stays clean.
+                $this->getOutput()->getErrorStyle()->warning(__('dixlase-blog::export.assets_omitted', ['keys' => implode(', ', $export['omitted'])]));
+            }
 
             return self::SUCCESS;
         }
 
-        if (File::exists($output) && ! $this->option('force')) {
-            $this->error(__('dixlase-blog::export.file_exists', ['path' => $output]));
-
-            return self::FAILURE;
+        $dir = dirname($output);
+        $files = [$output => $export['markdown']];
+        foreach ($export['assets'] as $name => $contents) {
+            $files[$dir.DIRECTORY_SEPARATOR.$name] = $contents;
         }
 
-        File::ensureDirectoryExists(dirname($output));
-        File::put($output, $markdown);
+        // Nothing is written unless every file may be.
+        if (! $this->option('force')) {
+            foreach (array_keys($files) as $path) {
+                if (File::exists($path)) {
+                    $this->error(__('dixlase-blog::export.file_exists', ['path' => $path]));
+
+                    return self::FAILURE;
+                }
+            }
+        }
+
+        File::ensureDirectoryExists($dir);
+        foreach ($files as $path => $contents) {
+            File::put($path, $contents);
+        }
         $this->info(__('dixlase-blog::export.written', ['id' => $post->id, 'slug' => $post->slug, 'path' => $output]));
+        foreach (array_keys($export['assets']) as $name) {
+            $this->line('  '.$dir.DIRECTORY_SEPARATOR.$name);
+        }
 
         return self::SUCCESS;
     }

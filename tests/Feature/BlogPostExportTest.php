@@ -38,6 +38,7 @@ use App\Enums\ContentEditorType;
 use App\Enums\ContentStatus;
 use App\Enums\MemberRole;
 use App\Models\Member;
+use App\Models\SiteSetting;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -169,14 +170,83 @@ class BlogPostExportTest extends TestCase
         $this->assertStringStartsWith('---', File::get($file));
     }
 
-    public function test_a_post_not_written_in_markdown_is_refused(): void
+    public function test_a_post_without_a_text_body_is_refused(): void
     {
-        $post = $this->importPost("---\ntitle: Html\nslug: html-post\n---\n\nBody");
-        $post->forceFill(['editor_type' => ContentEditorType::HTML])->saveQuietly();
+        $post = $this->importPost("---\ntitle: Blocks\nslug: gui-post\n---\n\nBody");
+        $post->forceFill(['editor_type' => ContentEditorType::GUI])->saveQuietly();
 
-        $this->export('html-post')
-            ->expectsOutputToContain(__('dixlase-blog::export.not_markdown', ['slug' => 'html-post']))
+        $this->export('gui-post')
+            ->expectsOutputToContain(__('dixlase-blog::export.editor_not_exportable', ['slug' => 'gui-post', 'editor' => 'gui']))
             ->assertFailed();
+    }
+
+    public function test_a_markdown_post_with_css_round_trips_through_files_next_to_it(): void
+    {
+        File::put($this->dir.'/source.css', ".post {\r\n  color: red;\r\n}");
+        $post = $this->importPost("---\ntitle: Styled\nslug: styled\ncustom_css: ./source.css\n---\n\nBody");
+        $token = app(BlogPostService::class)->versionToken($post);
+        $revisions = BlogPostRevision::query()->where('post_id', $post->id)->count();
+
+        $file = $this->dir.'/out/styled.md';
+        $this->export('styled', ['--output' => $file])->assertSuccessful();
+
+        $markdown = File::get($file);
+        $this->assertStringContainsString("editor: markdown\n", $markdown);
+        $this->assertStringContainsString('custom_css: "./styled.css"', $markdown);
+        $this->assertStringNotContainsString('custom_js', $markdown);
+        $this->assertSame(".post {\r\n  color: red;\r\n}", File::get($this->dir.'/out/styled.css'));
+
+        $this->import($file)->assertSuccessful();
+        $this->assertSame($token, app(BlogPostService::class)->versionToken($post->fresh()));
+        $this->assertSame($revisions, BlogPostRevision::query()->where('post_id', $post->id)->count());
+    }
+
+    public function test_an_html_post_round_trips_with_its_css_and_js(): void
+    {
+        SiteSetting::setValue('admin_mode', '1');
+        File::put($this->dir.'/source.css', 'p { margin: 0; }');
+        File::put($this->dir.'/source.js', 'console.log(1);');
+        $post = $this->importPost("---\ntitle: Html\nslug: html-post\neditor: html\ncustom_css: ./source.css\ncustom_js: ./source.js\n---\n\n<p>Body</p>");
+        $token = app(BlogPostService::class)->versionToken($post);
+
+        $file = $this->dir.'/out/html-post.md';
+        $this->export('html-post', ['--output' => $file])->assertSuccessful();
+
+        $markdown = File::get($file);
+        $this->assertStringContainsString("editor: html\n", $markdown);
+        $this->assertStringContainsString('custom_js: "./html-post.js"', $markdown);
+        $this->assertStringEndsWith("---\n\n<p>Body</p>", $markdown);
+        $this->assertSame('console.log(1);', File::get($this->dir.'/out/html-post.js'));
+
+        $this->import($file)->assertSuccessful();
+        $post = $post->fresh();
+        $this->assertSame($token, app(BlogPostService::class)->versionToken($post));
+        $this->assertSame('p { margin: 0; }', $post->custom_css);
+        $this->assertSame('console.log(1);', $post->custom_js);
+    }
+
+    public function test_standard_output_leaves_the_css_out(): void
+    {
+        File::put($this->dir.'/source.css', 'p {}');
+        $this->importPost("---\ntitle: Printed\nslug: printed\ncustom_css: ./source.css\n---\n\nBody");
+
+        Artisan::call('dls:blog:post:export', ['post' => 'printed']);
+
+        // The note about it goes to standard error, which a test buffer shares.
+        $this->assertStringNotContainsString('custom_css: ', Artisan::output());
+    }
+
+    public function test_an_existing_css_file_is_not_overwritten_without_force(): void
+    {
+        File::put($this->dir.'/source.css', 'p {}');
+        $this->importPost("---\ntitle: Kept\nslug: kept\ncustom_css: ./source.css\n---\n\nBody");
+        File::put($this->dir.'/kept.css', 'mine');
+
+        $this->export('kept', ['--output' => $this->dir.'/kept.md'])
+            ->expectsOutputToContain(__('dixlase-blog::export.file_exists', ['path' => $this->dir.'/kept.css']))
+            ->assertFailed();
+        $this->assertSame('mine', File::get($this->dir.'/kept.css'));
+        $this->assertFalse(File::exists($this->dir.'/kept.md'));
     }
 
     public function test_it_runs_outside_a_local_environment(): void
