@@ -40,6 +40,7 @@ use App\Enums\ContentStatus;
 use App\Enums\MemberRole;
 use App\Models\Member;
 use App\Models\SiteSetting;
+use App\Services\ContentPreviewService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Validator;
@@ -157,6 +158,22 @@ class BlogScriptAuthoringTest extends TestCase
         $this->assertSame('<p>Hi</p>', $renderer->render('<p>Hi</p>', ContentEditorType::HTML));
         $this->assertSame('<pre>&lt;b&gt;x&lt;/b&gt;</pre>', $renderer->render('<b>x</b>', ContentEditorType::BLADE));
         $this->assertSame('<pre>&lt;b&gt;x&lt;/b&gt;</pre>', $renderer->render('<b>x</b>', null));
+    }
+
+    public function test_an_embed_line_in_an_html_post_becomes_an_embed(): void
+    {
+        if (! method_exists(ContentPreviewService::class, 'expandEmbeds')) {
+            $this->markTestSkipped('This core cannot expand embeds in HTML yet.');
+        }
+
+        $html = app(BlogContentRenderer::class)->render(
+            "<p>Watch this:</p>\n<p>@[youtube](https://www.youtube.com/watch?v=dQw4w9WgXcQ)</p>",
+            ContentEditorType::HTML,
+        );
+
+        $this->assertStringContainsString('<p>Watch this:</p>', $html);
+        $this->assertStringContainsString('youtube-nocookie.com/embed/dQw4w9WgXcQ', $html);
+        $this->assertStringNotContainsString('@[youtube]', $html);
     }
 
     private function member(MemberRole $role): Member

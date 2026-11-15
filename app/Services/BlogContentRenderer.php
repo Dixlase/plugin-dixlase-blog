@@ -43,8 +43,9 @@ use Plugins\DixlaseBlog\App\Models\BlogPost;
  *
  * - markdown: core's renderer with raw HTML escaped and unsafe links
  *   dropped, as DixlasePages renders Markdown
- * - html: output as written; only members BlogScriptAuthoringPolicy allows
- *   may author or change it
+ * - html: output as written, except that an `@[service](URL)` line alone
+ *   in its paragraph becomes an embed, as core's editor inserts it (#255);
+ *   only members BlogScriptAuthoringPolicy allows may author or change it
  * - anything else (GUI JSON, legacy Blade): escaped plain text
  */
 final class BlogContentRenderer
@@ -57,9 +58,23 @@ final class BlogContentRenderer
 
         return match ($editorType) {
             ContentEditorType::MARKDOWN => $this->previewService->render($content, ContentEditorType::MARKDOWN, false),
-            ContentEditorType::HTML => $content,
+            ContentEditorType::HTML => $this->expandEmbeds($content),
             default => '<pre>'.e($content).'</pre>',
         };
+    }
+
+    /**
+     * Core's embed expansion for an HTML body. A core older than the one
+     * that brought it has no expandEmbeds(); the body is then output as
+     * written, as before.
+     */
+    private function expandEmbeds(string $html): string
+    {
+        if (! method_exists($this->previewService, 'expandEmbeds')) {
+            return $html;
+        }
+
+        return $this->previewService->expandEmbeds($html);
     }
 
     /**
