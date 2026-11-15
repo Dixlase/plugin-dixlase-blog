@@ -407,7 +407,7 @@ return [
         'personal_data_delete' => ':count 件のコメントを削除しました。',
         'post_created' => '記事を作成しました。',
         'post_updated' => '記事を更新しました。',
-        'post_file_published' => 'ファイルの変更を公開しました。',
+        'post_file_published' => 'ファイルの変更を反映しました。',
         'post_trashed' => '記事をゴミ箱へ移動しました。',
         'post_restored' => '記事を復元しました。',
         'post_restored_renamed' => '記事を復元しました。slug がほかの記事で使われているため、「:slug」に変えました。',

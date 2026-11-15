@@ -407,7 +407,7 @@ return [
         'personal_data_delete' => ':count comment was deleted.|:count comments were deleted.',
         'post_created' => 'Post created.',
         'post_updated' => 'Post updated.',
-        'post_file_published' => 'The file changes have been published.',
+        'post_file_published' => 'The file changes have been applied.',
         'post_trashed' => 'Post moved to trash.',
         'post_restored' => 'Post restored.',
         'post_restored_renamed' => 'Post restored. Its slug is used by another post, so it is now ":slug".',
