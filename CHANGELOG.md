@@ -5,6 +5,25 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.4.1] — 2026-11-17
+
+### Added
+
+- `dls:blog:post:import` and `dls:blog:post:export` handle a post's custom CSS and JS, and HTML
+  posts. New front matter keys `editor`, `custom_css` and `custom_js` name files next to the post
+  file; the editor's rules apply (scripts need a member who may author them, custom JS is for HTML
+  posts only), and a relative `<img src>` in an HTML body is imported into the media library.
+  With `--output`, the export writes the CSS and JS next to the file so it imports back unchanged
+  (#252, fixes #251).
+- An `@[service](URL)` line alone in its paragraph in an HTML post is shown as an embed, the same
+  way as in Markdown. It needs core 0.2.18; on an older core the body is shown as written
+  (#256, fixes #255).
+
+### Changed
+
+- Taking in a post's file changes now says they were **applied**, not published, matching core
+  (#254, fixes #253).
+
 ## [0.4.0] — 2026-11-12
 
 ### Breaking
