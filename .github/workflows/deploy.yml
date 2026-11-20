@@ -1,17 +1,28 @@
 name: Deploy Plugin
 
-# A release deploys itself. `main` moves only at a release, in the same
-# push as the tag, so a push to main is a release; it deploys to brand
-# and demo through the `sites` fallback below (#223). The trigger is not
-# `release: published`: release.yml creates the Release with
-# GITHUB_TOKEN, and an event raised by GITHUB_TOKEN starts no other
-# workflow. The manual entry point stays for re-running a deploy.
+# A release deploys itself, and the tag is what says so. `main` moving only
+# at a release is a procedure; the tag is a mechanism -- it is created right
+# after the signature, in the working copy that holds the key, so it is the
+# one ref known to match the signature manifest. Keying the deploy on the tag
+# push means a site can only ever hold a signed tree, whatever else reaches
+# `main`. Dixlase/dixlase-core#520.
+#
+# The trigger is still not `release: published`: release.yml creates the
+# Release with GITHUB_TOKEN, and an event raised by GITHUB_TOKEN starts no
+# other workflow, so a deploy keyed on it would never run. The tag is pushed
+# by a person, so this one does.
+#
+# With no `sites` input given, the deploy goes to brand and demo through the
+# fallback below (#223).
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
+      tag:
+        description: 'Tag to deploy, e.g. v0.4.1'
+        required: true
       sites:
         description: Sites to deploy to
         type: choice
@@ -48,6 +59,12 @@ jobs:
       # ------------------------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          # Name the ref explicitly: on the tag push the default is already
+          # the tag, but on workflow_dispatch it is the branch the run was
+          # started from -- and the guard below would then inspect a different
+          # tree from the one the sites are moved onto.
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
 
       - name: Refuse a tree that carries no built assets
         # The guard that replaces the build. If this ref was pushed without
@@ -101,6 +118,14 @@ jobs:
               _expected_tip=$(git ls-remote "$EXPECTED_URL" refs/heads/main 2>/dev/null | cut -f1)
               [ -n "$_actual_tip" ] && [ "$_actual_tip" = "$_expected_tip" ]
             }
+
+            # The ref every site is moved onto. A tag, so a site holds a
+            # released, signed tree and nothing else.
+            TAG="${{ github.event.inputs.tag || github.ref_name }}"
+            if [ -z "$TAG" ]; then
+              echo "ERROR: no tag to deploy." >&2
+              exit 1
+            fi
 
             for SITE in ${{ inputs.sites || 'brand demo' }}; do
               # Resolve the site layout. A Docker Installer instance keeps the app in
@@ -160,7 +185,7 @@ jobs:
               # Resolve $DEST into one of three shapes and act accordingly:
               #
               #   (a) Proper nested clone of this plugin
-              #       -> restore ownership, fetch + reset to origin/main
+              #       -> restore ownership, fetch the tags and move it onto $TAG
               #
               #   (b) Directory exists but with no nested .git
               #       -> likely the outer parent repo was re-cloned over it and
@@ -204,7 +229,7 @@ jobs:
                     echo "       second extension, and removing it later takes the whole" >&2
                     echo "       site down, not just this plugin:" >&2
                     echo "         sudo mv $DEST $BACKUP_ROOT/$PLUGIN_DIR.stale.\$(date +%Y%m%d-%H%M%S)" >&2
-                    echo "         git clone --branch main $EXPECTED_URL $DEST" >&2
+                    echo "         git clone --branch $TAG $EXPECTED_URL $DEST" >&2
                     FAILED_SITES="$FAILED_SITES $SITE"
                     continue
                   fi
@@ -215,8 +240,8 @@ jobs:
                   git -C "$DEST" remote set-url origin "$EXPECTED_URL"
                 fi
                 cd "$DEST"
-                git fetch origin
-                git reset --hard origin/main
+                git fetch origin --tags --force --prune
+                git reset --hard "refs/tags/$TAG"
 
               elif [ -d "$DEST" ]; then
                 BACKUP_BASENAME="${PLUGIN_DIR}.stale.$(date +%Y%m%d-%H%M%S)"
@@ -225,11 +250,11 @@ jobs:
                 # recurs, something between deploys removes the nested .git.
                 echo "  Contents before move-aside: $(ls -A "$DEST" | wc -l) entr(ies); .git present: no"
                 docker exec "$PHP_CONTAINER" mv "$CONTAINER_DEST" "$CONTAINER_BACKUP_ROOT/$BACKUP_BASENAME"
-                git clone --branch main "$EXPECTED_URL" "$DEST"
+                git clone --branch "$TAG" "$EXPECTED_URL" "$DEST"
                 fix_owner "$CONTAINER_DEST"
 
               else
-                git clone --branch main "$EXPECTED_URL" "$DEST"
+                git clone --branch "$TAG" "$EXPECTED_URL" "$DEST"
                 fix_owner "$CONTAINER_DEST"
               fi
 
