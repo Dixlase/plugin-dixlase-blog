@@ -69,10 +69,18 @@ BlogContentRenderer).
 @endif
 
 {{-- An edit link in core's admin bar, for a member who may edit posts
-     (the controller decides; see adminEditUrl()). --}}
+     (the controller decides; see adminEditUrl()). On a preview, which
+     opens in its own tab, it goes back to the editor by closing that tab
+     (admin_bar_edit_closes, #261); a core without that takes it as an
+     ordinary link to the edit screen. --}}
 @if ($adminEditUrl ?? null)
     @section('admin_bar_edit_url', $adminEditUrl)
-    @section('admin_bar_edit_label', __('dixlase-blog::front.post.admin_bar_edit'))
+    @if ($adminEditCloses ?? false)
+        @section('admin_bar_edit_label', __('dixlase-blog::front.post.admin_bar_back'))
+        @section('admin_bar_edit_closes', '1')
+    @else
+        @section('admin_bar_edit_label', __('dixlase-blog::front.post.admin_bar_edit'))
+    @endif
 @endif
 
 {{-- The editors' preview of a post in any status stays out of search

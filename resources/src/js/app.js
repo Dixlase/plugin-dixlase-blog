@@ -36,3 +36,19 @@ document.addEventListener('alpine:init', () => {
         window.Alpine.data('blogSourceLanguage', blogSourceLanguage);
     }
 });
+
+// A link to a saved preview opens in the post's one preview tab, the one
+// the sidebar's Preview button uses, so previews do not pile up and the
+// preview's "Back to the editor" can close it (#261). A core without
+// openPreviewTab() leaves the link to open a new tab as before.
+document.addEventListener('click', (event) => {
+    const link = event.target instanceof Element ? event.target.closest('a[data-blog-preview-tab]') : null;
+    if (!link || typeof window.Dixlase?.openPreviewTab !== 'function') {
+        return;
+    }
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+    }
+    event.preventDefault();
+    window.Dixlase.openPreviewTab(link.href);
+});
