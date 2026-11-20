@@ -44,7 +44,8 @@
         "seo-meta",
         "linkable",
         "multilingual-content",
-        "captcha"
+        "captcha",
+        "front-page-body"
     ],
     "multilingual_content": {
         "types": [
@@ -110,7 +111,7 @@
         ]
     },
     "requires": {
-        "dixlase": ">=0.2.8",
+        "dixlase": ">=0.2.18",
         "dixlase_api": "^0.1",
         "php": ">=8.3"
     },

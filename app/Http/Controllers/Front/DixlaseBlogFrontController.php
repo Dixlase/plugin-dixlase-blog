@@ -44,6 +44,7 @@ use Plugins\DixlaseBlog\App\Services\BlogCommentCaptchaFormProvider;
 use Plugins\DixlaseBlog\App\Services\BlogComments;
 use Plugins\DixlaseBlog\App\Services\BlogContentRenderer;
 use Plugins\DixlaseBlog\App\Services\BlogFullPosts;
+use Plugins\DixlaseBlog\App\Services\BlogIndexListing;
 use Plugins\DixlaseBlog\App\Services\BlogPostNeighbours;
 use Plugins\DixlaseBlog\App\Services\BlogScriptAuthoringPolicy;
 use Plugins\DixlaseBlog\App\Services\BlogShareLinks;
@@ -64,28 +65,14 @@ class DixlaseBlogFrontController extends Controller
         private readonly BlogBreadcrumbs $breadcrumbs,
         private readonly BlogComments $comments,
         private readonly BlogFullPosts $fullPosts,
+        private readonly BlogIndexListing $listing,
     ) {
     }
 
     public function index(): View
     {
-        $full = $this->settings->indexLayout() === 'full';
-        $withBody = $this->settings->latestBody() === 'full';
-
-        // Pinned posts first; the archives and the feed keep date order.
-        $posts = BlogPost::query()
-            ->currentlyVisible()
-            ->with(['categories', 'tags', 'featuredMedia', 'author'])
-            ->withPublishedCommentCount()
-            ->orderByDesc('is_pinned')
-            ->orderByDesc('published_at')
-            ->paginate($this->settings->postsPerPage());
-
         return view('dixlase-blog::front.index', [
-            'posts' => $posts,
-            // The latest posts: each with its excerpt or its full text.
-            'fullPosts' => $full ? $posts->getCollection()->map(fn (BlogPost $post) => $this->fullPosts->for($post, $withBody))->all() : null,
-            'postFields' => $this->settings->postFields(),
+            ...$this->listing->for(),
             'breadcrumbs' => $this->breadcrumbs->forIndex(),
         ]);
     }
