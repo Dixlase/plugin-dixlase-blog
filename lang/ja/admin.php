@@ -428,6 +428,12 @@ return [
     ],
 
 
+    'front_page_body' => [
+        'label' => 'ブログ',
+        'top' => 'ブログのトップページ',
+        'top_description' => 'ブログ自身の一覧設定にしたがって最新の記事を表示します。',
+    ],
+
     'provider' => [
         'label' => 'ブログ記事',
     ],

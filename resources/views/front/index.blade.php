@@ -28,44 +28,10 @@ themes/<theme>/plugins/DixlaseBlog/resources/views/ (one theme).
 @endforeach
 
 @section('content')
-@component('dixlase-blog::front._layout', ['breadcrumbs' => $breadcrumbs ?? []])
-    <section class="dixlase-blog-index">
-        <header class="dixlase-blog-index__header">
-            <h1 class="dixlase-blog-index__heading">{{ __('dixlase-blog::front.index.heading') }}</h1>
-            <p class="dixlase-blog-index__feed">
-                <a href="{{ route('dixlase-blog::front.feed') }}" type="application/rss+xml">{{ __('dixlase-blog::front.index.feed_link') }}</a>
-            </p>
-        </header>
-
-        @if ($posts->isEmpty())
-            <p class="dixlase-blog-index__empty">{{ __('dixlase-blog::front.index.no_posts') }}</p>
-        @else
-            @if (($fullPosts ?? null) !== null)
-                {{-- The latest posts (index_layout = full): each with its full
-                     text, or its excerpt and a link to the post. --}}
-                <div class="dixlase-blog-full-list">
-                    @foreach ($fullPosts as $item)
-                        <article class="dixlase-blog-post dixlase-blog-full-list__post">
-                            @include('dixlase-blog::front._post-article', [
-                                'post' => $item['post'],
-                                'contentHtml' => $item['contentHtml'],
-                                'headingTag' => 'h2',
-                                'titleUrl' => route('dixlase-blog::front.show', ['slug' => $item['post']->slug]),
-                                'fields' => $postFields ?? null,
-                            ])
-                        </article>
-                    @endforeach
-                </div>
-            @else
-                <div @class(['dixlase-blog-list', 'dixlase-blog-list--single' => ($cardColumns ?? 'multi') === 'single'])>
-                    @foreach ($posts as $post)
-                        @include('dixlase-blog::front._card', ['post' => $post, 'showPinned' => true])
-                    @endforeach
-                </div>
-            @endif
-
-            @include('dixlase-blog::front._pagination')
-        @endif
-    </section>
-@endcomponent
+{{-- The listing itself lives in _index-body, so the blog's own top page and a
+     theme's front page body render the same markup (#257). --}}
+@include('dixlase-blog::front._index-body', [
+    'showHeading' => true,
+    'breadcrumbs' => $breadcrumbs ?? [],
+])
 @endsection

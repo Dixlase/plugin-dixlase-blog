@@ -49,6 +49,7 @@ use Illuminate\Support\ServiceProvider;
 use Plugins\DixlaseBlog\App\Models\BlogPost;
 use Plugins\DixlaseBlog\App\Services\BlogCommentCaptchaFormProvider;
 use Plugins\DixlaseBlog\App\Services\BlogCommentDashboardProvider;
+use Plugins\DixlaseBlog\App\Services\BlogFrontPageBodyProvider;
 use Plugins\DixlaseBlog\App\Services\BlogLocalizedUrlProvider;
 use Plugins\DixlaseBlog\App\Services\BlogPostLinkableProvider;
 use Plugins\DixlaseBlog\App\Services\BlogSeoMeta;
@@ -89,6 +90,11 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
         // The count of comments waiting for approval, on the dashboard.
         $this->app->singleton(BlogCommentDashboardProvider::class);
         $this->app->tag([BlogCommentDashboardProvider::class], 'plugin.capabilities');
+
+        // The blog top as a theme's front page body (#257). A theme offers
+        // the choice in its own settings and renders the stored one through
+        // core's FrontPageBodyResolver.
+        $this->app->tag([BlogFrontPageBodyProvider::class], 'plugin.capabilities');
     }
 
     public function boot(): void
@@ -129,7 +135,7 @@ class DixlaseBlogServiceProvider extends ServiceProvider implements ProvidesSett
         });
 
         // How the card lists are laid out, wherever they are used.
-        View::composer(['dixlase-blog::front.index', 'dixlase-blog::front.archive', 'dixlase-blog::front.shortcode'], function ($view): void {
+        View::composer(['dixlase-blog::front.index', 'dixlase-blog::front._index-body', 'dixlase-blog::front.archive', 'dixlase-blog::front.shortcode'], function ($view): void {
             $view->with('cardColumns', app(BlogSettings::class)->cardColumns());
         });
 
