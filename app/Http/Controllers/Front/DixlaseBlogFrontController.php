@@ -114,18 +114,22 @@ class DixlaseBlogFrontController extends Controller
      * in to the admin may open it; null otherwise. The front request does
      * not carry the admin login, so the member is read through core's
      * resolver, and the blog's role settings (with a site's overrides)
-     * decide, as they do for the edit route itself.
+     * decide, as they do for the edit route itself. A post not saved yet
+     * (the form preview of a new post) leads to the new-post screen.
      */
     private function adminEditUrl(BlogPost $post): ?string
     {
         $member = app(SignedInMemberResolver::class)->resolve();
         $role = $member?->getMemberRole();
+        $permission = $post->exists ? 'blog.edit' : 'blog.create';
 
-        if ($role === null || ! PermissionRegistry::canAccessPlugin('DixlaseBlog', 'blog.edit', $role)) {
+        if ($role === null || ! PermissionRegistry::canAccessPlugin('DixlaseBlog', $permission, $role)) {
             return null;
         }
 
-        return route('dixlase-blog::admin.blog.edit', ['post' => $post->id]);
+        return $post->exists
+            ? route('dixlase-blog::admin.blog.edit', ['post' => $post->id])
+            : route('dixlase-blog::admin.blog.create');
     }
 
     /**
@@ -149,6 +153,8 @@ class DixlaseBlogFrontController extends Controller
             ->view('dixlase-blog::front.show', array_merge($this->postViewData($request, $post), [
                 'isPreview' => true,
                 'previewRunsScript' => BlogScriptAuthoringPolicy::canAuthorScripts($this->comments->siteCommenter()),
+                'adminEditUrl' => $this->adminEditUrl($post),
+                'adminEditCloses' => true,
             ]))
             ->header('X-Robots-Tag', 'noindex, nofollow')
             ->header('Cache-Control', 'no-store, private');
@@ -249,6 +255,8 @@ class DixlaseBlogFrontController extends Controller
             ->view('dixlase-blog::front.show', array_merge($this->postViewData($request, $post, $this->renderer->render($post->content, $editorType)), [
                 'isPreview' => true,
                 'previewRunsScript' => $canAuthorScripts,
+                'adminEditUrl' => $this->adminEditUrl($post),
+                'adminEditCloses' => true,
             ]))
             ->header('X-Robots-Tag', 'noindex, nofollow')
             ->header('Cache-Control', 'no-store, private');

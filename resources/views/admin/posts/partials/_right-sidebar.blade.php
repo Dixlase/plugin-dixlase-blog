@@ -380,7 +380,7 @@ side validation continues to enforce it.
                                 <a href="{{ $postPublicUrl }}" target="_blank" rel="noopener"
                                    class="break-all text-blue-600 hover:underline dark:text-blue-400">{{ $postPublicUrl }}</a>
                             @else
-                                <a href="{{ route('dixlase-blog::admin.blog.previewPage', ['post' => $post->id]) }}" target="_blank" rel="noopener"
+                                <a href="{{ route('dixlase-blog::admin.blog.previewPage', ['post' => $post->id]) }}" target="_blank" rel="noopener" data-blog-preview-tab
                                    class="break-all text-blue-600 hover:underline dark:text-blue-400">{{ $postPublicUrl }}</a>
                                 <span class="block text-gray-500 dark:text-gray-400">{{ __('dixlase-blog::admin.post.url_not_public') }}</span>
                             @endif

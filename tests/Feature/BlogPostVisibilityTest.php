@@ -119,6 +119,9 @@ class BlogPostVisibilityTest extends TestCase
         Route::middleware('web')->prefix('admin-custom')->get('/blog/{post}/preview', [DixlaseBlogFrontController::class, 'preview'])
             ->whereNumber('post')
             ->name('dixlase-blog::admin.blog.previewPage');
+        // The admin bar on a preview links to the editor (#261).
+        Route::middleware('web')->prefix('admin-custom')->get('/blog/create', fn () => '')->name('dixlase-blog::admin.blog.create');
+        Route::middleware('web')->prefix('admin-custom')->get('/blog/{post}/edit', fn () => '')->name('dixlase-blog::admin.blog.edit');
         Route::getRoutes()->refreshNameLookups();
         Route::getRoutes()->refreshActionLookups();
 
