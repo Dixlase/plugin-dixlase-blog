@@ -83,7 +83,7 @@ class BlogAdminBarEditLinkTest extends TestCase
         // reads them.
         $this->layoutDirectory = storage_path('framework/testing/blog-layout-'.uniqid());
         File::ensureDirectoryExists($this->layoutDirectory.'/layouts');
-        File::put($this->layoutDirectory.'/layouts/app.blade.php', "<html><body><nav>[@yield('admin_bar_edit_url')|@yield('admin_bar_edit_label')]</nav>@yield('content')</body></html>");
+        File::put($this->layoutDirectory.'/layouts/app.blade.php', "<html><body><nav>[@yield('admin_bar_edit_url')|@yield('admin_bar_edit_label')]</nav><i>closes:@yield('admin_bar_edit_closes')</i>@yield('content')</body></html>");
         $this->app['view']->replaceNamespace('themes', [$this->layoutDirectory]);
 
         Route::middleware('plugin')->prefix('admin-custom')->group(base_path('plugins/DixlaseBlog/routes/admin.php'));
@@ -122,6 +122,56 @@ class BlogAdminBarEditLinkTest extends TestCase
             ->assertSee('<nav>['.route('dixlase-blog::admin.blog.edit', ['post' => $this->post->id]).'|Edit this post]</nav>', false);
     }
 
+    public function test_the_post_page_link_does_not_close_the_tab(): void
+    {
+        $this->signInToTheAdmin(MemberRole::EDITOR);
+
+        $this->get('/blog/a-post')->assertOk()->assertSee('<i>closes:</i>', false);
+    }
+
+    public function test_a_preview_goes_back_to_the_editor(): void
+    {
+        $member = $this->signInToTheAdmin(MemberRole::EDITOR);
+        $this->post->update(['status' => ContentStatus::DRAFT]);
+
+        $this->actingAs($member, 'member')
+            ->get('/admin-custom/blog/'.$this->post->id.'/preview')
+            ->assertOk()
+            ->assertSee('<nav>['.route('dixlase-blog::admin.blog.edit', ['post' => $this->post->id]).'|Back to the editor]</nav>', false)
+            ->assertSee('<i>closes:1</i>', false);
+    }
+
+    public function test_the_form_preview_of_a_new_post_goes_back_to_the_new_post_screen(): void
+    {
+        $member = $this->signInToTheAdmin(MemberRole::EDITOR);
+
+        $this->actingAs($member, 'member')
+            ->post('/admin-custom/blog/preview-page', [
+                'title' => 'Unsaved',
+                'content' => 'Body',
+                'editor_type' => 'markdown',
+                'lang' => 'en',
+            ])
+            ->assertOk()
+            ->assertSee('<nav>['.route('dixlase-blog::admin.blog.create').'|Back to the editor]</nav>', false)
+            ->assertSee('<i>closes:1</i>', false);
+    }
+
+    public function test_the_form_preview_of_a_saved_post_goes_back_to_its_edit_screen(): void
+    {
+        $member = $this->signInToTheAdmin(MemberRole::EDITOR);
+
+        $this->actingAs($member, 'member')
+            ->post('/admin-custom/blog/preview-page/'.$this->post->id, [
+                'title' => 'Changed',
+                'content' => 'Body',
+                'editor_type' => 'markdown',
+                'lang' => 'en',
+            ])
+            ->assertOk()
+            ->assertSee('<nav>['.route('dixlase-blog::admin.blog.edit', ['post' => $this->post->id]).'|Back to the editor]</nav>', false);
+    }
+
     public function test_a_member_who_may_not_edit_posts_gets_no_link(): void
     {
         $this->signInToTheAdmin(MemberRole::CONTRIBUTOR);
@@ -140,7 +190,7 @@ class BlogAdminBarEditLinkTest extends TestCase
      * The front request carries no admin login, so core's resolver is
      * what reports one; stand in for it.
      */
-    private function signInToTheAdmin(?MemberRole $role): void
+    private function signInToTheAdmin(?MemberRole $role): ?Member
     {
         $member = $role === null ? null : Member::factory()->create(['role' => $role, 'status' => 1]);
 
@@ -155,5 +205,7 @@ class BlogAdminBarEditLinkTest extends TestCase
                 return $this->member;
             }
         });
+
+        return $member;
     }
 }

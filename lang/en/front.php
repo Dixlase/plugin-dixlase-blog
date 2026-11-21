@@ -100,6 +100,7 @@ return [
         'back_to_index' => '← Back to all posts',
         // The edit link in the admin bar, for members who may edit posts.
         'admin_bar_edit' => 'Edit this post',
+        'admin_bar_back' => 'Back to the editor',
         // Below the excerpt in the latest posts; the label names the post.
         'read_more' => 'Read more',
         'read_more_label' => 'Read more: :title',
