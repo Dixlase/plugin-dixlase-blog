@@ -428,6 +428,12 @@ return [
     ],
 
 
+    'front_page_body' => [
+        'label' => 'Blog',
+        'top' => 'Blog top page',
+        'top_description' => 'The latest posts, laid out by the blog\'s own listing settings.',
+    ],
+
     'provider' => [
         'label' => 'Blog posts',
     ],
