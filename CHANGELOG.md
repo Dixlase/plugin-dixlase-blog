@@ -5,6 +5,24 @@ All notable changes to the Dixlase Blog plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this plugin follows Semantic Versioning.
 
+## [0.4.2] — 2026-11-23
+
+### Upgrade notes
+
+- Requires Dixlase core 0.2.18 or later, for the front page body contract.
+
+### Added
+
+- The blog's top page can be shown as a theme's front page body. The listing is rendered by the
+  blog, so every setting that decides how it looks (the layout, the full text, posts per page, the
+  card fields, the sidebar) applies without the theme knowing any of their keys (#263).
+- A post's preview links back to the editor, and reuses one preview tab instead of opening a new
+  one each time (#262).
+
+### Development
+
+- The deploy runs on a tag rather than on a merge (#260).
+
 ## [0.4.1] — 2026-11-17
 
 ### Added
